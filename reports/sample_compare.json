@@ -1,0 +1,73 @@
+{
+  "baseline_config_id": "baseline",
+  "candidate_config_id": "variant_retry",
+  "compared_task_count": 5,
+  "failure_summary": {
+    "baseline": {
+      "invalid_action": 1,
+      "no_op_loop": 1,
+      "timeout": 1
+    },
+    "candidate": {
+      "invalid_action": 1,
+      "no_op_loop": 1,
+      "timeout": 1
+    }
+  },
+  "improvements": [
+    {
+      "baseline_score": 0.0,
+      "baseline_status": "failed",
+      "candidate_score": 1.0,
+      "candidate_status": "success",
+      "score_delta": 1.0,
+      "task_id": "browsergym/miniwob.enter-text#seed=2"
+    }
+  ],
+  "metrics": {
+    "baseline": {
+      "avg_latency_sec": 5.88,
+      "avg_normalized_score": 0.4,
+      "avg_step_count": 9.0,
+      "failure_taxonomy": {
+        "invalid_action": 1,
+        "no_op_loop": 1,
+        "timeout": 1
+      },
+      "success_rate": 0.4,
+      "task_count": 5
+    },
+    "candidate": {
+      "avg_latency_sec": 6.4,
+      "avg_normalized_score": 0.4,
+      "avg_step_count": 9.6,
+      "failure_taxonomy": {
+        "invalid_action": 1,
+        "no_op_loop": 1,
+        "timeout": 1
+      },
+      "success_rate": 0.4,
+      "task_count": 5
+    },
+    "delta": {
+      "avg_latency_sec": 0.5200000000000005,
+      "avg_normalized_score": 0.0,
+      "avg_step_count": 0.5999999999999996,
+      "success_rate": 0.0
+    }
+  },
+  "missing_in_baseline": [],
+  "missing_in_candidate": [],
+  "regression_count": 1,
+  "regressions": [
+    {
+      "baseline_score": 1.0,
+      "baseline_status": "success",
+      "candidate_score": 0.0,
+      "candidate_status": "failed",
+      "score_delta": -1.0,
+      "task_id": "browsergym/miniwob.choose-list#seed=3"
+    }
+  ],
+  "taskset_id": "miniwob_smoke"
+}

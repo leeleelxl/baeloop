@@ -1,0 +1,9 @@
+id: baseline
+agent: agentlab_generic
+model: gpt-4o-mini
+prompt_version: v1
+max_steps: 15
+retry_policy:
+  enabled: false
+  max_retries: 0
+observation_mode: text

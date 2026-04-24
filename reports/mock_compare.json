@@ -1,0 +1,68 @@
+{
+  "baseline_config_id": "baseline",
+  "candidate_config_id": "variant_retry",
+  "compared_task_count": 5,
+  "failure_summary": {
+    "baseline": {
+      "invalid_action": 1,
+      "no_op_loop": 1,
+      "timeout": 1
+    },
+    "candidate": {
+      "timeout": 1
+    }
+  },
+  "improvements": [
+    {
+      "baseline_score": 0.0,
+      "baseline_status": "failed",
+      "candidate_score": 1.0,
+      "candidate_status": "success",
+      "score_delta": 1.0,
+      "task_id": "browsergym/miniwob.drag-box#seed=4"
+    },
+    {
+      "baseline_score": 0.0,
+      "baseline_status": "failed",
+      "candidate_score": 1.0,
+      "candidate_status": "success",
+      "score_delta": 1.0,
+      "task_id": "browsergym/miniwob.enter-text#seed=2"
+    }
+  ],
+  "metrics": {
+    "baseline": {
+      "avg_latency_sec": 5.88,
+      "avg_normalized_score": 0.4,
+      "avg_step_count": 9.0,
+      "failure_taxonomy": {
+        "invalid_action": 1,
+        "no_op_loop": 1,
+        "timeout": 1
+      },
+      "success_rate": 0.4,
+      "task_count": 5
+    },
+    "candidate": {
+      "avg_latency_sec": 5.9799999999999995,
+      "avg_normalized_score": 0.8,
+      "avg_step_count": 8.8,
+      "failure_taxonomy": {
+        "timeout": 1
+      },
+      "success_rate": 0.8,
+      "task_count": 5
+    },
+    "delta": {
+      "avg_latency_sec": 0.09999999999999964,
+      "avg_normalized_score": 0.4,
+      "avg_step_count": -0.1999999999999993,
+      "success_rate": 0.4
+    }
+  },
+  "missing_in_baseline": [],
+  "missing_in_candidate": [],
+  "regression_count": 0,
+  "regressions": [],
+  "taskset_id": "miniwob_smoke"
+}

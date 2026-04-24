@@ -1,0 +1,1 @@
+{"experiment_id":"exp_relay_gpt54_miniwob_agentlab_smoke","config_id":"relay_gpt54","task_id":"browsergym/miniwob.click-test#seed=1","status":"success","normalized_score":1.0,"step_count":1,"latency_sec":6.2918007373809814,"failure_type":null,"error":null}

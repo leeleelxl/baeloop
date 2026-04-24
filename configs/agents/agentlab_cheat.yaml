@@ -1,0 +1,9 @@
+id: agentlab_cheat
+agent: agentlab_generic
+model: test/cheat_miniwob_click_test
+prompt_version: cheat-smoke
+max_steps: 3
+retry_policy:
+  enabled: false
+  max_retries: 0
+observation_mode: html

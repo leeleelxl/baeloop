@@ -1,0 +1,5 @@
+{"experiment_id":"exp_sample_variant_retry","config_id":"variant_retry","task_id":"browsergym/miniwob.click-button#seed=1","status":"success","normalized_score":1.0,"step_count":5,"latency_sec":3.8,"failure_type":null}
+{"experiment_id":"exp_sample_variant_retry","config_id":"variant_retry","task_id":"browsergym/miniwob.enter-text#seed=2","status":"success","normalized_score":1.0,"step_count":7,"latency_sec":5.2,"failure_type":null}
+{"experiment_id":"exp_sample_variant_retry","config_id":"variant_retry","task_id":"browsergym/miniwob.choose-list#seed=3","status":"failed","normalized_score":0.0,"step_count":6,"latency_sec":4.9,"failure_type":"invalid_action"}
+{"experiment_id":"exp_sample_variant_retry","config_id":"variant_retry","task_id":"browsergym/miniwob.drag-box#seed=4","status":"failed","normalized_score":0.0,"step_count":15,"latency_sec":8.6,"failure_type":"no_op_loop"}
+{"experiment_id":"exp_sample_variant_retry","config_id":"variant_retry","task_id":"browsergym/miniwob.click-checkboxes#seed=5","status":"timeout","normalized_score":0.0,"step_count":15,"latency_sec":9.5,"failure_type":"timeout"}

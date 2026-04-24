@@ -1,0 +1,52 @@
+{
+  "baseline_config_id": "variant_retry",
+  "candidate_config_id": "variant_retry_hyp_extend_step_budget",
+  "compared_task_count": 5,
+  "failure_summary": {
+    "baseline": {
+      "timeout": 1
+    },
+    "candidate": {}
+  },
+  "improvements": [
+    {
+      "baseline_score": 0.0,
+      "baseline_status": "timeout",
+      "candidate_score": 1.0,
+      "candidate_status": "success",
+      "score_delta": 1.0,
+      "task_id": "browsergym/miniwob.click-checkboxes#seed=5"
+    }
+  ],
+  "metrics": {
+    "baseline": {
+      "avg_latency_sec": 5.9799999999999995,
+      "avg_normalized_score": 0.8,
+      "avg_step_count": 8.8,
+      "failure_taxonomy": {
+        "timeout": 1
+      },
+      "success_rate": 0.8,
+      "task_count": 5
+    },
+    "candidate": {
+      "avg_latency_sec": 6.279999999999999,
+      "avg_normalized_score": 1.0,
+      "avg_step_count": 9.4,
+      "failure_taxonomy": {},
+      "success_rate": 1.0,
+      "task_count": 5
+    },
+    "delta": {
+      "avg_latency_sec": 0.2999999999999998,
+      "avg_normalized_score": 0.19999999999999996,
+      "avg_step_count": 0.5999999999999996,
+      "success_rate": 0.19999999999999996
+    }
+  },
+  "missing_in_baseline": [],
+  "missing_in_candidate": [],
+  "regression_count": 0,
+  "regressions": [],
+  "taskset_id": "miniwob_smoke"
+}

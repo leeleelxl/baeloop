@@ -1,0 +1,18 @@
+id: miniwob_smoke
+benchmark: miniwob
+tasks:
+  - env_id: browsergym/miniwob.click-button
+    seed: 1
+    max_steps: 10
+  - env_id: browsergym/miniwob.enter-text
+    seed: 2
+    max_steps: 10
+  - env_id: browsergym/miniwob.choose-list
+    seed: 3
+    max_steps: 10
+  - env_id: browsergym/miniwob.drag-box
+    seed: 4
+    max_steps: 15
+  - env_id: browsergym/miniwob.click-checkboxes
+    seed: 5
+    max_steps: 25

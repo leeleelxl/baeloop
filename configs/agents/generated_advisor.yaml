@@ -1,0 +1,11 @@
+id: variant_retry_hyp_extend_step_budget
+agent: agentlab_generic
+model: gpt-4o-mini
+prompt_version: v1
+max_steps: 20
+retry_policy:
+  enabled: true
+  max_retries: 1
+observation_mode: text
+parent_config_id: variant_retry
+advisor_hypothesis_id: hyp_extend_step_budget

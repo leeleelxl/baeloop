@@ -1,0 +1,6 @@
+id: miniwob_agentlab_smoke
+benchmark: miniwob
+tasks:
+  - env_id: browsergym/miniwob.click-test
+    seed: 1
+    max_steps: 3

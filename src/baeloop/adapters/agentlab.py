@@ -1,0 +1,241 @@
+from __future__ import annotations
+
+from copy import deepcopy
+from dataclasses import dataclass
+import json
+import os
+from pathlib import Path
+
+from baeloop.doctor import probe_agentlab_environment
+from baeloop.models import AgentConfig, RunRecord, TaskSpec
+
+
+class AgentLabAdapterUnavailable(RuntimeError):
+    """Raised when the AgentLab adapter cannot run in the current environment."""
+
+
+@dataclass
+class OpenAICompatibleModelArgs:
+    model_name: str
+    base_url: str | None = None
+    api_key_env: str = "OPENAI_API_KEY"
+    max_total_tokens: int | None = 128000
+    max_input_tokens: int | None = 128000
+    max_new_tokens: int | None = 16384
+    temperature: float = 0.1
+    vision_support: bool = True
+    log_probs: bool = False
+
+    def make_model(self):
+        from agentlab.llm.chat_api import ChatModel
+        from openai import OpenAI
+
+        return ChatModel(
+            model_name=self.model_name,
+            api_key=os.environ[self.api_key_env],
+            temperature=self.temperature,
+            max_tokens=self.max_new_tokens,
+            client_class=OpenAI,
+            client_args={"base_url": self.base_url} if self.base_url else None,
+            log_probs=self.log_probs,
+        )
+
+    def prepare_server(self):
+        pass
+
+    def close_server(self):
+        pass
+
+
+MODEL_KEY_ALIASES = {
+    "gpt-4o-mini": "openai/gpt-4o-mini-2024-07-18",
+    "gpt-4o-mini-2024-07-18": "openai/gpt-4o-mini-2024-07-18",
+    "gpt-5-mini": "openai/gpt-5-mini-2025-08-07",
+    "gpt-5-mini-2025-08-07": "openai/gpt-5-mini-2025-08-07",
+}
+
+
+def run_agentlab_task(config: AgentConfig, task: TaskSpec, experiment_id: str) -> RunRecord:
+    environment = probe_agentlab_environment()
+    if not environment.ready:
+        missing = [
+            dependency.module
+            for dependency in environment.dependencies
+            if not dependency.available
+        ]
+        raise AgentLabAdapterUnavailable(
+            "AgentLab adapter is not ready. Missing modules: "
+            f"{', '.join(missing)}. Run `baeloop doctor --adapter agentlab` "
+            "and install the required AgentLab/BrowserGym dependencies before using this adapter."
+        )
+
+    _preflight_config_credentials(config)
+
+    from browsergym.experiments.loop import EnvArgs, ExpArgs
+
+    agent_args = _make_generic_agent_args(config)
+    env_args = EnvArgs(
+        task_name=_task_name_from_env_id(task.env_id),
+        task_seed=task.seed,
+        max_steps=min(config.max_steps, task.max_steps),
+        headless=True,
+    )
+    exp_args = ExpArgs(
+        agent_args=agent_args,
+        env_args=env_args,
+        save_screenshot=False,
+    )
+    exp_args.prepare(_trace_root())
+    exp_args.run()
+
+    summary = json.loads((Path(exp_args.exp_dir) / "summary_info.json").read_text())
+    return _run_record_from_summary(
+        config=config,
+        task=task,
+        experiment_id=experiment_id,
+        summary=summary,
+    )
+
+
+def _make_generic_agent_args(config: AgentConfig):
+    from agentlab.agents.generic_agent import AGENT_4o_MINI, CHAT_MODEL_ARGS_DICT, GenericAgentArgs
+    from agentlab.llm.chat_api import CheatMiniWoBLLMArgs
+
+    flags = deepcopy(AGENT_4o_MINI.flags)
+    if config.observation_mode == "html":
+        flags.obs.use_html = True
+    if _is_cheat_model(config.model):
+        flags.obs.use_html = True
+        return GenericAgentArgs(
+            agent_name="GenericAgent-cheat-miniwob",
+            chat_model_args=CheatMiniWoBLLMArgs(),
+            flags=flags,
+            max_retry=max(1, config.retry_policy.max_retries or 1),
+        )
+
+    if config.api_base_url:
+        return GenericAgentArgs(
+            chat_model_args=OpenAICompatibleModelArgs(
+                model_name=config.model,
+                base_url=config.api_base_url,
+                api_key_env=config.api_key_env or "OPENAI_API_KEY",
+                max_total_tokens=128000,
+                max_input_tokens=128000,
+                max_new_tokens=16384,
+                temperature=0.1,
+                vision_support=True,
+            ),
+            flags=flags,
+            max_retry=max(1, config.retry_policy.max_retries or 1),
+        )
+
+    model_key = MODEL_KEY_ALIASES.get(config.model, config.model)
+    if model_key not in CHAT_MODEL_ARGS_DICT:
+        raise AgentLabAdapterUnavailable(
+            f"Unsupported AgentLab model `{config.model}`. Use one of the AgentLab "
+            "CHAT_MODEL_ARGS_DICT keys or a known alias such as `gpt-4o-mini`."
+        )
+    return GenericAgentArgs(
+        chat_model_args=deepcopy(CHAT_MODEL_ARGS_DICT[model_key]),
+        flags=flags,
+        max_retry=max(1, config.retry_policy.max_retries or 1),
+    )
+
+
+def _preflight_model_credentials(model: str) -> None:
+    if _is_cheat_model(model):
+        return
+
+    model_key = MODEL_KEY_ALIASES.get(model, model)
+    required_env = _required_api_key_env(model_key)
+    if required_env and not os.environ.get(required_env):
+        raise AgentLabAdapterUnavailable(
+            f"AgentLab model `{model}` requires `{required_env}` to be set."
+        )
+
+
+def _preflight_config_credentials(config: AgentConfig) -> None:
+    if _is_cheat_model(config.model):
+        return
+    if config.api_base_url:
+        required_env = config.api_key_env or "OPENAI_API_KEY"
+        if not os.environ.get(required_env):
+            raise AgentLabAdapterUnavailable(
+                f"AgentLab model `{config.model}` uses `{config.api_base_url}` and requires "
+                f"`{required_env}` to be set."
+            )
+        return
+    _preflight_model_credentials(config.model)
+
+
+def _required_api_key_env(model_key: str) -> str | None:
+    if model_key.startswith("openai/"):
+        return "OPENAI_API_KEY"
+    if model_key.startswith("azure/"):
+        return "AZURE_OPENAI_API_KEY"
+    if model_key.startswith("anthropic/"):
+        return "ANTHROPIC_API_KEY"
+    if model_key.startswith("openrouter/"):
+        return "OPENROUTER_API_KEY"
+    return None
+
+
+def _is_cheat_model(model: str) -> bool:
+    return model == "test/cheat_miniwob_click_test"
+
+
+def _task_name_from_env_id(env_id: str) -> str:
+    if env_id.startswith("browsergym/"):
+        return env_id.removeprefix("browsergym/")
+    return env_id
+
+
+def _trace_root() -> Path:
+    root = Path("runs/agentlab_traces")
+    root.mkdir(parents=True, exist_ok=True)
+    return root
+
+
+def _run_record_from_summary(
+    config: AgentConfig,
+    task: TaskSpec,
+    experiment_id: str,
+    summary: dict,
+) -> RunRecord:
+    score = max(0.0, min(float(summary.get("cum_reward", 0.0)), 1.0))
+    err_msg = summary.get("err_msg")
+    status = _status_from_summary(score=score, summary=summary)
+    latency = float(summary.get("stats.cum_step_elapsed", 0.0) or 0.0) + float(
+        summary.get("stats.cum_agent_elapsed", 0.0) or 0.0
+    )
+    return RunRecord(
+        experiment_id=experiment_id,
+        config_id=config.id,
+        task_id=task.task_id,
+        status=status,
+        normalized_score=score,
+        step_count=int(summary.get("n_steps", 0) or 0),
+        latency_sec=latency,
+        failure_type=_failure_type(status=status, error=err_msg),
+        error=err_msg,
+    )
+
+
+def _status_from_summary(score: float, summary: dict) -> str:
+    if summary.get("err_msg"):
+        return "error"
+    if score >= 1.0:
+        return "success"
+    if summary.get("truncated"):
+        return "max_steps"
+    return "failed"
+
+
+def _failure_type(status: str, error: str | None) -> str | None:
+    if status == "success":
+        return None
+    if status == "error":
+        return "exception" if error else "error"
+    if status == "max_steps":
+        return "max_steps"
+    return "zero_score"

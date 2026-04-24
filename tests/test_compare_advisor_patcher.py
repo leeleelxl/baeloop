@@ -1,0 +1,267 @@
+from baeloop.advisor import propose_patch
+from baeloop.compare import build_comparison_report
+from baeloop.models import AdvisorProposal, RunRecord
+from baeloop.patcher import materialize_config_patch
+
+
+def test_compare_tracks_regressions_and_improvements() -> None:
+    baseline = [
+        RunRecord(
+            experiment_id="base",
+            config_id="baseline",
+            task_id="task_a",
+            status="success",
+            normalized_score=1.0,
+            step_count=2,
+            latency_sec=1.0,
+        ),
+        RunRecord(
+            experiment_id="base",
+            config_id="baseline",
+            task_id="task_b",
+            status="failed",
+            normalized_score=0.0,
+            step_count=3,
+            latency_sec=1.5,
+            failure_type="invalid_action",
+        ),
+    ]
+    candidate = [
+        RunRecord(
+            experiment_id="new",
+            config_id="variant",
+            task_id="task_a",
+            status="failed",
+            normalized_score=0.0,
+            step_count=2,
+            latency_sec=1.1,
+            failure_type="invalid_action",
+        ),
+        RunRecord(
+            experiment_id="new",
+            config_id="variant",
+            task_id="task_b",
+            status="success",
+            normalized_score=1.0,
+            step_count=4,
+            latency_sec=1.8,
+        ),
+    ]
+
+    report = build_comparison_report(baseline, candidate, taskset_id="smoke")
+
+    assert report.regression_count == 1
+    assert len(report.improvements) == 1
+    assert report.failure_summary["candidate"] == {"invalid_action": 1}
+    assert report.compared_task_count == 2
+    assert report.missing_in_baseline == []
+    assert report.missing_in_candidate == []
+
+
+def test_compare_rejects_mixed_config_records() -> None:
+    baseline = [
+        RunRecord(
+            experiment_id="base",
+            config_id="baseline",
+            task_id="task_a",
+            status="success",
+            normalized_score=1.0,
+            step_count=2,
+            latency_sec=1.0,
+        ),
+        RunRecord(
+            experiment_id="base",
+            config_id="other_baseline",
+            task_id="task_b",
+            status="success",
+            normalized_score=1.0,
+            step_count=2,
+            latency_sec=1.0,
+        ),
+    ]
+    candidate = [
+        RunRecord(
+            experiment_id="new",
+            config_id="variant",
+            task_id="task_a",
+            status="success",
+            normalized_score=1.0,
+            step_count=2,
+            latency_sec=1.0,
+        )
+    ]
+
+    try:
+        build_comparison_report(baseline, candidate, taskset_id="smoke")
+    except ValueError as exc:
+        assert "exactly one config_id" in str(exc)
+    else:
+        raise AssertionError("Expected mixed config records to be rejected")
+
+
+def test_compare_reports_missing_tasks_and_uses_common_task_metrics() -> None:
+    baseline = [
+        RunRecord(
+            experiment_id="base",
+            config_id="baseline",
+            task_id="task_a",
+            status="success",
+            normalized_score=1.0,
+            step_count=2,
+            latency_sec=1.0,
+        ),
+        RunRecord(
+            experiment_id="base",
+            config_id="baseline",
+            task_id="task_only_base",
+            status="failed",
+            normalized_score=0.0,
+            step_count=10,
+            latency_sec=10.0,
+            failure_type="timeout",
+        ),
+    ]
+    candidate = [
+        RunRecord(
+            experiment_id="new",
+            config_id="variant",
+            task_id="task_a",
+            status="success",
+            normalized_score=1.0,
+            step_count=4,
+            latency_sec=2.0,
+        ),
+        RunRecord(
+            experiment_id="new",
+            config_id="variant",
+            task_id="task_only_candidate",
+            status="failed",
+            normalized_score=0.0,
+            step_count=10,
+            latency_sec=10.0,
+            failure_type="timeout",
+        ),
+    ]
+
+    report = build_comparison_report(baseline, candidate, taskset_id="smoke")
+
+    assert report.compared_task_count == 1
+    assert report.missing_in_baseline == ["task_only_candidate"]
+    assert report.missing_in_candidate == ["task_only_base"]
+    assert report.metrics["baseline"].task_count == 1
+    assert report.metrics["candidate"].task_count == 1
+
+
+def test_compare_tracks_score_delta_without_success_flip() -> None:
+    baseline = [
+        RunRecord(
+            experiment_id="base",
+            config_id="baseline",
+            task_id="task_a",
+            status="failed",
+            normalized_score=0.8,
+            step_count=5,
+            latency_sec=1.0,
+            failure_type="partial_score",
+        )
+    ]
+    candidate = [
+        RunRecord(
+            experiment_id="new",
+            config_id="variant",
+            task_id="task_a",
+            status="failed",
+            normalized_score=0.1,
+            step_count=5,
+            latency_sec=1.0,
+            failure_type="partial_score",
+        )
+    ]
+
+    report = build_comparison_report(baseline, candidate, taskset_id="smoke")
+
+    assert report.regression_count == 1
+    assert abs(report.regressions[0].score_delta - -0.7) < 1e-9
+
+
+def test_advisor_generates_retry_patch_for_invalid_action() -> None:
+    baseline = [
+        RunRecord(
+            experiment_id="base",
+            config_id="baseline",
+            task_id="task_a",
+            status="success",
+            normalized_score=1.0,
+            step_count=2,
+            latency_sec=1.0,
+        )
+    ]
+    candidate = [
+        RunRecord(
+            experiment_id="new",
+            config_id="variant",
+            task_id="task_a",
+            status="failed",
+            normalized_score=0.0,
+            step_count=2,
+            latency_sec=1.1,
+            failure_type="invalid_action",
+        )
+    ]
+
+    proposal = propose_patch(build_comparison_report(baseline, candidate, taskset_id="smoke"))
+
+    assert proposal.patch == {"retry_policy": {"enabled": True, "max_retries": 1}}
+
+
+def test_patcher_deep_merges_bounded_patch() -> None:
+    proposal = AdvisorProposal(
+        hypothesis_id="hyp_retry_invalid_or_noop",
+        summary="summary",
+        rationale="rationale",
+        expected_effect="effect",
+        risk="risk",
+        patch={"retry_policy": {"enabled": True, "max_retries": 1}},
+    )
+
+    patched = materialize_config_patch(
+        base_config={
+            "id": "baseline",
+            "agent": "agentlab_generic",
+            "model": "gpt-4o-mini",
+            "max_steps": 15,
+            "retry_policy": {"enabled": False, "max_retries": 0},
+        },
+        proposal=proposal,
+    )
+
+    assert patched["id"] == "baseline_hyp_retry_invalid_or_noop"
+    assert patched["retry_policy"] == {"enabled": True, "max_retries": 1}
+    assert patched["parent_config_id"] == "baseline"
+
+
+def test_patcher_rejects_invalid_materialized_config() -> None:
+    proposal = AdvisorProposal(
+        hypothesis_id="hyp_bad_retry",
+        summary="summary",
+        rationale="rationale",
+        expected_effect="effect",
+        risk="risk",
+        patch={"retry_policy": {"max_retries": -1}},
+    )
+
+    try:
+        materialize_config_patch(
+            base_config={
+                "id": "baseline",
+                "agent": "agentlab_generic",
+                "model": "gpt-4o-mini",
+                "max_steps": 15,
+                "retry_policy": {"enabled": False, "max_retries": 0},
+            },
+            proposal=proposal,
+        )
+    except ValueError as exc:
+        assert "max_retries" in str(exc)
+    else:
+        raise AssertionError("Expected invalid materialized config to be rejected")

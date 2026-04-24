@@ -1,0 +1,39 @@
+{
+  "baseline_config_id": "agentlab_cheat",
+  "candidate_config_id": "relay_gpt54",
+  "compared_task_count": 1,
+  "failure_summary": {
+    "baseline": {},
+    "candidate": {}
+  },
+  "improvements": [],
+  "metrics": {
+    "baseline": {
+      "avg_latency_sec": 3.462834119796753,
+      "avg_normalized_score": 1.0,
+      "avg_step_count": 1.0,
+      "failure_taxonomy": {},
+      "success_rate": 1.0,
+      "task_count": 1
+    },
+    "candidate": {
+      "avg_latency_sec": 6.2918007373809814,
+      "avg_normalized_score": 1.0,
+      "avg_step_count": 1.0,
+      "failure_taxonomy": {},
+      "success_rate": 1.0,
+      "task_count": 1
+    },
+    "delta": {
+      "avg_latency_sec": 2.8289666175842285,
+      "avg_normalized_score": 0.0,
+      "avg_step_count": 0.0,
+      "success_rate": 0.0
+    }
+  },
+  "missing_in_baseline": [],
+  "missing_in_candidate": [],
+  "regression_count": 0,
+  "regressions": [],
+  "taskset_id": "miniwob_agentlab_smoke"
+}

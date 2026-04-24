@@ -1,0 +1,9 @@
+id: variant_retry
+agent: agentlab_generic
+model: gpt-4o-mini
+prompt_version: v1
+max_steps: 15
+retry_policy:
+  enabled: true
+  max_retries: 1
+observation_mode: text
