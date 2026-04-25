@@ -53,11 +53,11 @@
           "failure_type=max_steps",
           "step_count=20",
           "score=0.00",
-          "terminal task exhausted step budget while command output was not captured as structured state"
+          "terminal task exhausted step budget while commands did not drive visible terminal state changes"
         ],
         "failure_type": "max_steps",
-        "root_cause": "terminal_output_blindness",
-        "suggested_action": "Inspect terminal traces and add an observation policy for command output before increasing budget again.",
+        "root_cause": "terminal_input_action_mismatch",
+        "suggested_action": "Inspect terminal traces and test a terminal-specific input action policy before increasing budget again.",
         "task_id": "browsergym/miniwob.terminal#seed=27"
       }
     ],
@@ -97,11 +97,11 @@
           "failure_type=max_steps",
           "step_count=30",
           "score=0.00",
-          "terminal task exhausted step budget while command output was not captured as structured state"
+          "terminal task exhausted step budget while commands did not drive visible terminal state changes"
         ],
         "failure_type": "max_steps",
-        "root_cause": "terminal_output_blindness",
-        "suggested_action": "Inspect terminal traces and add an observation policy for command output before increasing budget again.",
+        "root_cause": "terminal_input_action_mismatch",
+        "suggested_action": "Inspect terminal traces and test a terminal-specific input action policy before increasing budget again.",
         "task_id": "browsergym/miniwob.terminal#seed=27"
       }
     ]

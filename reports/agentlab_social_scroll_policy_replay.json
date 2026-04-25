@@ -1,0 +1,80 @@
+{
+  "applied_count": 1,
+  "decisions": [
+    {
+      "applied": false,
+      "original_action": "click('19')",
+      "reason": null,
+      "rewritten_action": null,
+      "step": 0
+    },
+    {
+      "applied": false,
+      "original_action": "click('29')",
+      "reason": null,
+      "rewritten_action": null,
+      "step": 1
+    },
+    {
+      "applied": false,
+      "original_action": "click('39')",
+      "reason": null,
+      "rewritten_action": null,
+      "step": 2
+    },
+    {
+      "applied": false,
+      "original_action": "click('59')",
+      "reason": null,
+      "rewritten_action": null,
+      "step": 3
+    },
+    {
+      "applied": false,
+      "original_action": "click('69')",
+      "reason": null,
+      "rewritten_action": null,
+      "step": 4
+    },
+    {
+      "applied": false,
+      "original_action": "click('79')",
+      "reason": null,
+      "rewritten_action": null,
+      "step": 5
+    },
+    {
+      "applied": false,
+      "original_action": "click('89')",
+      "reason": null,
+      "rewritten_action": null,
+      "step": 6
+    },
+    {
+      "applied": true,
+      "original_action": "click('104')",
+      "reason": "submit intercepted while hidden @ultricies reply remains",
+      "rewritten_action": "scroll(0, 621)",
+      "step": 7
+    },
+    {
+      "applied": false,
+      "original_action": null,
+      "reason": null,
+      "rewritten_action": null,
+      "step": 8
+    }
+  ],
+  "fired": true,
+  "first_intervention": {
+    "applied": true,
+    "original_action": "click('104')",
+    "reason": "submit intercepted while hidden @ultricies reply remains",
+    "rewritten_action": "scroll(0, 621)",
+    "step": 7
+  },
+  "max_interventions": 1,
+  "policy_name": "scroll_before_submit",
+  "step_count": 9,
+  "trace_dir": "runs/agentlab_traces/2026-04-25_15-13-30_GenericAgent-gpt-5.4_on_miniwob.social-media-all_26"
+}

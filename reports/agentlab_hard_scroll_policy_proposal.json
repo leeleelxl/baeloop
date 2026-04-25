@@ -5,25 +5,25 @@
     "no regressions detected",
     "uses 2 candidate failure evidence records"
   ],
-  "expected_effect": "Identify whether the terminal task needs an observation extraction fix or should remain a documented baseline limitation.",
-  "hypothesis_id": "hyp_investigate_terminal_observation",
+  "expected_effect": "Identify whether the terminal task needs an input-action policy, observation extraction fix, or should remain a documented baseline limitation.",
+  "hypothesis_id": "hyp_investigate_terminal_interaction",
   "intervention": {
-    "expected_effect": "Identify whether the terminal task needs an observation extraction fix or should remain a documented baseline limitation.",
-    "id": "hyp_investigate_terminal_observation",
+    "expected_effect": "Identify whether the terminal task needs an input-action policy, observation extraction fix, or should remain a documented baseline limitation.",
+    "id": "hyp_investigate_terminal_interaction",
     "kind": "investigation",
     "patch": {},
-    "rationale": "Failure evidence points to terminal output blindness, so more steps would likely extend the command loop without fixing state visibility.",
-    "risk": "Does not immediately improve terminal success until the observation issue is addressed.",
-    "summary": "Keep the candidate config and inspect terminal observation failure before increasing budget again.",
+    "rationale": "Failure evidence points to terminal interaction issues, so more steps would likely extend the command loop without fixing input or state handling.",
+    "risk": "Does not immediately improve terminal success until the interaction issue is addressed.",
+    "summary": "Keep the candidate config and inspect terminal interaction failure before increasing budget again.",
     "supported_by": [
-      "dominant_root_cause=terminal_output_blindness"
+      "terminal_root_causes=terminal_input_action_mismatch"
     ],
     "target_root_causes": [
-      "terminal_output_blindness"
+      "terminal_input_action_mismatch"
     ]
   },
   "patch": {},
-  "rationale": "Failure evidence points to terminal output blindness, so more steps would likely extend the command loop without fixing state visibility.",
-  "risk": "Does not immediately improve terminal success until the observation issue is addressed.",
-  "summary": "Keep the candidate config and inspect terminal observation failure before increasing budget again."
+  "rationale": "Failure evidence points to terminal interaction issues, so more steps would likely extend the command loop without fixing input or state handling.",
+  "risk": "Does not immediately improve terminal success until the interaction issue is addressed.",
+  "summary": "Keep the candidate config and inspect terminal interaction failure before increasing budget again."
 }

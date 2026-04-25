@@ -202,7 +202,7 @@ uv run baeloop run \
   --out runs/agentlab_hard_scroll_policy.jsonl
 
 uv run baeloop compare \
-  --base runs/agentlab_hard_budget30.jsonl \
+  --base runs/agentlab_hard_advisor_budget30.jsonl \
   --new runs/agentlab_hard_scroll_policy.jsonl \
   --taskset-id miniwob_agentlab_hard \
   --json-out reports/agentlab_hard_scroll_policy_compare.json \
@@ -210,6 +210,18 @@ uv run baeloop compare \
 ```
 
 Committed evidence: `configs/agents/generated_agentlab_hard_scroll_policy.yaml` reaches `0.750` success rate versus `0.625` for the step-budget config, with no regressions on the eight-task hard slice. The action policy did not fire in that run (`avg_action_policy_interventions = 0.0`), so this is a safe-wrapper result and not causal proof of the rewrite.
+
+For a counterfactual policy-fire check against a saved AgentLab trace:
+
+```bash
+uv run baeloop replay-policy \
+  --trace-dir runs/agentlab_traces/2026-04-25_15-13-30_GenericAgent-gpt-5.4_on_miniwob.social-media-all_26 \
+  --config configs/agents/generated_agentlab_hard_scroll_policy.yaml \
+  --json-out reports/agentlab_social_scroll_policy_replay.json \
+  --markdown-out reports/agentlab_social_scroll_policy_replay.md
+```
+
+The committed replay report shows that the policy would have intercepted the failing `social-media-all` trace at step 7, rewriting `click('104')` to `scroll(0, 621)`.
 
 ## Quickstart
 

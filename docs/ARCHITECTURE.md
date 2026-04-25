@@ -73,7 +73,7 @@ The hypothesis agent maps evidence to candidate interventions. It should not emi
 Current implementation:
 
 - `src/baeloop/advisor_hypothesis.py`
-- maps failure evidence such as `autocomplete_validation_loop` or `terminal_output_blindness` to bounded next steps
+- maps failure evidence such as `autocomplete_validation_loop` or `terminal_input_action_mismatch` to bounded next steps
 
 Inputs:
 
@@ -142,7 +142,7 @@ The hard MiniWoB run currently shows:
 - remaining root causes:
   - `coordinate_click_miss`
   - `missed_scroll_target`
-  - `terminal_output_blindness`
+  - `terminal_input_action_mismatch`
 
 ## Next Engineering Milestone
 
@@ -161,4 +161,5 @@ Current result:
 - `configs/agents/generated_agentlab_hard_scroll_policy.yaml` reached 0.750 success rate on the hard task set
 - `social-media-all` improved from 0.0 to 1.0
 - `avg_action_policy_interventions` was 0.0, so this run is evidence that the policy wrapper is safe on the hard slice, not causal proof that the rewrite caused the improvement
-- the next causal check should use repeated seeds or a trace-replay/policy-fire test where the submit action is actually intercepted
+- `reports/agentlab_social_scroll_policy_replay.*` shows a counterfactual policy-fire check on the earlier failing `social-media-all` trace: step 7 would be rewritten from `click('104')` to `scroll(0, 621)`
+- `reports/agentlab_terminal_trace_diagnosis.md` refines the remaining terminal failure as `terminal_input_action_mismatch`, making another step-budget increase weakly supported

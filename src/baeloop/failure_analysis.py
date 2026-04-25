@@ -80,13 +80,13 @@ def infer_failure_evidence(record: RunRecord) -> FailureEvidence | None:
         return FailureEvidence(
             task_id=record.task_id,
             failure_type=failure_type,
-            root_cause="terminal_output_blindness",
+            root_cause="terminal_input_action_mismatch",
             confidence="medium",
             evidence=[
                 *base_evidence,
-                "terminal task exhausted step budget while command output was not captured as structured state",
+                "terminal task exhausted step budget while commands did not drive visible terminal state changes",
             ],
-            suggested_action="Inspect terminal traces and add an observation policy for command output before increasing budget again.",
+            suggested_action="Inspect terminal traces and test a terminal-specific input action policy before increasing budget again.",
         )
 
     if "book-flight" in task_id and failure_type == "max_steps":

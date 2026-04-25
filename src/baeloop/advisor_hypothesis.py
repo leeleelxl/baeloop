@@ -3,6 +3,10 @@ from __future__ import annotations
 from baeloop.models import AdvisorAnalysis, Intervention
 
 EXTENDED_STEP_BUDGET = 30
+TERMINAL_INTERACTION_ROOT_CAUSES = {
+    "terminal_input_action_mismatch",
+    "terminal_output_blindness",
+}
 
 
 def propose_intervention(analysis: AdvisorAnalysis) -> Intervention:
@@ -72,16 +76,17 @@ def propose_intervention(analysis: AdvisorAnalysis) -> Intervention:
             supported_by=["root_cause=missed_scroll_target"],
         )
 
-    if _all_max_step_failures_are_terminal_blindness(analysis):
+    if _all_max_step_failures_are_terminal_interaction_issues(analysis):
+        terminal_roots = _terminal_root_causes(analysis)
         return Intervention(
-            id="hyp_investigate_terminal_observation",
+            id="hyp_investigate_terminal_interaction",
             kind="investigation",
-            summary="Keep the candidate config and inspect terminal observation failure before increasing budget again.",
-            rationale="Failure evidence points to terminal output blindness, so more steps would likely extend the command loop without fixing state visibility.",
-            expected_effect="Identify whether the terminal task needs an observation extraction fix or should remain a documented baseline limitation.",
-            risk="Does not immediately improve terminal success until the observation issue is addressed.",
-            target_root_causes=["terminal_output_blindness"],
-            supported_by=["dominant_root_cause=terminal_output_blindness"],
+            summary="Keep the candidate config and inspect terminal interaction failure before increasing budget again.",
+            rationale="Failure evidence points to terminal interaction issues, so more steps would likely extend the command loop without fixing input or state handling.",
+            expected_effect="Identify whether the terminal task needs an input-action policy, observation extraction fix, or should remain a documented baseline limitation.",
+            risk="Does not immediately improve terminal success until the interaction issue is addressed.",
+            target_root_causes=terminal_roots,
+            supported_by=[f"terminal_root_causes={','.join(terminal_roots)}"],
         )
 
     if analysis.dominant_failure in {"timeout", "max_steps"}:
@@ -133,14 +138,29 @@ def _root_cause_summary(analysis: AdvisorAnalysis) -> str:
     )
 
 
-def _all_max_step_failures_are_terminal_blindness(analysis: AdvisorAnalysis) -> bool:
+def _all_max_step_failures_are_terminal_interaction_issues(analysis: AdvisorAnalysis) -> bool:
     max_step_count = analysis.candidate_failures.get("max_steps", 0)
     if not max_step_count:
         return False
-    return analysis.candidate_root_causes.get("terminal_output_blindness", 0) >= max_step_count
+    return _terminal_root_cause_count(analysis) >= max_step_count
 
 
 def _has_non_terminal_max_step_failures(analysis: AdvisorAnalysis) -> bool:
     max_step_count = analysis.candidate_failures.get("max_steps", 0)
-    terminal_blind_count = analysis.candidate_root_causes.get("terminal_output_blindness", 0)
-    return max_step_count > terminal_blind_count
+    return max_step_count > _terminal_root_cause_count(analysis)
+
+
+def _terminal_root_cause_count(analysis: AdvisorAnalysis) -> int:
+    return sum(
+        count
+        for root_cause, count in analysis.candidate_root_causes.items()
+        if root_cause in TERMINAL_INTERACTION_ROOT_CAUSES
+    )
+
+
+def _terminal_root_causes(analysis: AdvisorAnalysis) -> list[str]:
+    return sorted(
+        root_cause
+        for root_cause in analysis.candidate_root_causes
+        if root_cause in TERMINAL_INTERACTION_ROOT_CAUSES
+    )

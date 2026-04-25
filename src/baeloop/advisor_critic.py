@@ -2,6 +2,11 @@ from __future__ import annotations
 
 from baeloop.models import AdvisorAnalysis, AdvisorProposal, Intervention
 
+TERMINAL_INTERACTION_ROOT_CAUSES = {
+    "terminal_input_action_mismatch",
+    "terminal_output_blindness",
+}
+
 
 def critique_intervention(
     analysis: AdvisorAnalysis,
@@ -46,8 +51,8 @@ def _critic_notes(analysis: AdvisorAnalysis, intervention: Intervention) -> list
 
     if (
         intervention.id == "hyp_extend_step_budget"
-        and analysis.dominant_root_cause == "terminal_output_blindness"
+        and analysis.dominant_root_cause in TERMINAL_INTERACTION_ROOT_CAUSES
     ):
-        notes.append("step-budget patch would not address terminal output blindness")
+        notes.append("step-budget patch would not address terminal interaction failure")
 
     return notes

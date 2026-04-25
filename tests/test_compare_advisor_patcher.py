@@ -214,7 +214,7 @@ def test_failure_evidence_classifies_known_hard_task_patterns() -> None:
     assert [item.root_cause for item in evidence] == [
         "coordinate_click_miss",
         "missed_scroll_target",
-        "terminal_output_blindness",
+        "terminal_input_action_mismatch",
     ]
 
 
@@ -519,7 +519,7 @@ def test_advisor_generates_action_policy_for_missed_scroll_target() -> None:
     assert proposal.intervention.target_root_causes == ["missed_scroll_target"]
 
 
-def test_advisor_avoids_budget_patch_for_terminal_output_blindness() -> None:
+def test_advisor_avoids_budget_patch_for_terminal_input_action_mismatch() -> None:
     baseline = [
         RunRecord(
             experiment_id="base",
@@ -546,13 +546,13 @@ def test_advisor_avoids_budget_patch_for_terminal_output_blindness() -> None:
 
     proposal = propose_patch(build_comparison_report(baseline, candidate, taskset_id="smoke"))
 
-    assert proposal.hypothesis_id == "hyp_investigate_terminal_observation"
+    assert proposal.hypothesis_id == "hyp_investigate_terminal_interaction"
     assert proposal.patch == {}
     assert proposal.intervention is not None
-    assert proposal.intervention.target_root_causes == ["terminal_output_blindness"]
+    assert proposal.intervention.target_root_causes == ["terminal_input_action_mismatch"]
 
 
-def test_advisor_avoids_budget_patch_when_all_max_step_failures_are_terminal_blindness() -> None:
+def test_advisor_avoids_budget_patch_when_all_max_step_failures_are_terminal_interaction_issues() -> None:
     baseline = [
         RunRecord(
             experiment_id="base",
@@ -598,7 +598,7 @@ def test_advisor_avoids_budget_patch_when_all_max_step_failures_are_terminal_bli
 
     proposal = propose_patch(build_comparison_report(baseline, candidate, taskset_id="smoke"))
 
-    assert proposal.hypothesis_id == "hyp_investigate_terminal_observation"
+    assert proposal.hypothesis_id == "hyp_investigate_terminal_interaction"
     assert proposal.patch == {}
 
 

@@ -21,6 +21,7 @@ from baeloop.io import (
 )
 from baeloop.models import AdvisorProposal, ComparisonReport
 from baeloop.patcher import materialize_config_patch
+from baeloop.policy_replay import replay_action_policy_trace, render_policy_replay_markdown
 from baeloop.runner import iter_taskset_records
 
 app = typer.Typer(help="Browser-agent evaluation and optimization loop.")
@@ -150,6 +151,39 @@ def patch_config(
     )
     write_yaml_dict(out, patched)
     typer.echo(f"Wrote patched config {patched['id']} to {out}")
+
+
+@app.command(name="replay-policy")
+def replay_policy(
+    trace_dir: Path = typer.Option(
+        ...,
+        exists=True,
+        file_okay=False,
+        readable=True,
+        help="AgentLab trace directory containing step_*.pkl.gz files.",
+    ),
+    config: Path = typer.Option(..., exists=True, readable=True, help="YAML agent config with action_policy."),
+    json_out: Path | None = typer.Option(None, help="Path for machine-readable replay report."),
+    markdown_out: Path | None = typer.Option(None, help="Path for markdown replay report."),
+) -> None:
+    """Replay a bounded action policy over an AgentLab trace without rerunning the browser."""
+    policy = read_agent_config(config).action_policy
+    try:
+        report = replay_action_policy_trace(trace_dir=trace_dir, policy=policy)
+    except ValueError as exc:
+        typer.secho(f"Error: {exc}", err=True, fg=typer.colors.RED)
+        raise typer.Exit(1) from exc
+
+    if json_out:
+        write_json(json_out, report)
+    if markdown_out:
+        markdown_out.parent.mkdir(parents=True, exist_ok=True)
+        markdown_out.write_text(render_policy_replay_markdown(report), encoding="utf-8")
+
+    typer.echo(
+        f"Replayed {policy.name} on {trace_dir}: "
+        f"steps={report.step_count}, applied={report.applied_count}"
+    )
 
 
 if __name__ == "__main__":

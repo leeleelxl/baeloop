@@ -33,9 +33,9 @@
 |---|---|---|---|---|---|
 | baseline | `browsergym/miniwob.grid-coordinate#seed=25` | `coordinate_click_miss` | medium | status=failed<br>failure_type=zero_score<br>step_count=1 | Add coordinate-aware click evidence or a point-targeting policy before changing generic retry settings. |
 | baseline | `browsergym/miniwob.social-media-all#seed=26` | `missed_scroll_target` | medium | status=failed<br>failure_type=zero_score<br>step_count=8 | Test a scroll-before-submit policy or trace check for hidden remaining targets. |
-| baseline | `browsergym/miniwob.terminal#seed=27` | `terminal_output_blindness` | medium | status=max_steps<br>failure_type=max_steps<br>step_count=30 | Inspect terminal traces and add an observation policy for command output before increasing budget again. |
+| baseline | `browsergym/miniwob.terminal#seed=27` | `terminal_input_action_mismatch` | medium | status=max_steps<br>failure_type=max_steps<br>step_count=30 | Inspect terminal traces and test a terminal-specific input action policy before increasing budget again. |
 | candidate | `browsergym/miniwob.grid-coordinate#seed=25` | `coordinate_click_miss` | medium | status=failed<br>failure_type=zero_score<br>step_count=1 | Add coordinate-aware click evidence or a point-targeting policy before changing generic retry settings. |
-| candidate | `browsergym/miniwob.terminal#seed=27` | `terminal_output_blindness` | medium | status=max_steps<br>failure_type=max_steps<br>step_count=30 | Inspect terminal traces and add an observation policy for command output before increasing budget again. |
+| candidate | `browsergym/miniwob.terminal#seed=27` | `terminal_input_action_mismatch` | medium | status=max_steps<br>failure_type=max_steps<br>step_count=30 | Inspect terminal traces and test a terminal-specific input action policy before increasing budget again. |
 
 ## Missing Tasks
 
