@@ -9,24 +9,39 @@
   "improvements": [],
   "metrics": {
     "baseline": {
+      "avg_agent_retry_count": 0.0,
+      "avg_busted_retry_count": 0.0,
+      "avg_input_tokens": 0.0,
       "avg_latency_sec": 6.426901976267497,
+      "avg_llm_call_count": 0.0,
       "avg_normalized_score": 1.0,
+      "avg_output_tokens": 0.0,
       "avg_step_count": 1.6666666666666667,
       "failure_taxonomy": {},
       "success_rate": 1.0,
       "task_count": 3
     },
     "candidate": {
+      "avg_agent_retry_count": 0.0,
+      "avg_busted_retry_count": 0.0,
+      "avg_input_tokens": 0.0,
       "avg_latency_sec": 6.430709679921468,
+      "avg_llm_call_count": 0.0,
       "avg_normalized_score": 1.0,
+      "avg_output_tokens": 0.0,
       "avg_step_count": 1.6666666666666667,
       "failure_taxonomy": {},
       "success_rate": 1.0,
       "task_count": 3
     },
     "delta": {
+      "avg_agent_retry_count": 0.0,
+      "avg_busted_retry_count": 0.0,
+      "avg_input_tokens": 0.0,
       "avg_latency_sec": 0.003807703653970762,
+      "avg_llm_call_count": 0.0,
       "avg_normalized_score": 0.0,
+      "avg_output_tokens": 0.0,
       "avg_step_count": 0.0,
       "success_rate": 0.0
     }

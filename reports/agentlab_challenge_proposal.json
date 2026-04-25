@@ -1,8 +1,8 @@
 {
-  "expected_effect": "Reduce overfitting risk by collecting evidence on harder or broader MiniWoB tasks first.",
-  "hypothesis_id": "hyp_hold_config_expand_taskset",
+  "expected_effect": "Preserve solved-task quality while reducing latency or token cost on the measured task set.",
+  "hypothesis_id": "hyp_keep_efficiency_winner",
   "patch": {},
-  "rationale": "The candidate has no failures or regressions on the current task set, so another config patch would be weakly supported.",
-  "risk": "Delays optimization if the current task set is already representative, but avoids changing a saturated config without evidence.",
-  "summary": "Keep the candidate config unchanged and expand the task set before optimizing further."
+  "rationale": "The candidate has no failures or regressions and improves at least one efficiency metric enough to justify keeping it.",
+  "risk": "Efficiency gains may be run-to-run noise unless confirmed on a larger task set.",
+  "summary": "Keep the candidate config as an efficiency winner under equal task quality."
 }

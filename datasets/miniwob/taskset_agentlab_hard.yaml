@@ -1,0 +1,27 @@
+id: miniwob_agentlab_hard
+benchmark: miniwob
+tasks:
+  - env_id: browsergym/miniwob.book-flight
+    seed: 21
+    max_steps: 30
+  - env_id: browsergym/miniwob.choose-date-medium
+    seed: 22
+    max_steps: 25
+  - env_id: browsergym/miniwob.login-user-popup
+    seed: 23
+    max_steps: 25
+  - env_id: browsergym/miniwob.email-inbox-forward-nl
+    seed: 24
+    max_steps: 35
+  - env_id: browsergym/miniwob.grid-coordinate
+    seed: 25
+    max_steps: 25
+  - env_id: browsergym/miniwob.social-media-all
+    seed: 26
+    max_steps: 35
+  - env_id: browsergym/miniwob.terminal
+    seed: 27
+    max_steps: 35
+  - env_id: browsergym/miniwob.use-spinner
+    seed: 28
+    max_steps: 25

@@ -58,6 +58,52 @@ def test_compare_tracks_regressions_and_improvements() -> None:
     assert report.missing_in_candidate == []
 
 
+def test_compare_summarizes_diagnostics_efficiency_metrics() -> None:
+    baseline = [
+        RunRecord(
+            experiment_id="base",
+            config_id="baseline",
+            task_id="task_a",
+            status="success",
+            normalized_score=1.0,
+            step_count=2,
+            latency_sec=2.0,
+            diagnostics={
+                "input_tokens": 1000,
+                "output_tokens": 100,
+                "llm_call_count": 2,
+                "agent_retry_count": 0.0,
+                "busted_retry_count": 0,
+            },
+        )
+    ]
+    candidate = [
+        RunRecord(
+            experiment_id="new",
+            config_id="variant",
+            task_id="task_a",
+            status="success",
+            normalized_score=1.0,
+            step_count=2,
+            latency_sec=1.0,
+            diagnostics={
+                "input_tokens": 800,
+                "output_tokens": 90,
+                "llm_call_count": 2,
+                "agent_retry_count": 0.0,
+                "busted_retry_count": 0,
+            },
+        )
+    ]
+
+    report = build_comparison_report(baseline, candidate, taskset_id="smoke")
+
+    assert report.metrics["baseline"].avg_input_tokens == 1000
+    assert report.metrics["candidate"].avg_input_tokens == 800
+    assert report.metrics["delta"]["avg_input_tokens"] == -200
+    assert report.metrics["delta"]["avg_latency_sec"] == -1
+
+
 def test_markdown_report_shows_baseline_and_candidate_failure_taxonomy() -> None:
     baseline = [
         RunRecord(
@@ -275,6 +321,70 @@ def test_advisor_holds_config_when_candidate_has_no_failures_or_regressions() ->
 
     assert proposal.hypothesis_id == "hyp_hold_config_expand_taskset"
     assert proposal.patch == {}
+
+
+def test_advisor_keeps_efficiency_winner_when_quality_is_equal() -> None:
+    baseline = [
+        RunRecord(
+            experiment_id="base",
+            config_id="baseline",
+            task_id="task_a",
+            status="success",
+            normalized_score=1.0,
+            step_count=2,
+            latency_sec=2.0,
+        )
+    ]
+    candidate = [
+        RunRecord(
+            experiment_id="new",
+            config_id="variant",
+            task_id="task_a",
+            status="success",
+            normalized_score=1.0,
+            step_count=2,
+            latency_sec=1.0,
+        )
+    ]
+
+    proposal = propose_patch(build_comparison_report(baseline, candidate, taskset_id="smoke"))
+
+    assert proposal.hypothesis_id == "hyp_keep_efficiency_winner"
+    assert proposal.patch == {}
+
+
+def test_advisor_accepts_reports_without_diagnostics_delta_fields() -> None:
+    report = build_comparison_report(
+        [
+            RunRecord(
+                experiment_id="base",
+                config_id="baseline",
+                task_id="task_a",
+                status="success",
+                normalized_score=1.0,
+                step_count=2,
+                latency_sec=1.0,
+            )
+        ],
+        [
+            RunRecord(
+                experiment_id="new",
+                config_id="variant",
+                task_id="task_a",
+                status="success",
+                normalized_score=1.0,
+                step_count=2,
+                latency_sec=1.0,
+            )
+        ],
+        taskset_id="smoke",
+    )
+    report.metrics["delta"].pop("avg_input_tokens")
+    report.metrics["delta"].pop("avg_output_tokens")
+
+    proposal = propose_patch(report)
+
+    assert proposal.hypothesis_id == "hyp_hold_config_expand_taskset"
 
 
 def test_patcher_deep_merges_bounded_patch() -> None:

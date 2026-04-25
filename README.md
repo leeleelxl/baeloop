@@ -54,7 +54,7 @@ Compare Report
   -> Patch Generator    materialize approved config patches
 ```
 
-The next milestone is better evidence for this advisor layer: broader tasksets and richer run diagnostics, not a dashboard or a new browser agent.
+The next milestone is better evidence for this advisor layer: broader tasksets and richer run diagnostics, not a dashboard or a new browser agent. The compare layer now tracks diagnostics such as average input tokens, output tokens, LLM calls, agent retries, and busted retries, so the advisor can reason about efficiency when success rates are saturated.
 
 ## MiniWoB++ Assets
 
@@ -162,6 +162,32 @@ uv run baeloop compare \
   --taskset-id miniwob_agentlab_challenge \
   --json-out reports/agentlab_challenge_compare.json \
   --markdown-out reports/agentlab_challenge_compare.md
+```
+
+If the challenge set is still saturated, use the harder MiniWoB slice:
+
+```bash
+export OHFI_API_KEY="sk-..."
+export MINIWOB_URL="file://$(pwd)/external/miniwob-plusplus/miniwob/html/miniwob/"
+
+uv run baeloop run \
+  --adapter agentlab \
+  --config configs/agents/relay_gpt54_hard.yaml \
+  --taskset datasets/miniwob/taskset_agentlab_hard.yaml \
+  --out runs/agentlab_hard_relay_gpt54.jsonl
+
+uv run baeloop run \
+  --adapter agentlab \
+  --config configs/agents/relay_gpt54_hard_retry.yaml \
+  --taskset datasets/miniwob/taskset_agentlab_hard.yaml \
+  --out runs/agentlab_hard_relay_gpt54_retry.jsonl
+
+uv run baeloop compare \
+  --base runs/agentlab_hard_relay_gpt54.jsonl \
+  --new runs/agentlab_hard_relay_gpt54_retry.jsonl \
+  --taskset-id miniwob_agentlab_hard \
+  --json-out reports/agentlab_hard_compare.json \
+  --markdown-out reports/agentlab_hard_compare.md
 ```
 
 ## Quickstart

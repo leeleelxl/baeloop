@@ -62,6 +62,11 @@ class MetricSummary(BaseModel):
     avg_normalized_score: float
     avg_step_count: float
     avg_latency_sec: float
+    avg_input_tokens: float = 0.0
+    avg_output_tokens: float = 0.0
+    avg_llm_call_count: float = 0.0
+    avg_agent_retry_count: float = 0.0
+    avg_busted_retry_count: float = 0.0
     failure_taxonomy: dict[str, int]
 
 

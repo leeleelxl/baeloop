@@ -13,6 +13,11 @@
 | avg_normalized_score | 0.400 | 0.800 | 0.400 |
 | avg_step_count | 9.00 | 8.80 | -0.20 |
 | avg_latency_sec | 5.88 | 5.98 | 0.10 |
+| avg_input_tokens | 0.00 | 0.00 | 0.00 |
+| avg_output_tokens | 0.00 | 0.00 | 0.00 |
+| avg_llm_call_count | 0.00 | 0.00 | 0.00 |
+| avg_agent_retry_count | 0.00 | 0.00 | 0.00 |
+| avg_busted_retry_count | 0.00 | 0.00 | 0.00 |
 
 ## Failure Taxonomy
 

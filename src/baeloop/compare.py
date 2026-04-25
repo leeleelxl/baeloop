@@ -25,8 +25,24 @@ def compute_metrics(records: list[RunRecord]) -> MetricSummary:
         avg_normalized_score=sum(record.normalized_score for record in records) / count,
         avg_step_count=sum(record.step_count for record in records) / count,
         avg_latency_sec=sum(record.latency_sec for record in records) / count,
+        avg_input_tokens=_avg_diagnostic(records, "input_tokens"),
+        avg_output_tokens=_avg_diagnostic(records, "output_tokens"),
+        avg_llm_call_count=_avg_diagnostic(records, "llm_call_count"),
+        avg_agent_retry_count=_avg_diagnostic(records, "agent_retry_count"),
+        avg_busted_retry_count=_avg_diagnostic(records, "busted_retry_count"),
         failure_taxonomy=summarize_failures(records),
     )
+
+
+def _avg_diagnostic(records: list[RunRecord], key: str) -> float:
+    values = [
+        value
+        for record in records
+        if isinstance((value := record.diagnostics.get(key)), int | float)
+    ]
+    if not values:
+        return 0.0
+    return sum(float(value) for value in values) / len(values)
 
 
 def _index_by_task(records: list[RunRecord]) -> dict[str, RunRecord]:
@@ -99,6 +115,14 @@ def build_comparison_report(
         - baseline_metrics.avg_normalized_score,
         "avg_step_count": candidate_metrics.avg_step_count - baseline_metrics.avg_step_count,
         "avg_latency_sec": candidate_metrics.avg_latency_sec - baseline_metrics.avg_latency_sec,
+        "avg_input_tokens": candidate_metrics.avg_input_tokens - baseline_metrics.avg_input_tokens,
+        "avg_output_tokens": candidate_metrics.avg_output_tokens - baseline_metrics.avg_output_tokens,
+        "avg_llm_call_count": candidate_metrics.avg_llm_call_count
+        - baseline_metrics.avg_llm_call_count,
+        "avg_agent_retry_count": candidate_metrics.avg_agent_retry_count
+        - baseline_metrics.avg_agent_retry_count,
+        "avg_busted_retry_count": candidate_metrics.avg_busted_retry_count
+        - baseline_metrics.avg_busted_retry_count,
     }
     return ComparisonReport(
         baseline_config_id=baseline_config_id,
@@ -146,6 +170,11 @@ def render_markdown(report: ComparisonReport) -> str:
         f"| avg_normalized_score | {baseline.avg_normalized_score:.3f} | {candidate.avg_normalized_score:.3f} | {delta['avg_normalized_score']:.3f} |",
         f"| avg_step_count | {baseline.avg_step_count:.2f} | {candidate.avg_step_count:.2f} | {delta['avg_step_count']:.2f} |",
         f"| avg_latency_sec | {baseline.avg_latency_sec:.2f} | {candidate.avg_latency_sec:.2f} | {delta['avg_latency_sec']:.2f} |",
+        f"| avg_input_tokens | {baseline.avg_input_tokens:.2f} | {candidate.avg_input_tokens:.2f} | {delta['avg_input_tokens']:.2f} |",
+        f"| avg_output_tokens | {baseline.avg_output_tokens:.2f} | {candidate.avg_output_tokens:.2f} | {delta['avg_output_tokens']:.2f} |",
+        f"| avg_llm_call_count | {baseline.avg_llm_call_count:.2f} | {candidate.avg_llm_call_count:.2f} | {delta['avg_llm_call_count']:.2f} |",
+        f"| avg_agent_retry_count | {baseline.avg_agent_retry_count:.2f} | {candidate.avg_agent_retry_count:.2f} | {delta['avg_agent_retry_count']:.2f} |",
+        f"| avg_busted_retry_count | {baseline.avg_busted_retry_count:.2f} | {candidate.avg_busted_retry_count:.2f} | {delta['avg_busted_retry_count']:.2f} |",
         "",
         "## Failure Taxonomy",
         "",

@@ -2,15 +2,31 @@ from __future__ import annotations
 
 from baeloop.models import AdvisorProposal, ComparisonReport
 
+LATENCY_IMPROVEMENT_SEC = -0.5
+TOKEN_IMPROVEMENT = -100.0
+
 
 def propose_patch(report: ComparisonReport) -> AdvisorProposal:
     candidate_failures = report.failure_summary.get("candidate", {})
     delta = report.metrics["delta"]
-    if (
-        not candidate_failures
-        and report.regression_count == 0
+    quality_not_worse = (
+        report.regression_count == 0
         and delta["success_rate"] >= 0
         and delta["avg_normalized_score"] >= 0
+    )
+    if not candidate_failures and quality_not_worse and _has_efficiency_gain(delta):
+        return AdvisorProposal(
+            hypothesis_id="hyp_keep_efficiency_winner",
+            summary="Keep the candidate config as an efficiency winner under equal task quality.",
+            rationale="The candidate has no failures or regressions and improves at least one efficiency metric enough to justify keeping it.",
+            expected_effect="Preserve solved-task quality while reducing latency or token cost on the measured task set.",
+            risk="Efficiency gains may be run-to-run noise unless confirmed on a larger task set.",
+            patch={},
+        )
+
+    if (
+        not candidate_failures
+        and quality_not_worse
     ):
         return AdvisorProposal(
             hypothesis_id="hyp_hold_config_expand_taskset",
@@ -57,3 +73,11 @@ def _dominant_failure(failures: dict[str, int]) -> str | None:
     if not failures:
         return None
     return max(failures.items(), key=lambda item: item[1])[0]
+
+
+def _has_efficiency_gain(delta: dict[str, float]) -> bool:
+    return (
+        delta.get("avg_latency_sec", 0.0) <= LATENCY_IMPROVEMENT_SEC
+        or delta.get("avg_input_tokens", 0.0) <= TOKEN_IMPROVEMENT
+        or delta.get("avg_output_tokens", 0.0) <= TOKEN_IMPROVEMENT
+    )

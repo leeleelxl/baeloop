@@ -1,4 +1,4 @@
-id: relay_gpt54_challenge_budget_hyp_keep_efficiency_winner
+id: relay_gpt54_hard
 agent: agentlab_generic
 model: gpt-5.4
 api_base_url: https://api.ai.ohfi.com.cn/v1
@@ -9,5 +9,3 @@ retry_policy:
   enabled: false
   max_retries: 0
 observation_mode: html
-parent_config_id: relay_gpt54_challenge_budget
-advisor_hypothesis_id: hyp_keep_efficiency_winner
