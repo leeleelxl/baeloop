@@ -14,9 +14,13 @@
 | avg_step_count | 9.00 | 8.80 | -0.20 |
 | avg_latency_sec | 5.88 | 5.98 | 0.10 |
 
-## Candidate Failures
+## Failure Taxonomy
 
-- `timeout`: 1
+| Failure Type | Baseline | Candidate |
+|---|---:|---:|
+| `invalid_action` | 1 | 0 |
+| `no_op_loop` | 1 | 0 |
+| `timeout` | 1 | 1 |
 
 ## Missing Tasks
 

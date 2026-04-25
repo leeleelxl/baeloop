@@ -6,6 +6,7 @@ import pytest
 from baeloop.adapters.agentlab import (
     AgentLabAdapterUnavailable,
     OpenAICompatibleModelArgs,
+    _agentlab_retry_attempts,
     _preflight_config_credentials,
     _required_api_key_env,
     _run_record_from_summary,
@@ -13,7 +14,14 @@ from baeloop.adapters.agentlab import (
     run_agentlab_task,
 )
 from baeloop.doctor import probe_miniwob_url, probe_modules, probe_playwright_chromium
-from baeloop.models import AgentConfig, DependencyProbe, EnvironmentReport, TaskSet, TaskSpec
+from baeloop.models import (
+    AgentConfig,
+    DependencyProbe,
+    EnvironmentReport,
+    RetryPolicy,
+    TaskSet,
+    TaskSpec,
+)
 from baeloop.runner import run_taskset
 
 
@@ -158,6 +166,42 @@ def test_agentlab_api_key_mapping() -> None:
     assert _required_api_key_env("anthropic/claude-3-7-sonnet-20250219") == "ANTHROPIC_API_KEY"
     assert _required_api_key_env("openrouter/openai/gpt-5-mini") == "OPENROUTER_API_KEY"
     assert _required_api_key_env("test/cheat_miniwob_click_test") is None
+
+
+def test_agentlab_retry_policy_maps_to_attempt_count() -> None:
+    assert (
+        _agentlab_retry_attempts(
+            AgentConfig(
+                id="baseline",
+                model="gpt-4o-mini",
+                max_steps=15,
+                retry_policy=RetryPolicy(enabled=False, max_retries=0),
+            )
+        )
+        == 1
+    )
+    assert (
+        _agentlab_retry_attempts(
+            AgentConfig(
+                id="retry_disabled_ignores_budget",
+                model="gpt-4o-mini",
+                max_steps=15,
+                retry_policy=RetryPolicy(enabled=False, max_retries=3),
+            )
+        )
+        == 1
+    )
+    assert (
+        _agentlab_retry_attempts(
+            AgentConfig(
+                id="one_retry",
+                model="gpt-4o-mini",
+                max_steps=15,
+                retry_policy=RetryPolicy(enabled=True, max_retries=1),
+            )
+        )
+        == 2
+    )
 
 
 def test_agentlab_relay_config_requires_configured_key(monkeypatch: pytest.MonkeyPatch) -> None:

@@ -10,17 +10,18 @@ from baeloop.compare import build_comparison_report, render_markdown
 from baeloop.doctor import probe_agentlab_environment
 from baeloop.io import (
     read_agent_config,
+    append_jsonl_record,
     read_jsonl_records,
     read_model_json,
     read_taskset,
     read_yaml_dict,
+    reset_jsonl_records,
     write_json,
-    write_jsonl_records,
     write_yaml_dict,
 )
 from baeloop.models import AdvisorProposal, ComparisonReport
 from baeloop.patcher import materialize_config_patch
-from baeloop.runner import run_taskset
+from baeloop.runner import iter_taskset_records
 
 app = typer.Typer(help="Browser-agent evaluation and optimization loop.")
 
@@ -75,17 +76,20 @@ def run(
 
     resolved_config = read_agent_config(config)
     resolved_taskset = read_taskset(taskset)
+    records = []
+    reset_jsonl_records(out)
     try:
-        records = run_taskset(
+        for record in iter_taskset_records(
             config=resolved_config,
             taskset=resolved_taskset,
             adapter=adapter,
             experiment_id=experiment_id,
-        )
+        ):
+            append_jsonl_record(out, record)
+            records.append(record)
     except (AgentLabAdapterUnavailable, NotImplementedError) as exc:
         typer.secho(f"Error: {exc}", err=True, fg=typer.colors.RED)
         raise typer.Exit(1) from exc
-    write_jsonl_records(out, records)
     success_count = sum(1 for record in records if record.status == "success")
     typer.echo(
         f"Ran {resolved_config.id} on {resolved_taskset.id} with {adapter}: "

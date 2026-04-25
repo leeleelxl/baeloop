@@ -27,9 +27,20 @@ def read_jsonl_records(path: Path) -> list[RunRecord]:
 
 
 def write_jsonl_records(path: Path, records: list[RunRecord]) -> None:
+    reset_jsonl_records(path)
+    for record in records:
+        append_jsonl_record(path, record)
+
+
+def reset_jsonl_records(path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    lines = [record.model_dump_json() for record in records]
-    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    path.write_text("", encoding="utf-8")
+
+
+def append_jsonl_record(path: Path, record: RunRecord) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a", encoding="utf-8") as handle:
+        handle.write(record.model_dump_json() + "\n")
 
 
 def write_json(path: Path, payload: BaseModel | dict[str, Any]) -> None:

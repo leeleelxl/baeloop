@@ -1,5 +1,5 @@
 from baeloop.advisor import propose_patch
-from baeloop.compare import build_comparison_report
+from baeloop.compare import build_comparison_report, render_markdown
 from baeloop.models import AdvisorProposal, RunRecord
 from baeloop.patcher import materialize_config_patch
 
@@ -56,6 +56,39 @@ def test_compare_tracks_regressions_and_improvements() -> None:
     assert report.compared_task_count == 2
     assert report.missing_in_baseline == []
     assert report.missing_in_candidate == []
+
+
+def test_markdown_report_shows_baseline_and_candidate_failure_taxonomy() -> None:
+    baseline = [
+        RunRecord(
+            experiment_id="base",
+            config_id="baseline",
+            task_id="task_a",
+            status="failed",
+            normalized_score=0.0,
+            step_count=2,
+            latency_sec=1.0,
+            failure_type="max_steps",
+        )
+    ]
+    candidate = [
+        RunRecord(
+            experiment_id="new",
+            config_id="variant",
+            task_id="task_a",
+            status="failed",
+            normalized_score=0.0,
+            step_count=2,
+            latency_sec=1.0,
+            failure_type="invalid_action",
+        )
+    ]
+
+    markdown = render_markdown(build_comparison_report(baseline, candidate, taskset_id="smoke"))
+
+    assert "| Failure Type | Baseline | Candidate |" in markdown
+    assert "| `max_steps` | 1 | 0 |" in markdown
+    assert "| `invalid_action` | 0 | 1 |" in markdown
 
 
 def test_compare_rejects_mixed_config_records() -> None:

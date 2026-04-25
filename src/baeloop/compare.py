@@ -147,13 +147,23 @@ def render_markdown(report: ComparisonReport) -> str:
         f"| avg_step_count | {baseline.avg_step_count:.2f} | {candidate.avg_step_count:.2f} | {delta['avg_step_count']:.2f} |",
         f"| avg_latency_sec | {baseline.avg_latency_sec:.2f} | {candidate.avg_latency_sec:.2f} | {delta['avg_latency_sec']:.2f} |",
         "",
-        "## Candidate Failures",
+        "## Failure Taxonomy",
         "",
     ]
+    baseline_failures = report.failure_summary.get("baseline", {})
     candidate_failures = report.failure_summary.get("candidate", {})
-    if candidate_failures:
-        for failure_type, count in sorted(candidate_failures.items()):
-            lines.append(f"- `{failure_type}`: {count}")
+    failure_types = sorted(set(baseline_failures) | set(candidate_failures))
+    if failure_types:
+        lines.extend(
+            [
+                "| Failure Type | Baseline | Candidate |",
+                "|---|---:|---:|",
+            ]
+        )
+        for failure_type in failure_types:
+            lines.append(
+                f"| `{failure_type}` | {baseline_failures.get(failure_type, 0)} | {candidate_failures.get(failure_type, 0)} |"
+            )
     else:
         lines.append("- None")
 

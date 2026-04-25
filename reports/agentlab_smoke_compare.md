@@ -14,7 +14,7 @@
 | avg_step_count | 1.00 | 1.00 | 0.00 |
 | avg_latency_sec | 3.46 | 6.29 | 2.83 |
 
-## Candidate Failures
+## Failure Taxonomy
 
 - None
 

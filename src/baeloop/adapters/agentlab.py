@@ -102,6 +102,7 @@ def _make_generic_agent_args(config: AgentConfig):
     from agentlab.llm.chat_api import CheatMiniWoBLLMArgs
 
     flags = deepcopy(AGENT_4o_MINI.flags)
+    max_retry = _agentlab_retry_attempts(config)
     if config.observation_mode == "html":
         flags.obs.use_html = True
     if _is_cheat_model(config.model):
@@ -110,7 +111,7 @@ def _make_generic_agent_args(config: AgentConfig):
             agent_name="GenericAgent-cheat-miniwob",
             chat_model_args=CheatMiniWoBLLMArgs(),
             flags=flags,
-            max_retry=max(1, config.retry_policy.max_retries or 1),
+            max_retry=max_retry,
         )
 
     if config.api_base_url:
@@ -126,7 +127,7 @@ def _make_generic_agent_args(config: AgentConfig):
                 vision_support=True,
             ),
             flags=flags,
-            max_retry=max(1, config.retry_policy.max_retries or 1),
+            max_retry=max_retry,
         )
 
     model_key = MODEL_KEY_ALIASES.get(config.model, config.model)
@@ -138,8 +139,15 @@ def _make_generic_agent_args(config: AgentConfig):
     return GenericAgentArgs(
         chat_model_args=deepcopy(CHAT_MODEL_ARGS_DICT[model_key]),
         flags=flags,
-        max_retry=max(1, config.retry_policy.max_retries or 1),
+        max_retry=max_retry,
     )
+
+
+def _agentlab_retry_attempts(config: AgentConfig) -> int:
+    # AgentLab's `n_retry` loop counts the initial model call as one attempt.
+    if not config.retry_policy.enabled:
+        return 1
+    return 1 + config.retry_policy.max_retries
 
 
 def _preflight_model_credentials(model: str) -> None:
