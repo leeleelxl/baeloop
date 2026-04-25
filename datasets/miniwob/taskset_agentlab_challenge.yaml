@@ -1,0 +1,18 @@
+id: miniwob_agentlab_challenge
+benchmark: miniwob
+tasks:
+  - env_id: browsergym/miniwob.click-button-sequence
+    seed: 11
+    max_steps: 12
+  - env_id: browsergym/miniwob.enter-text-2
+    seed: 12
+    max_steps: 12
+  - env_id: browsergym/miniwob.click-scroll-list
+    seed: 13
+    max_steps: 18
+  - env_id: browsergym/miniwob.use-autocomplete-nodelay
+    seed: 14
+    max_steps: 18
+  - env_id: browsergym/miniwob.email-inbox-noscroll
+    seed: 15
+    max_steps: 20

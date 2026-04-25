@@ -32,6 +32,30 @@ By default, `doctor` imports the Python modules, checks whether Playwright Chrom
 
 `agentlab` adapter execution now supports the built-in MiniWoB smoke model and OpenAI-compatible chat completion endpoints.
 
+## Agent Architecture
+
+BAELOOP is an upper-layer optimization agent system. It does not replace the browser agent; it uses a browser agent as the execution substrate and optimizes configurations around benchmark evidence.
+
+Current architecture:
+
+```text
+AgentLab generic_agent -> RunRecord JSONL -> Compare Report -> Advisor -> Config Patch
+```
+
+The current advisor is a deterministic single-agent decision layer. It already has bounded inputs and outputs, but it is intentionally not a full multi-agent system yet.
+
+Target architecture:
+
+```text
+Compare Report
+  -> Analyst Agent      factual deltas, regressions, failure taxonomy
+  -> Hypothesis Agent   bounded optimization hypotheses
+  -> Critic Agent       reject weak or unsupported hypotheses
+  -> Patch Generator    materialize approved config patches
+```
+
+The next milestone is better evidence for this advisor layer: broader tasksets and richer run diagnostics, not a dashboard or a new browser agent.
+
 ## MiniWoB++ Assets
 
 Real AgentLab/BrowserGym runs use the optional benchmark dependencies:
@@ -113,6 +137,32 @@ uv run baeloop patch \
 ```
 
 The committed core report is intentionally small: both relay configs solve the three selected tasks, so the advisor emits a no-op patch and recommends expanding task coverage before changing the config again. This is expected behavior for a saturated task set and helps avoid unsupported optimization claims.
+
+Run the next challenge task set when you want less saturated data:
+
+```bash
+export OHFI_API_KEY="sk-..."
+export MINIWOB_URL="file://$(pwd)/external/miniwob-plusplus/miniwob/html/miniwob/"
+
+uv run baeloop run \
+  --adapter agentlab \
+  --config configs/agents/relay_gpt54_challenge.yaml \
+  --taskset datasets/miniwob/taskset_agentlab_challenge.yaml \
+  --out runs/agentlab_challenge_relay_gpt54.jsonl
+
+uv run baeloop run \
+  --adapter agentlab \
+  --config configs/agents/relay_gpt54_challenge_budget.yaml \
+  --taskset datasets/miniwob/taskset_agentlab_challenge.yaml \
+  --out runs/agentlab_challenge_relay_gpt54_budget.jsonl
+
+uv run baeloop compare \
+  --base runs/agentlab_challenge_relay_gpt54.jsonl \
+  --new runs/agentlab_challenge_relay_gpt54_budget.jsonl \
+  --taskset-id miniwob_agentlab_challenge \
+  --json-out reports/agentlab_challenge_compare.json \
+  --markdown-out reports/agentlab_challenge_compare.md
+```
 
 ## Quickstart
 

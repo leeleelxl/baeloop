@@ -7,6 +7,7 @@ from baeloop.adapters.agentlab import (
     AgentLabAdapterUnavailable,
     OpenAICompatibleModelArgs,
     _agentlab_retry_attempts,
+    _diagnostics_from_summary,
     _preflight_config_credentials,
     _required_api_key_env,
     _run_record_from_summary,
@@ -245,12 +246,36 @@ def test_agentlab_summary_normalization() -> None:
             "truncated": False,
             "stats.cum_step_elapsed": 0.5,
             "stats.cum_agent_elapsed": 1.5,
+            "stats.cum_n_retry": 1.0,
+            "stats.max_n_retry": 1.0,
+            "stats.cum_busted_retry": 0,
+            "stats.max_busted_retry": 0,
+            "stats.cum_n_retry_llm": 2,
+            "stats.max_n_retry_llm": 1,
+            "stats.cum_input_tokens": 100,
+            "stats.cum_output_tokens": 20,
         },
     )
 
     assert record.status == "success"
     assert record.normalized_score == 1.0
     assert record.latency_sec == 2.0
+    assert record.diagnostics == {
+        "agent_retry_count": 1.0,
+        "agent_retry_max": 1.0,
+        "busted_retry_count": 0,
+        "busted_retry_max": 0,
+        "llm_call_count": 2,
+        "llm_call_max": 1,
+        "input_tokens": 100,
+        "output_tokens": 20,
+    }
+
+
+def test_agentlab_diagnostics_ignore_missing_summary_stats() -> None:
+    assert _diagnostics_from_summary({"stats.cum_n_retry": 0.0}) == {
+        "agent_retry_count": 0.0
+    }
 
 
 def probe_modules_report_ready(ready: bool) -> EnvironmentReport:

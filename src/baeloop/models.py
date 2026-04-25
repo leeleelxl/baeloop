@@ -53,6 +53,7 @@ class RunRecord(BaseModel):
     latency_sec: float = Field(ge=0.0)
     failure_type: str | None = None
     error: str | None = None
+    diagnostics: dict[str, int | float | str | bool] = Field(default_factory=dict)
 
 
 class MetricSummary(BaseModel):

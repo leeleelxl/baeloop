@@ -226,7 +226,27 @@ def _run_record_from_summary(
         latency_sec=latency,
         failure_type=_failure_type(status=status, error=err_msg),
         error=err_msg,
+        diagnostics=_diagnostics_from_summary(summary),
     )
+
+
+def _diagnostics_from_summary(summary: dict) -> dict[str, int | float | str | bool]:
+    keys = {
+        "agent_retry_count": "stats.cum_n_retry",
+        "agent_retry_max": "stats.max_n_retry",
+        "busted_retry_count": "stats.cum_busted_retry",
+        "busted_retry_max": "stats.max_busted_retry",
+        "llm_call_count": "stats.cum_n_retry_llm",
+        "llm_call_max": "stats.max_n_retry_llm",
+        "input_tokens": "stats.cum_input_tokens",
+        "output_tokens": "stats.cum_output_tokens",
+    }
+    diagnostics: dict[str, int | float | str | bool] = {}
+    for name, summary_key in keys.items():
+        value = summary.get(summary_key)
+        if isinstance(value, int | float | str | bool):
+            diagnostics[name] = value
+    return diagnostics
 
 
 def _status_from_summary(score: float, summary: dict) -> str:
