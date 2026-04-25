@@ -324,6 +324,37 @@ def test_advisor_extends_step_budget_with_bounded_non_noop_patch() -> None:
     assert proposal.patch == {"max_steps": 30}
 
 
+def test_advisor_holds_config_for_unclassified_zero_score_failures() -> None:
+    baseline = [
+        RunRecord(
+            experiment_id="base",
+            config_id="baseline",
+            task_id="task_a",
+            status="success",
+            normalized_score=1.0,
+            step_count=2,
+            latency_sec=1.0,
+        )
+    ]
+    candidate = [
+        RunRecord(
+            experiment_id="new",
+            config_id="variant",
+            task_id="task_a",
+            status="failed",
+            normalized_score=0.0,
+            step_count=2,
+            latency_sec=1.1,
+            failure_type="zero_score",
+        )
+    ]
+
+    proposal = propose_patch(build_comparison_report(baseline, candidate, taskset_id="smoke"))
+
+    assert proposal.hypothesis_id == "hyp_investigate_unclassified_failures"
+    assert proposal.patch == {}
+
+
 def test_advisor_holds_config_when_candidate_has_no_failures_or_regressions() -> None:
     baseline = [
         RunRecord(

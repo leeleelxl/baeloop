@@ -60,6 +60,16 @@ def propose_patch(report: ComparisonReport) -> AdvisorProposal:
             patch={"max_steps": EXTENDED_STEP_BUDGET},
         )
 
+    if dominant_failure == "zero_score":
+        return AdvisorProposal(
+            hypothesis_id="hyp_investigate_unclassified_failures",
+            summary="Keep the candidate config and classify remaining zero-score failures before changing config again.",
+            rationale="`zero_score` is an outcome label, not an actionable root cause, so another bounded config patch would be weakly supported.",
+            expected_effect="Avoid speculative or no-op patches while directing the next work toward better failure evidence.",
+            risk="Does not immediately improve success rate until the residual failures are classified more precisely.",
+            patch={},
+        )
+
     return AdvisorProposal(
         hypothesis_id="hyp_conservative_retry",
         summary="Enable one retry as a conservative next configuration.",

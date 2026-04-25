@@ -1,0 +1,75 @@
+{
+  "baseline_config_id": "relay_gpt54_hard_retry",
+  "candidate_config_id": "relay_gpt54_hard_retry_hyp_extend_step_budget",
+  "compared_task_count": 8,
+  "failure_summary": {
+    "baseline": {
+      "max_steps": 2,
+      "zero_score": 2
+    },
+    "candidate": {
+      "max_steps": 1,
+      "zero_score": 2
+    }
+  },
+  "improvements": [
+    {
+      "baseline_score": 0.0,
+      "baseline_status": "max_steps",
+      "candidate_score": 1.0,
+      "candidate_status": "success",
+      "score_delta": 1.0,
+      "task_id": "browsergym/miniwob.book-flight#seed=21"
+    }
+  ],
+  "metrics": {
+    "baseline": {
+      "avg_agent_retry_count": 0.0,
+      "avg_busted_retry_count": 0.0,
+      "avg_input_tokens": 22730.625,
+      "avg_latency_sec": 28.959200501441956,
+      "avg_llm_call_count": 7.75,
+      "avg_normalized_score": 0.5,
+      "avg_output_tokens": 628.0,
+      "avg_step_count": 7.75,
+      "failure_taxonomy": {
+        "max_steps": 2,
+        "zero_score": 2
+      },
+      "success_rate": 0.5,
+      "task_count": 8
+    },
+    "candidate": {
+      "avg_agent_retry_count": 0.0,
+      "avg_busted_retry_count": 0.0,
+      "avg_input_tokens": 20784.5,
+      "avg_latency_sec": 33.71586212515831,
+      "avg_llm_call_count": 7.875,
+      "avg_normalized_score": 0.625,
+      "avg_output_tokens": 632.125,
+      "avg_step_count": 7.875,
+      "failure_taxonomy": {
+        "max_steps": 1,
+        "zero_score": 2
+      },
+      "success_rate": 0.625,
+      "task_count": 8
+    },
+    "delta": {
+      "avg_agent_retry_count": 0.0,
+      "avg_busted_retry_count": 0.0,
+      "avg_input_tokens": -1946.125,
+      "avg_latency_sec": 4.756661623716354,
+      "avg_llm_call_count": 0.125,
+      "avg_normalized_score": 0.125,
+      "avg_output_tokens": 4.125,
+      "avg_step_count": 0.125,
+      "success_rate": 0.125
+    }
+  },
+  "missing_in_baseline": [],
+  "missing_in_candidate": [],
+  "regression_count": 0,
+  "regressions": [],
+  "taskset_id": "miniwob_agentlab_hard"
+}
