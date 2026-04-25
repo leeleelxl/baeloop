@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from baeloop.failure_analysis import summarize_failures
-from baeloop.models import ComparisonReport, MetricSummary, RunRecord, TaskDelta
+from baeloop.failure_analysis import collect_failure_evidence, summarize_failures
+from baeloop.models import ComparisonReport, FailureEvidence, MetricSummary, RunRecord, TaskDelta
 
 SCORE_DELTA_THRESHOLD = 1e-9
 
@@ -143,6 +143,10 @@ def build_comparison_report(
             "baseline": baseline_metrics.failure_taxonomy,
             "candidate": candidate_metrics.failure_taxonomy,
         },
+        failure_evidence={
+            "baseline": collect_failure_evidence(baseline_common_records),
+            "candidate": collect_failure_evidence(candidate_common_records),
+        },
     )
 
 
@@ -196,6 +200,19 @@ def render_markdown(report: ComparisonReport) -> str:
     else:
         lines.append("- None")
 
+    lines.extend(["", "## Failure Evidence", ""])
+    evidence_rows = _failure_evidence_rows(report)
+    if evidence_rows:
+        lines.extend(
+            [
+                "| Side | Task | Root Cause | Confidence | Evidence | Suggested Action |",
+                "|---|---|---|---|---|---|",
+            ]
+        )
+        lines.extend(evidence_rows)
+    else:
+        lines.append("- None")
+
     lines.extend(["", "## Missing Tasks", ""])
     if report.missing_in_baseline:
         missing = ", ".join(f"`{task_id}`" for task_id in report.missing_in_baseline)
@@ -227,3 +244,23 @@ def render_markdown(report: ComparisonReport) -> str:
         lines.append("- None")
 
     return "\n".join(lines) + "\n"
+
+
+def _failure_evidence_rows(report: ComparisonReport) -> list[str]:
+    rows: list[str] = []
+    for side in ("baseline", "candidate"):
+        for evidence in report.failure_evidence.get(side, []):
+            rows.append(_format_failure_evidence_row(side, evidence))
+    return rows
+
+
+def _format_failure_evidence_row(side: str, evidence: FailureEvidence) -> str:
+    signals = "<br>".join(_escape_table_cell(item) for item in evidence.evidence[:3])
+    return (
+        f"| {side} | `{evidence.task_id}` | `{evidence.root_cause}` | "
+        f"{evidence.confidence} | {signals} | {_escape_table_cell(evidence.suggested_action)} |"
+    )
+
+
+def _escape_table_cell(value: str) -> str:
+    return value.replace("|", "\\|")

@@ -1,5 +1,6 @@
 from baeloop.advisor import propose_patch
 from baeloop.compare import build_comparison_report, render_markdown
+from baeloop.failure_analysis import collect_failure_evidence
 from baeloop.models import AdvisorProposal, RunRecord
 from baeloop.patcher import materialize_config_patch
 
@@ -135,6 +136,82 @@ def test_markdown_report_shows_baseline_and_candidate_failure_taxonomy() -> None
     assert "| Failure Type | Baseline | Candidate |" in markdown
     assert "| `max_steps` | 1 | 0 |" in markdown
     assert "| `invalid_action` | 0 | 1 |" in markdown
+
+
+def test_failure_evidence_classifies_known_hard_task_patterns() -> None:
+    evidence = collect_failure_evidence(
+        [
+            RunRecord(
+                experiment_id="new",
+                config_id="variant",
+                task_id="browsergym/miniwob.grid-coordinate#seed=25",
+                status="failed",
+                normalized_score=0.0,
+                step_count=1,
+                latency_sec=1.0,
+                failure_type="zero_score",
+            ),
+            RunRecord(
+                experiment_id="new",
+                config_id="variant",
+                task_id="browsergym/miniwob.social-media-all#seed=26",
+                status="failed",
+                normalized_score=0.0,
+                step_count=8,
+                latency_sec=1.0,
+                failure_type="zero_score",
+            ),
+            RunRecord(
+                experiment_id="new",
+                config_id="variant",
+                task_id="browsergym/miniwob.terminal#seed=27",
+                status="max_steps",
+                normalized_score=0.0,
+                step_count=30,
+                latency_sec=1.0,
+                failure_type="max_steps",
+            ),
+        ]
+    )
+
+    assert [item.root_cause for item in evidence] == [
+        "coordinate_click_miss",
+        "missed_scroll_target",
+        "terminal_output_blindness",
+    ]
+
+
+def test_compare_report_renders_failure_evidence() -> None:
+    baseline = [
+        RunRecord(
+            experiment_id="base",
+            config_id="baseline",
+            task_id="browsergym/miniwob.grid-coordinate#seed=25",
+            status="success",
+            normalized_score=1.0,
+            step_count=1,
+            latency_sec=1.0,
+        )
+    ]
+    candidate = [
+        RunRecord(
+            experiment_id="new",
+            config_id="variant",
+            task_id="browsergym/miniwob.grid-coordinate#seed=25",
+            status="failed",
+            normalized_score=0.0,
+            step_count=1,
+            latency_sec=1.0,
+            failure_type="zero_score",
+        )
+    ]
+
+    report = build_comparison_report(baseline, candidate, taskset_id="smoke")
+    markdown = render_markdown(report)
+
+    assert report.failure_evidence["candidate"][0].root_cause == "coordinate_click_miss"
+    assert "## Failure Evidence" in markdown
+    assert "`coordinate_click_miss`" in markdown
 
 
 def test_compare_rejects_mixed_config_records() -> None:
@@ -352,6 +429,38 @@ def test_advisor_holds_config_for_unclassified_zero_score_failures() -> None:
     proposal = propose_patch(build_comparison_report(baseline, candidate, taskset_id="smoke"))
 
     assert proposal.hypothesis_id == "hyp_investigate_unclassified_failures"
+    assert proposal.patch == {}
+    assert "unclassified_zero_score=1" in proposal.rationale
+
+
+def test_advisor_avoids_budget_patch_for_terminal_output_blindness() -> None:
+    baseline = [
+        RunRecord(
+            experiment_id="base",
+            config_id="baseline",
+            task_id="browsergym/miniwob.terminal#seed=27",
+            status="success",
+            normalized_score=1.0,
+            step_count=2,
+            latency_sec=1.0,
+        )
+    ]
+    candidate = [
+        RunRecord(
+            experiment_id="new",
+            config_id="variant",
+            task_id="browsergym/miniwob.terminal#seed=27",
+            status="max_steps",
+            normalized_score=0.0,
+            step_count=30,
+            latency_sec=30.0,
+            failure_type="max_steps",
+        )
+    ]
+
+    proposal = propose_patch(build_comparison_report(baseline, candidate, taskset_id="smoke"))
+
+    assert proposal.hypothesis_id == "hyp_investigate_terminal_observation"
     assert proposal.patch == {}
 
 

@@ -79,6 +79,15 @@ class TaskDelta(BaseModel):
     score_delta: float
 
 
+class FailureEvidence(BaseModel):
+    task_id: str
+    failure_type: str
+    root_cause: str
+    confidence: str
+    evidence: list[str] = Field(default_factory=list)
+    suggested_action: str
+
+
 class ComparisonReport(BaseModel):
     baseline_config_id: str
     candidate_config_id: str
@@ -91,6 +100,7 @@ class ComparisonReport(BaseModel):
     regressions: list[TaskDelta]
     improvements: list[TaskDelta]
     failure_summary: dict[str, dict[str, int]]
+    failure_evidence: dict[str, list[FailureEvidence]] = Field(default_factory=dict)
 
 
 class AdvisorProposal(BaseModel):

@@ -2,7 +2,7 @@
   "expected_effect": "Avoid speculative or no-op patches while directing the next work toward better failure evidence.",
   "hypothesis_id": "hyp_investigate_unclassified_failures",
   "patch": {},
-  "rationale": "`zero_score` is an outcome label, not an actionable root cause, so another bounded config patch would be weakly supported.",
+  "rationale": "`zero_score` is an outcome label, not an actionable root cause, so another bounded config patch would be weakly supported. Candidate evidence points to: coordinate_click_miss=1, missed_scroll_target=1, terminal_output_blindness=1.",
   "risk": "Does not immediately improve success rate until the residual failures are classified more precisely.",
   "summary": "Keep the candidate config and classify remaining zero-score failures before changing config again."
 }

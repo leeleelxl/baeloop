@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from baeloop.models import AdvisorProposal, ComparisonReport
+from collections import Counter
+
+from baeloop.models import AdvisorProposal, ComparisonReport, FailureEvidence
 
 LATENCY_IMPROVEMENT_SEC = -0.5
 TOKEN_IMPROVEMENT = -100.0
@@ -9,6 +11,7 @@ EXTENDED_STEP_BUDGET = 30
 
 def propose_patch(report: ComparisonReport) -> AdvisorProposal:
     candidate_failures = report.failure_summary.get("candidate", {})
+    candidate_evidence = report.failure_evidence.get("candidate", [])
     delta = report.metrics["delta"]
     quality_not_worse = (
         report.regression_count == 0
@@ -25,10 +28,7 @@ def propose_patch(report: ComparisonReport) -> AdvisorProposal:
             patch={},
         )
 
-    if (
-        not candidate_failures
-        and quality_not_worse
-    ):
+    if not candidate_failures and quality_not_worse:
         return AdvisorProposal(
             hypothesis_id="hyp_hold_config_expand_taskset",
             summary="Keep the candidate config unchanged and expand the task set before optimizing further.",
@@ -39,6 +39,7 @@ def propose_patch(report: ComparisonReport) -> AdvisorProposal:
         )
 
     dominant_failure = _dominant_failure(candidate_failures)
+    dominant_root_cause = _dominant_root_cause(candidate_evidence)
 
     if dominant_failure in {"invalid_action", "no_op_loop"}:
         return AdvisorProposal(
@@ -48,6 +49,16 @@ def propose_patch(report: ComparisonReport) -> AdvisorProposal:
             expected_effect="Improve success rate on recoverable interaction failures with a small latency increase.",
             risk="May hide deeper policy issues and can increase step count on tasks that are already looping.",
             patch={"retry_policy": {"enabled": True, "max_retries": 1}},
+        )
+
+    if dominant_root_cause == "terminal_output_blindness":
+        return AdvisorProposal(
+            hypothesis_id="hyp_investigate_terminal_observation",
+            summary="Keep the candidate config and inspect terminal observation failure before increasing budget again.",
+            rationale="Failure evidence points to terminal output blindness, so more steps would likely extend the command loop without fixing state visibility.",
+            expected_effect="Identify whether the terminal task needs an observation extraction fix or should remain a documented baseline limitation.",
+            risk="Does not immediately improve terminal success until the observation issue is addressed.",
+            patch={},
         )
 
     if dominant_failure in {"timeout", "max_steps"}:
@@ -61,10 +72,13 @@ def propose_patch(report: ComparisonReport) -> AdvisorProposal:
         )
 
     if dominant_failure == "zero_score":
+        root_causes = _root_cause_summary(candidate_evidence)
+        evidence_note = f" Candidate evidence points to: {root_causes}." if root_causes else ""
         return AdvisorProposal(
             hypothesis_id="hyp_investigate_unclassified_failures",
             summary="Keep the candidate config and classify remaining zero-score failures before changing config again.",
-            rationale="`zero_score` is an outcome label, not an actionable root cause, so another bounded config patch would be weakly supported.",
+            rationale="`zero_score` is an outcome label, not an actionable root cause, so another bounded config patch would be weakly supported."
+            + evidence_note,
             expected_effect="Avoid speculative or no-op patches while directing the next work toward better failure evidence.",
             risk="Does not immediately improve success rate until the residual failures are classified more precisely.",
             patch={},
@@ -84,6 +98,17 @@ def _dominant_failure(failures: dict[str, int]) -> str | None:
     if not failures:
         return None
     return max(failures.items(), key=lambda item: item[1])[0]
+
+
+def _dominant_root_cause(evidence: list[FailureEvidence]) -> str | None:
+    if not evidence:
+        return None
+    return Counter(item.root_cause for item in evidence).most_common(1)[0][0]
+
+
+def _root_cause_summary(evidence: list[FailureEvidence]) -> str:
+    counts = Counter(item.root_cause for item in evidence)
+    return ", ".join(f"{root_cause}={count}" for root_cause, count in counts.most_common())
 
 
 def _has_efficiency_gain(delta: dict[str, float]) -> bool:
