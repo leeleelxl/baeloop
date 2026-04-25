@@ -25,11 +25,19 @@ This makes another step-budget increase weakly supported. The failure is more li
 
 ## Next Bounded Experiment
 
-Do not change prompts or add more budget. The next terminal-specific experiment should first test which browser action actually mutates the terminal command buffer, then wrap only terminal-task command entry behind a bounded action policy.
+Do not change prompts or add more budget. The next terminal-specific experiment should use the action probe result in `reports/agentlab_terminal_action_probe.md`.
+
+Probe result:
+
+- `fill("25", "ls *.gpg")` plus `press("25", "Enter")` does not make the command visible in the custom terminal.
+- `focus("25")` plus `keyboard_type(...)` plus Enter does make command text visible.
+- The oracle check solves seed 27 by running `ls`, selecting `vim.gpg`, and running `rm vim.gpg`, yielding reward `1.0`.
+
+The proposed bounded policy is `terminal_keyboard_type`: rewrite terminal-target `fill(...)` actions into `focus(...)` plus `keyboard_type(...)`, leaving the agent's command planning unchanged.
 
 Acceptance criteria:
 
-- command text becomes visible in the terminal trace after the input action
+- command text becomes visible in the terminal trace after the rewritten input action
 - the policy is scoped to `miniwob.terminal`
 - the policy emits structured diagnostics
 - the hard task rerun shows terminal outcome change or a documented no-effect result

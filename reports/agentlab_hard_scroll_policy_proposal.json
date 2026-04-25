@@ -1,29 +1,41 @@
 {
   "critic_decision": "accepted",
   "critic_notes": [
-    "no patch emitted; recommendation is hold or investigation",
+    "bounded patch present",
     "no regressions detected",
     "uses 2 candidate failure evidence records"
   ],
-  "expected_effect": "Identify whether the terminal task needs an input-action policy, observation extraction fix, or should remain a documented baseline limitation.",
-  "hypothesis_id": "hyp_investigate_terminal_interaction",
+  "expected_effect": "Let the agent's terminal commands actually reach the MiniWoB terminal without changing the prompt.",
+  "hypothesis_id": "hyp_terminal_keyboard_type",
   "intervention": {
-    "expected_effect": "Identify whether the terminal task needs an input-action policy, observation extraction fix, or should remain a documented baseline limitation.",
-    "id": "hyp_investigate_terminal_interaction",
-    "kind": "investigation",
-    "patch": {},
-    "rationale": "Failure evidence points to terminal interaction issues, so more steps would likely extend the command loop without fixing input or state handling.",
-    "risk": "Does not immediately improve terminal success until the interaction issue is addressed.",
-    "summary": "Keep the candidate config and inspect terminal interaction failure before increasing budget again.",
+    "expected_effect": "Let the agent's terminal commands actually reach the MiniWoB terminal without changing the prompt.",
+    "id": "hyp_terminal_keyboard_type",
+    "kind": "action_policy",
+    "patch": {
+      "action_policy": {
+        "enabled": true,
+        "max_interventions": 20,
+        "name": "terminal_keyboard_type"
+      }
+    },
+    "rationale": "Candidate failure evidence shows terminal commands were attempted with `fill`, but MiniWoB's custom terminal only updates command state from keyboard events.",
+    "risk": "May expose the agent's incorrect shell commands as visible terminal errors; it fixes input delivery, not command planning.",
+    "summary": "Enable a terminal keyboard-type action policy for custom terminal input.",
     "supported_by": [
-      "terminal_root_causes=terminal_input_action_mismatch"
+      "root_cause=terminal_input_action_mismatch"
     ],
     "target_root_causes": [
       "terminal_input_action_mismatch"
     ]
   },
-  "patch": {},
-  "rationale": "Failure evidence points to terminal interaction issues, so more steps would likely extend the command loop without fixing input or state handling.",
-  "risk": "Does not immediately improve terminal success until the interaction issue is addressed.",
-  "summary": "Keep the candidate config and inspect terminal interaction failure before increasing budget again."
+  "patch": {
+    "action_policy": {
+      "enabled": true,
+      "max_interventions": 20,
+      "name": "terminal_keyboard_type"
+    }
+  },
+  "rationale": "Candidate failure evidence shows terminal commands were attempted with `fill`, but MiniWoB's custom terminal only updates command state from keyboard events.",
+  "risk": "May expose the agent's incorrect shell commands as visible terminal errors; it fixes input delivery, not command planning.",
+  "summary": "Enable a terminal keyboard-type action policy for custom terminal input."
 }

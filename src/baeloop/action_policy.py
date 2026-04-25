@@ -8,6 +8,7 @@ from baeloop.models import ActionPolicyConfig
 
 
 SCROLL_BEFORE_SUBMIT = "scroll_before_submit"
+TERMINAL_KEYBOARD_TYPE = "terminal_keyboard_type"
 
 
 @dataclass
@@ -35,9 +36,12 @@ def apply_action_policy(
 ) -> ActionPolicyDecision:
     if action is None or not policy.enabled:
         return ActionPolicyDecision(action=action, applied=False)
-    if policy.name != SCROLL_BEFORE_SUBMIT:
-        return ActionPolicyDecision(action=action, applied=False)
     if state.interventions >= policy.max_interventions:
+        return ActionPolicyDecision(action=action, applied=False)
+
+    if policy.name == TERMINAL_KEYBOARD_TYPE:
+        return _apply_terminal_keyboard_type(action, obs, policy, state)
+    if policy.name != SCROLL_BEFORE_SUBMIT:
         return ActionPolicyDecision(action=action, applied=False)
     if not _is_social_media_all_goal(obs):
         return ActionPolicyDecision(action=action, applied=False)
@@ -58,11 +62,62 @@ def apply_action_policy(
     )
 
 
+def _apply_terminal_keyboard_type(
+    action: str,
+    obs: dict[str, Any],
+    policy: ActionPolicyConfig,
+    state: ActionPolicyState,
+) -> ActionPolicyDecision:
+    if not _is_terminal_goal(obs):
+        return ActionPolicyDecision(action=action, applied=False)
+
+    parsed = _fill_target_and_value(action)
+    if not parsed:
+        return ActionPolicyDecision(action=action, applied=False)
+    bid, value = parsed
+    if not value.strip():
+        return ActionPolicyDecision(action=action, applied=False)
+    if not _is_terminal_target(bid, _observation_text(obs, "pruned_html")):
+        return ActionPolicyDecision(action=action, applied=False)
+
+    state.interventions += 1
+    rewritten = f"focus({bid!r})\nkeyboard_type({value!r})"
+    return ActionPolicyDecision(
+        action=rewritten,
+        applied=True,
+        policy_name=policy.name,
+        original_action=action,
+        reason="terminal fill rewritten to keyboard events for custom terminal input",
+    )
+
+
 def _is_social_media_all_goal(obs: dict[str, Any]) -> bool:
     goal = _observation_text(obs, "goal")
     return 'Reply" button on all posts by @ultricies' in goal or (
         "social-media-all" in _observation_text(obs, "url").lower()
     )
+
+
+def _is_terminal_goal(obs: dict[str, Any]) -> bool:
+    goal = _observation_text(obs, "goal")
+    return "Use the terminal below" in goal or "miniwob.terminal" in _observation_text(
+        obs, "url"
+    ).lower()
+
+
+def _is_terminal_target(bid: str, html: str) -> bool:
+    if not html:
+        return bid == "25"
+    bid_marker = f'bid="{bid}"'
+    index = html.find(bid_marker)
+    if index < 0:
+        return bid == "25"
+    tag_start = html.rfind("<", 0, index)
+    tag_end = html.find(">", index)
+    if tag_start < 0 or tag_end < 0:
+        return False
+    tag = html[tag_start : tag_end + 1]
+    return 'id="terminal-target"' in tag
 
 
 def _is_submit_click(action: str, html: str) -> bool:
@@ -87,6 +142,17 @@ def _is_submit_click(action: str, html: str) -> bool:
 def _click_bid(action: str) -> str | None:
     match = re.fullmatch(r"\s*click\(\s*['\"]([^'\"]+)['\"]\s*\)\s*", action)
     return match.group(1) if match else None
+
+
+def _fill_target_and_value(action: str) -> tuple[str, str] | None:
+    match = re.fullmatch(
+        r"""\s*fill\(\s*['"]([^'"]+)['"]\s*,\s*(['"])(.*?)\2(?:\s*,\s*(?:True|False))?\s*\)\s*""",
+        action,
+        flags=re.DOTALL,
+    )
+    if not match:
+        return None
+    return match.group(1), match.group(3)
 
 
 def _has_hidden_unselected_ultricies_reply(html: str) -> bool:

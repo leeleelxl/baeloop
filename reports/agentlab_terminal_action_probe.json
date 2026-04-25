@@ -1,0 +1,310 @@
+{
+  "base_url": "file:///Users/lxl/lxl_code/hermes_lxl/external/miniwob-plusplus/miniwob/html/miniwob/",
+  "oracle_result": {
+    "action_errors": [
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+    "actions": [
+      "focus(\"25\")",
+      "keyboard_type(\"ls\")",
+      "keyboard_press(\"Enter\")",
+      "focus(\"25\")",
+      "keyboard_type(\"rm vim.gpg\")",
+      "keyboard_press(\"Enter\")"
+    ],
+    "final_state": {
+      "active_input": "",
+      "done": true,
+      "input_value": "",
+      "lines": [
+        "Welcome! Type help for a list of available commands.",
+        "Last login: Sat Apr 25 2026",
+        "user$ ls",
+        "file.html sys32.py vim.gpg",
+        "user$ rm vim.gpg",
+        "user$"
+      ],
+      "raw_reward": 1.0,
+      "reward": 0.996061
+    },
+    "listed_state": {
+      "active_input": "",
+      "done": false,
+      "input_value": "",
+      "lines": [
+        "Welcome! Type help for a list of available commands.",
+        "Last login: Sat Apr 25 2026",
+        "user$ ls",
+        "file.html sys32.py vim.gpg",
+        "user$"
+      ],
+      "raw_reward": 0.0,
+      "reward": 0.0
+    },
+    "reward": 1.0,
+    "target_extension": ".gpg",
+    "target_file": "vim.gpg",
+    "terminated": true
+  },
+  "results": [
+    {
+      "action_errors": [
+        "",
+        ""
+      ],
+      "actions": [
+        "fill(\"25\", \"ls *.gpg\")",
+        "press(\"25\", \"Enter\")"
+      ],
+      "command_visible": false,
+      "final_state": {
+        "active_input": "",
+        "done": false,
+        "input_value": "",
+        "lines": [
+          "Welcome! Type help for a list of available commands.",
+          "Last login: Sat Apr 25 2026",
+          "user$",
+          "user$ \u2588"
+        ],
+        "raw_reward": 0.0,
+        "reward": 0.0
+      },
+      "initial_state": {
+        "active_input": "",
+        "done": false,
+        "input_value": "",
+        "lines": [
+          "Welcome! Type help for a list of available commands.",
+          "Last login: Sat Apr 25 2026",
+          "user$ \u2588"
+        ],
+        "raw_reward": 0.0,
+        "reward": 0.0
+      },
+      "name": "fill_press",
+      "reward": 0.0,
+      "terminal_changed": true,
+      "terminated": false
+    },
+    {
+      "action_errors": [
+        "",
+        "",
+        ""
+      ],
+      "actions": [
+        "focus(\"25\")",
+        "keyboard_type(\"ls *.gpg\")",
+        "keyboard_press(\"Enter\")"
+      ],
+      "command_visible": true,
+      "final_state": {
+        "active_input": "",
+        "done": false,
+        "input_value": "",
+        "lines": [
+          "Welcome! Type help for a list of available commands.",
+          "Last login: Sat Apr 25 2026",
+          "user$ ls *.gpg",
+          "error: ls arguments not understood.",
+          "user$ \u2588"
+        ],
+        "raw_reward": 0.0,
+        "reward": 0.0
+      },
+      "initial_state": {
+        "active_input": "",
+        "done": false,
+        "input_value": "",
+        "lines": [
+          "Welcome! Type help for a list of available commands.",
+          "Last login: Sat Apr 25 2026",
+          "user$ \u2588"
+        ],
+        "raw_reward": 0.0,
+        "reward": 0.0
+      },
+      "name": "focus_keyboard_type_enter",
+      "reward": 0.0,
+      "terminal_changed": true,
+      "terminated": false
+    },
+    {
+      "action_errors": [
+        "",
+        "",
+        ""
+      ],
+      "actions": [
+        "click(\"25\")",
+        "keyboard_type(\"ls *.gpg\")",
+        "keyboard_press(\"Enter\")"
+      ],
+      "command_visible": true,
+      "final_state": {
+        "active_input": "",
+        "done": false,
+        "input_value": "",
+        "lines": [
+          "Welcome! Type help for a list of available commands.",
+          "Last login: Sat Apr 25 2026",
+          "user$ ls *.gpg",
+          "error: ls arguments not understood.",
+          "user$"
+        ],
+        "raw_reward": 0.0,
+        "reward": 0.0
+      },
+      "initial_state": {
+        "active_input": "",
+        "done": false,
+        "input_value": "",
+        "lines": [
+          "Welcome! Type help for a list of available commands.",
+          "Last login: Sat Apr 25 2026",
+          "user$ \u2588"
+        ],
+        "raw_reward": 0.0,
+        "reward": 0.0
+      },
+      "name": "click_input_keyboard_type_enter",
+      "reward": 0.0,
+      "terminal_changed": true,
+      "terminated": false
+    },
+    {
+      "action_errors": [
+        "",
+        "",
+        ""
+      ],
+      "actions": [
+        "click(\"14\")",
+        "keyboard_type(\"ls *.gpg\")",
+        "keyboard_press(\"Enter\")"
+      ],
+      "command_visible": true,
+      "final_state": {
+        "active_input": "",
+        "done": false,
+        "input_value": "",
+        "lines": [
+          "Welcome! Type help for a list of available commands.",
+          "Last login: Sat Apr 25 2026",
+          "user$ ls *.gpg",
+          "error: ls arguments not understood.",
+          "user$"
+        ],
+        "raw_reward": 0.0,
+        "reward": 0.0
+      },
+      "initial_state": {
+        "active_input": "",
+        "done": false,
+        "input_value": "",
+        "lines": [
+          "Welcome! Type help for a list of available commands.",
+          "Last login: Sat Apr 25 2026",
+          "user$ \u2588"
+        ],
+        "raw_reward": 0.0,
+        "reward": 0.0
+      },
+      "name": "click_terminal_keyboard_type_enter",
+      "reward": 0.0,
+      "terminal_changed": true,
+      "terminated": false
+    },
+    {
+      "action_errors": [
+        "",
+        "",
+        ""
+      ],
+      "actions": [
+        "mouse_click(75, 180)",
+        "keyboard_type(\"ls *.gpg\")",
+        "keyboard_press(\"Enter\")"
+      ],
+      "command_visible": true,
+      "final_state": {
+        "active_input": "",
+        "done": false,
+        "input_value": "",
+        "lines": [
+          "Welcome! Type help for a list of available commands.",
+          "Last login: Sat Apr 25 2026",
+          "user$ ls *.gpg",
+          "error: ls arguments not understood.",
+          "user$ \u2588"
+        ],
+        "raw_reward": 0.0,
+        "reward": 0.0
+      },
+      "initial_state": {
+        "active_input": "",
+        "done": false,
+        "input_value": "",
+        "lines": [
+          "Welcome! Type help for a list of available commands.",
+          "Last login: Sat Apr 25 2026",
+          "user$ \u2588"
+        ],
+        "raw_reward": 0.0,
+        "reward": 0.0
+      },
+      "name": "mouse_click_keyboard_type_enter",
+      "reward": 0.0,
+      "terminal_changed": true,
+      "terminated": false
+    },
+    {
+      "action_errors": [
+        "",
+        ""
+      ],
+      "actions": [
+        "keyboard_type(\"ls *.gpg\")",
+        "keyboard_press(\"Enter\")"
+      ],
+      "command_visible": false,
+      "final_state": {
+        "active_input": "",
+        "done": false,
+        "input_value": "",
+        "lines": [
+          "Welcome! Type help for a list of available commands.",
+          "Last login: Sat Apr 25 2026",
+          "user$",
+          "user$"
+        ],
+        "raw_reward": 0.0,
+        "reward": 0.0
+      },
+      "initial_state": {
+        "active_input": "",
+        "done": false,
+        "input_value": "",
+        "lines": [
+          "Welcome! Type help for a list of available commands.",
+          "Last login: Sat Apr 25 2026",
+          "user$ \u2588"
+        ],
+        "raw_reward": 0.0,
+        "reward": 0.0
+      },
+      "name": "keyboard_type_enter_no_focus",
+      "reward": 0.0,
+      "terminal_changed": true,
+      "terminated": false
+    }
+  ],
+  "seed": 27,
+  "task_name": "browsergym/miniwob.terminal"
+}

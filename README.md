@@ -223,6 +223,17 @@ uv run baeloop replay-policy \
 
 The committed replay report shows that the policy would have intercepted the failing `social-media-all` trace at step 7, rewriting `click('104')` to `scroll(0, 621)`.
 
+Probe the MiniWoB terminal action interface before proposing terminal-specific policies:
+
+```bash
+uv run baeloop probe-terminal \
+  --seed 27 \
+  --json-out reports/agentlab_terminal_action_probe.json \
+  --markdown-out reports/agentlab_terminal_action_probe.md
+```
+
+The committed probe report shows that `fill(...)` does not mutate MiniWoB's custom terminal command buffer, while `focus(...)` plus `keyboard_type(...)` does. The oracle check solves seed 27 by listing files, selecting `vim.gpg`, and removing it with keyboard events.
+
 ## Quickstart
 
 ```bash

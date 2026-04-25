@@ -163,3 +163,5 @@ Current result:
 - `avg_action_policy_interventions` was 0.0, so this run is evidence that the policy wrapper is safe on the hard slice, not causal proof that the rewrite caused the improvement
 - `reports/agentlab_social_scroll_policy_replay.*` shows a counterfactual policy-fire check on the earlier failing `social-media-all` trace: step 7 would be rewritten from `click('104')` to `scroll(0, 621)`
 - `reports/agentlab_terminal_trace_diagnosis.md` refines the remaining terminal failure as `terminal_input_action_mismatch`, making another step-budget increase weakly supported
+- `reports/agentlab_terminal_action_probe.*` verifies the terminal fix surface: `fill(...)` does not populate the custom terminal, while `focus(...)` plus `keyboard_type(...)` does; the oracle check solves seed 27 with reward 1.0
+- the next generated config is `configs/agents/generated_agentlab_hard_terminal_policy.yaml`, which enables the bounded `terminal_keyboard_type` action policy

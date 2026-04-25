@@ -9,7 +9,12 @@ import pickle
 from pathlib import Path
 from typing import Any
 
-from baeloop.action_policy import SCROLL_BEFORE_SUBMIT, ActionPolicyState, apply_action_policy
+from baeloop.action_policy import (
+    SCROLL_BEFORE_SUBMIT,
+    TERMINAL_KEYBOARD_TYPE,
+    ActionPolicyState,
+    apply_action_policy,
+)
 from baeloop.doctor import probe_agentlab_environment
 from baeloop.models import ActionPolicyConfig, AgentConfig, RunRecord, TaskSpec
 
@@ -81,6 +86,8 @@ class PolicyWrappedAgent:
         self.base_agent = base_agent
         self.action_policy = action_policy
         self.policy_state = ActionPolicyState()
+        if action_policy.name == TERMINAL_KEYBOARD_TYPE:
+            self.action_set = _terminal_policy_action_set()
 
     def __getattr__(self, name: str):
         return getattr(self.base_agent, name)
@@ -237,7 +244,7 @@ def _make_generic_agent_args(config: AgentConfig):
 def _maybe_wrap_agent_args(agent_args, config: AgentConfig):
     if not config.action_policy.enabled:
         return agent_args
-    if config.action_policy.name != SCROLL_BEFORE_SUBMIT:
+    if config.action_policy.name not in {SCROLL_BEFORE_SUBMIT, TERMINAL_KEYBOARD_TYPE}:
         raise AgentLabAdapterUnavailable(
             f"Unsupported action policy `{config.action_policy.name}`."
         )
@@ -245,6 +252,12 @@ def _maybe_wrap_agent_args(agent_args, config: AgentConfig):
         base_agent_args=agent_args,
         action_policy=config.action_policy,
     )
+
+
+def _terminal_policy_action_set():
+    from browsergym.core.action.highlevel import HighLevelActionSet
+
+    return HighLevelActionSet(["bid", "coord"], multiaction=True)
 
 
 def _agentlab_retry_attempts(config: AgentConfig) -> int:

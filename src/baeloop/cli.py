@@ -23,6 +23,7 @@ from baeloop.models import AdvisorProposal, ComparisonReport
 from baeloop.patcher import materialize_config_patch
 from baeloop.policy_replay import replay_action_policy_trace, render_policy_replay_markdown
 from baeloop.runner import iter_taskset_records
+from baeloop.terminal_probe import run_terminal_probe, render_terminal_probe_markdown
 
 app = typer.Typer(help="Browser-agent evaluation and optimization loop.")
 
@@ -183,6 +184,35 @@ def replay_policy(
     typer.echo(
         f"Replayed {policy.name} on {trace_dir}: "
         f"steps={report.step_count}, applied={report.applied_count}"
+    )
+
+
+@app.command(name="probe-terminal")
+def probe_terminal(
+    seed: int = typer.Option(27, help="MiniWoB terminal task seed."),
+    base_url: str | None = typer.Option(
+        None,
+        help="MiniWoB base URL. Defaults to MINIWOB_URL or local external/miniwob-plusplus assets.",
+    ),
+    json_out: Path | None = typer.Option(None, help="Path for machine-readable terminal probe report."),
+    markdown_out: Path | None = typer.Option(None, help="Path for markdown terminal probe report."),
+) -> None:
+    """Probe which BrowserGym actions actually mutate MiniWoB terminal state."""
+    try:
+        report = run_terminal_probe(seed=seed, base_url=base_url)
+    except ValueError as exc:
+        typer.secho(f"Error: {exc}", err=True, fg=typer.colors.RED)
+        raise typer.Exit(1) from exc
+
+    if json_out:
+        write_json(json_out, report)
+    if markdown_out:
+        markdown_out.parent.mkdir(parents=True, exist_ok=True)
+        markdown_out.write_text(render_terminal_probe_markdown(report), encoding="utf-8")
+
+    typer.echo(
+        f"Probed terminal seed={seed}: "
+        f"results={len(report.results)}, working={len(report.working_results)}"
     )
 
 

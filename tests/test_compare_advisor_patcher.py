@@ -546,8 +546,14 @@ def test_advisor_avoids_budget_patch_for_terminal_input_action_mismatch() -> Non
 
     proposal = propose_patch(build_comparison_report(baseline, candidate, taskset_id="smoke"))
 
-    assert proposal.hypothesis_id == "hyp_investigate_terminal_interaction"
-    assert proposal.patch == {}
+    assert proposal.hypothesis_id == "hyp_terminal_keyboard_type"
+    assert proposal.patch == {
+        "action_policy": {
+            "enabled": True,
+            "name": "terminal_keyboard_type",
+            "max_interventions": 20,
+        }
+    }
     assert proposal.intervention is not None
     assert proposal.intervention.target_root_causes == ["terminal_input_action_mismatch"]
 
@@ -598,8 +604,14 @@ def test_advisor_avoids_budget_patch_when_all_max_step_failures_are_terminal_int
 
     proposal = propose_patch(build_comparison_report(baseline, candidate, taskset_id="smoke"))
 
-    assert proposal.hypothesis_id == "hyp_investigate_terminal_interaction"
-    assert proposal.patch == {}
+    assert proposal.hypothesis_id == "hyp_terminal_keyboard_type"
+    assert proposal.patch == {
+        "action_policy": {
+            "enabled": True,
+            "name": "terminal_keyboard_type",
+            "max_interventions": 20,
+        }
+    }
 
 
 def test_advisor_holds_config_when_candidate_has_no_failures_or_regressions() -> None:

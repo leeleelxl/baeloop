@@ -76,6 +76,25 @@ def propose_intervention(analysis: AdvisorAnalysis) -> Intervention:
             supported_by=["root_cause=missed_scroll_target"],
         )
 
+    if "terminal_input_action_mismatch" in analysis.candidate_root_causes:
+        return Intervention(
+            id="hyp_terminal_keyboard_type",
+            kind="action_policy",
+            summary="Enable a terminal keyboard-type action policy for custom terminal input.",
+            rationale="Candidate failure evidence shows terminal commands were attempted with `fill`, but MiniWoB's custom terminal only updates command state from keyboard events.",
+            expected_effect="Let the agent's terminal commands actually reach the MiniWoB terminal without changing the prompt.",
+            risk="May expose the agent's incorrect shell commands as visible terminal errors; it fixes input delivery, not command planning.",
+            patch={
+                "action_policy": {
+                    "enabled": True,
+                    "name": "terminal_keyboard_type",
+                    "max_interventions": 20,
+                }
+            },
+            target_root_causes=["terminal_input_action_mismatch"],
+            supported_by=["root_cause=terminal_input_action_mismatch"],
+        )
+
     if _all_max_step_failures_are_terminal_interaction_issues(analysis):
         terminal_roots = _terminal_root_causes(analysis)
         return Intervention(
