@@ -77,7 +77,7 @@ def test_miniwob_url_probe_accepts_existing_file_url(tmp_path: Path) -> None:
 def test_agentlab_adapter_fails_actionably_when_dependencies_missing(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
         "baeloop.adapters.agentlab.probe_agentlab_environment",
-        lambda: probe_modules_report_ready(False),
+        lambda **_: probe_modules_report_ready(False),
     )
 
     with pytest.raises(AgentLabAdapterUnavailable, match="Missing modules: agentlab"):
@@ -86,6 +86,30 @@ def test_agentlab_adapter_fails_actionably_when_dependencies_missing(monkeypatch
             task=TaskSpec(env_id="browsergym/miniwob.click-button", seed=1, max_steps=10),
             experiment_id="exp_test",
         )
+
+
+def test_agentlab_runtime_preflight_skips_repeated_chromium_probe(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured_kwargs = {}
+
+    def fake_probe_agentlab_environment(**kwargs):
+        captured_kwargs.update(kwargs)
+        return probe_modules_report_ready(False)
+
+    monkeypatch.setattr(
+        "baeloop.adapters.agentlab.probe_agentlab_environment",
+        fake_probe_agentlab_environment,
+    )
+
+    with pytest.raises(AgentLabAdapterUnavailable):
+        run_agentlab_task(
+            config=AgentConfig(id="baseline", model="gpt-4o-mini", max_steps=15),
+            task=TaskSpec(env_id="browsergym/miniwob.click-button", seed=1, max_steps=10),
+            experiment_id="exp_test",
+        )
+
+    assert captured_kwargs == {"check_playwright_browser": False}
 
 
 def test_runner_accepts_agentlab_adapter_path(monkeypatch: pytest.MonkeyPatch) -> None:

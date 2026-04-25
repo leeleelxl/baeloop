@@ -1,0 +1,13 @@
+id: relay_gpt54_core_retry_hyp_hold_config_expand_taskset
+agent: agentlab_generic
+model: gpt-5.4
+api_base_url: https://api.ai.ohfi.com.cn/v1
+api_key_env: OHFI_API_KEY
+prompt_version: v1
+max_steps: 12
+retry_policy:
+  enabled: true
+  max_retries: 1
+observation_mode: html
+parent_config_id: relay_gpt54_core_retry
+advisor_hypothesis_id: hyp_hold_config_expand_taskset

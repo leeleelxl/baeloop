@@ -77,6 +77,43 @@ uv run baeloop run \
   --out runs/agentlab_relay_gpt54.jsonl
 ```
 
+Run a small real MiniWoB core loop with the relay-backed AgentLab adapter:
+
+```bash
+export OHFI_API_KEY="sk-..."
+export MINIWOB_URL="file://$(pwd)/external/miniwob-plusplus/miniwob/html/miniwob/"
+
+uv run baeloop run \
+  --adapter agentlab \
+  --config configs/agents/relay_gpt54_core.yaml \
+  --taskset datasets/miniwob/taskset_agentlab_core.yaml \
+  --out runs/agentlab_core_relay_gpt54.jsonl
+
+uv run baeloop run \
+  --adapter agentlab \
+  --config configs/agents/relay_gpt54_core_retry.yaml \
+  --taskset datasets/miniwob/taskset_agentlab_core.yaml \
+  --out runs/agentlab_core_relay_gpt54_retry.jsonl
+
+uv run baeloop compare \
+  --base runs/agentlab_core_relay_gpt54.jsonl \
+  --new runs/agentlab_core_relay_gpt54_retry.jsonl \
+  --taskset-id miniwob_agentlab_core \
+  --json-out reports/agentlab_core_compare.json \
+  --markdown-out reports/agentlab_core_compare.md
+
+uv run baeloop advise \
+  --report reports/agentlab_core_compare.json \
+  --out reports/agentlab_core_proposal.json
+
+uv run baeloop patch \
+  --base-config configs/agents/relay_gpt54_core_retry.yaml \
+  --proposal reports/agentlab_core_proposal.json \
+  --out configs/agents/generated_agentlab_core_advisor.yaml
+```
+
+The committed core report is intentionally small: both relay configs solve the three selected tasks, so the advisor emits a no-op patch and recommends expanding task coverage before changing the config again. This is expected behavior for a saturated task set and helps avoid unsupported optimization claims.
+
 ## Quickstart
 
 ```bash

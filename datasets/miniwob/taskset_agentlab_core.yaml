@@ -1,0 +1,12 @@
+id: miniwob_agentlab_core
+benchmark: miniwob
+tasks:
+  - env_id: browsergym/miniwob.click-button
+    seed: 1
+    max_steps: 8
+  - env_id: browsergym/miniwob.enter-text
+    seed: 2
+    max_steps: 8
+  - env_id: browsergym/miniwob.click-checkboxes
+    seed: 3
+    max_steps: 15

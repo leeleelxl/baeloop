@@ -56,7 +56,7 @@ MODEL_KEY_ALIASES = {
 
 
 def run_agentlab_task(config: AgentConfig, task: TaskSpec, experiment_id: str) -> RunRecord:
-    environment = probe_agentlab_environment()
+    environment = probe_agentlab_environment(check_playwright_browser=False)
     if not environment.ready:
         missing = [
             dependency.module

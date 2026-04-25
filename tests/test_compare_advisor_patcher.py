@@ -214,6 +214,36 @@ def test_advisor_generates_retry_patch_for_invalid_action() -> None:
     assert proposal.patch == {"retry_policy": {"enabled": True, "max_retries": 1}}
 
 
+def test_advisor_holds_config_when_candidate_has_no_failures_or_regressions() -> None:
+    baseline = [
+        RunRecord(
+            experiment_id="base",
+            config_id="baseline",
+            task_id="task_a",
+            status="success",
+            normalized_score=1.0,
+            step_count=2,
+            latency_sec=1.0,
+        )
+    ]
+    candidate = [
+        RunRecord(
+            experiment_id="new",
+            config_id="variant",
+            task_id="task_a",
+            status="success",
+            normalized_score=1.0,
+            step_count=2,
+            latency_sec=1.1,
+        )
+    ]
+
+    proposal = propose_patch(build_comparison_report(baseline, candidate, taskset_id="smoke"))
+
+    assert proposal.hypothesis_id == "hyp_hold_config_expand_taskset"
+    assert proposal.patch == {}
+
+
 def test_patcher_deep_merges_bounded_patch() -> None:
     proposal = AdvisorProposal(
         hypothesis_id="hyp_retry_invalid_or_noop",

@@ -5,6 +5,22 @@ from baeloop.models import AdvisorProposal, ComparisonReport
 
 def propose_patch(report: ComparisonReport) -> AdvisorProposal:
     candidate_failures = report.failure_summary.get("candidate", {})
+    delta = report.metrics["delta"]
+    if (
+        not candidate_failures
+        and report.regression_count == 0
+        and delta["success_rate"] >= 0
+        and delta["avg_normalized_score"] >= 0
+    ):
+        return AdvisorProposal(
+            hypothesis_id="hyp_hold_config_expand_taskset",
+            summary="Keep the candidate config unchanged and expand the task set before optimizing further.",
+            rationale="The candidate has no failures or regressions on the current task set, so another config patch would be weakly supported.",
+            expected_effect="Reduce overfitting risk by collecting evidence on harder or broader MiniWoB tasks first.",
+            risk="Delays optimization if the current task set is already representative, but avoids changing a saturated config without evidence.",
+            patch={},
+        )
+
     dominant_failure = _dominant_failure(candidate_failures)
 
     if dominant_failure in {"invalid_action", "no_op_loop"}:
