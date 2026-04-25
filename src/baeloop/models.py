@@ -25,7 +25,9 @@ class RetryPolicy(BaseModel):
 class ActionPolicyConfig(BaseModel):
     enabled: bool = False
     name: str = "none"
+    policies: list[str] = Field(default_factory=list)
     max_interventions: int = Field(default=0, ge=0)
+    policy_limits: dict[str, int] = Field(default_factory=dict)
     scroll_delta_y: int = 621
 
 
@@ -122,6 +124,8 @@ class ComparisonReport(BaseModel):
 
 
 class AdvisorAnalysis(BaseModel):
+    baseline_failures: dict[str, int]
+    baseline_root_causes: dict[str, int]
     candidate_failures: dict[str, int]
     candidate_root_causes: dict[str, int]
     dominant_failure: str | None = None

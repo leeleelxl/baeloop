@@ -519,6 +519,74 @@ def test_advisor_generates_action_policy_for_missed_scroll_target() -> None:
     assert proposal.intervention.target_root_causes == ["missed_scroll_target"]
 
 
+def test_advisor_composes_action_policies_when_single_policy_regresses_other_root_cause() -> None:
+    baseline = [
+        RunRecord(
+            experiment_id="base",
+            config_id="scroll_policy",
+            task_id="browsergym/miniwob.social-media-all#seed=26",
+            status="success",
+            normalized_score=1.0,
+            step_count=9,
+            latency_sec=1.0,
+        ),
+        RunRecord(
+            experiment_id="base",
+            config_id="scroll_policy",
+            task_id="browsergym/miniwob.terminal#seed=27",
+            status="max_steps",
+            normalized_score=0.0,
+            step_count=30,
+            latency_sec=30.0,
+            failure_type="max_steps",
+        ),
+    ]
+    candidate = [
+        RunRecord(
+            experiment_id="new",
+            config_id="terminal_policy",
+            task_id="browsergym/miniwob.social-media-all#seed=26",
+            status="failed",
+            normalized_score=0.0,
+            step_count=4,
+            latency_sec=1.0,
+            failure_type="zero_score",
+        ),
+        RunRecord(
+            experiment_id="new",
+            config_id="terminal_policy",
+            task_id="browsergym/miniwob.terminal#seed=27",
+            status="success",
+            normalized_score=1.0,
+            step_count=4,
+            latency_sec=4.0,
+        ),
+    ]
+
+    proposal = propose_patch(build_comparison_report(baseline, candidate, taskset_id="smoke"))
+
+    assert proposal.hypothesis_id == "hyp_combine_scroll_and_terminal_policies"
+    assert proposal.patch == {
+        "action_policy": {
+            "enabled": True,
+            "name": "composite",
+            "policies": ["scroll_before_submit", "terminal_keyboard_type"],
+            "max_interventions": 20,
+            "policy_limits": {
+                "scroll_before_submit": 1,
+                "terminal_keyboard_type": 20,
+            },
+            "scroll_delta_y": 621,
+        }
+    }
+    assert proposal.intervention is not None
+    assert proposal.intervention.kind == "action_policy"
+    assert proposal.intervention.target_root_causes == [
+        "missed_scroll_target",
+        "terminal_input_action_mismatch",
+    ]
+
+
 def test_advisor_avoids_budget_patch_for_terminal_input_action_mismatch() -> None:
     baseline = [
         RunRecord(

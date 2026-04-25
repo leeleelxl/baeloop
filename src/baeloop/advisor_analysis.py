@@ -9,6 +9,9 @@ TOKEN_IMPROVEMENT = -100.0
 
 
 def analyze_report(report: ComparisonReport) -> AdvisorAnalysis:
+    baseline_failures = report.failure_summary.get("baseline", {})
+    baseline_evidence = report.failure_evidence.get("baseline", [])
+    baseline_root_causes = Counter(item.root_cause for item in baseline_evidence)
     candidate_failures = report.failure_summary.get("candidate", {})
     candidate_evidence = report.failure_evidence.get("candidate", [])
     candidate_root_causes = Counter(item.root_cause for item in candidate_evidence)
@@ -16,6 +19,8 @@ def analyze_report(report: ComparisonReport) -> AdvisorAnalysis:
     assert isinstance(delta, dict)
 
     return AdvisorAnalysis(
+        baseline_failures=baseline_failures,
+        baseline_root_causes=dict(baseline_root_causes),
         candidate_failures=candidate_failures,
         candidate_root_causes=dict(candidate_root_causes),
         dominant_failure=_dominant(candidate_failures),

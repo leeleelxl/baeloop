@@ -1,0 +1,24 @@
+id: relay_gpt54_hard_retry_hyp_extend_step_budget_hyp_scroll_before_submit_hyp_terminal_keyboard_type_combined
+agent: agentlab_generic
+model: gpt-5.4
+api_base_url: https://api.ai.ohfi.com.cn/v1
+api_key_env: OHFI_API_KEY
+prompt_version: v1
+max_steps: 30
+retry_policy:
+  enabled: true
+  max_retries: 1
+observation_mode: html
+parent_config_id: relay_gpt54_hard_retry_hyp_extend_step_budget_hyp_scroll_before_submit_hyp_terminal_keyboard_type
+advisor_hypothesis_id: hyp_combine_scroll_and_terminal_policies
+action_policy:
+  enabled: true
+  name: composite
+  policies:
+    - scroll_before_submit
+    - terminal_keyboard_type
+  max_interventions: 20
+  policy_limits:
+    scroll_before_submit: 1
+    terminal_keyboard_type: 20
+  scroll_delta_y: 621

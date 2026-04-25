@@ -52,6 +52,8 @@ def test_scroll_before_submit_rewrites_submit_when_hidden_reply_remains() -> Non
     assert decision.applied is True
     assert decision.action == "scroll(0, 621)"
     assert decision.original_action == "click('104')"
+    assert state.interventions == 1
+    assert state.interventions_by_policy == {"scroll_before_submit": 1}
 
 
 def test_scroll_before_submit_is_bounded_to_one_intervention() -> None:
@@ -179,6 +181,35 @@ def test_terminal_keyboard_type_rewrites_fill_to_keyboard_events() -> None:
     assert decision.applied is True
     assert decision.action == "focus('25')\nkeyboard_type('ls')"
     assert decision.original_action == "fill('25', 'ls')"
+    assert state.interventions == 1
+    assert state.interventions_by_policy == {"terminal_keyboard_type": 1}
+
+
+def test_composite_action_policy_applies_task_scoped_rewrites() -> None:
+    state = ActionPolicyState()
+    policy = ActionPolicyConfig(
+        enabled=True,
+        name="composite",
+        policies=["scroll_before_submit", "terminal_keyboard_type"],
+        max_interventions=20,
+        policy_limits={"scroll_before_submit": 1, "terminal_keyboard_type": 20},
+        scroll_delta_y=621,
+    )
+
+    social = apply_action_policy("click('104')", _social_obs(), policy, state)
+    terminal = apply_action_policy("fill('25', 'ls')", _terminal_obs(), policy, state)
+
+    assert social.applied is True
+    assert social.policy_name == "scroll_before_submit"
+    assert social.action == "scroll(0, 621)"
+    assert terminal.applied is True
+    assert terminal.policy_name == "terminal_keyboard_type"
+    assert terminal.action == "focus('25')\nkeyboard_type('ls')"
+    assert state.interventions == 2
+    assert state.interventions_by_policy == {
+        "scroll_before_submit": 1,
+        "terminal_keyboard_type": 1,
+    }
 
 
 def test_terminal_keyboard_type_ignores_non_terminal_tasks() -> None:
@@ -196,3 +227,50 @@ def test_terminal_keyboard_type_ignores_non_terminal_tasks() -> None:
 
     assert decision.applied is False
     assert decision.action == "fill('25', 'ls')"
+
+
+def test_policy_wrapper_exposes_extended_action_set_for_composite_terminal_policy() -> None:
+    base_agent = SimpleNamespace(
+        actions=[],
+        action_set=SimpleNamespace(to_python_code=lambda _action: ""),
+        obs_preprocessor=lambda obs: obs,
+    )
+    base_agent.get_action = lambda _obs: ("fill('25', 'ls')", SimpleNamespace(extra_info={}))
+    base_agent.reset = lambda seed=None: None
+
+    wrapped = PolicyWrappedAgent(
+        base_agent=base_agent,
+        action_policy=ActionPolicyConfig(
+            enabled=True,
+            name="composite",
+            policies=["scroll_before_submit", "terminal_keyboard_type"],
+            max_interventions=20,
+            policy_limits={"scroll_before_submit": 1, "terminal_keyboard_type": 20},
+        ),
+    )
+
+    python_code = wrapped.action_set.to_python_code("focus('25')\nkeyboard_type('ls')")
+
+    assert "def keyboard_type" in python_code
+
+
+def test_agentlab_wrapper_rejects_unknown_composite_action_policy() -> None:
+    config = AgentConfig(
+        id="bad_composite_policy",
+        model="gpt-4o-mini",
+        max_steps=5,
+        action_policy=ActionPolicyConfig(
+            enabled=True,
+            name="composite",
+            policies=["scroll_before_submit", "unknown_policy"],
+            max_interventions=1,
+        ),
+    )
+
+    try:
+        _maybe_wrap_agent_args(SimpleNamespace(agent_name="base"), config)
+    except AgentLabAdapterUnavailable as exc:
+        assert "Unsupported action policy" in str(exc)
+        assert "unknown_policy" in str(exc)
+    else:
+        raise AssertionError("Expected unknown composite action policies to be rejected")

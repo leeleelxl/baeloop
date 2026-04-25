@@ -1,0 +1,122 @@
+{
+  "baseline_config_id": "relay_gpt54_hard_retry_hyp_extend_step_budget_hyp_scroll_before_submit_hyp_terminal_keyboard_type",
+  "candidate_config_id": "relay_gpt54_hard_retry_hyp_extend_step_budget_hyp_scroll_before_submit_hyp_terminal_keyboard_type_combined",
+  "compared_task_count": 8,
+  "failure_evidence": {
+    "baseline": [
+      {
+        "confidence": "medium",
+        "evidence": [
+          "status=failed",
+          "failure_type=zero_score",
+          "step_count=1",
+          "score=0.00",
+          "coordinate task failed after an SVG/grid click attempt"
+        ],
+        "failure_type": "zero_score",
+        "root_cause": "coordinate_click_miss",
+        "suggested_action": "Add coordinate-aware click evidence or a point-targeting policy before changing generic retry settings.",
+        "task_id": "browsergym/miniwob.grid-coordinate#seed=25"
+      },
+      {
+        "confidence": "medium",
+        "evidence": [
+          "status=failed",
+          "failure_type=zero_score",
+          "step_count=4",
+          "score=0.00",
+          "multi-item social task failed after several visible interactions"
+        ],
+        "failure_type": "zero_score",
+        "root_cause": "missed_scroll_target",
+        "suggested_action": "Test a scroll-before-submit policy or trace check for hidden remaining targets.",
+        "task_id": "browsergym/miniwob.social-media-all#seed=26"
+      }
+    ],
+    "candidate": [
+      {
+        "confidence": "medium",
+        "evidence": [
+          "status=failed",
+          "failure_type=zero_score",
+          "step_count=1",
+          "score=0.00",
+          "coordinate task failed after an SVG/grid click attempt"
+        ],
+        "failure_type": "zero_score",
+        "root_cause": "coordinate_click_miss",
+        "suggested_action": "Add coordinate-aware click evidence or a point-targeting policy before changing generic retry settings.",
+        "task_id": "browsergym/miniwob.grid-coordinate#seed=25"
+      }
+    ]
+  },
+  "failure_summary": {
+    "baseline": {
+      "zero_score": 2
+    },
+    "candidate": {
+      "zero_score": 1
+    }
+  },
+  "improvements": [
+    {
+      "baseline_score": 0.0,
+      "baseline_status": "failed",
+      "candidate_score": 1.0,
+      "candidate_status": "success",
+      "score_delta": 1.0,
+      "task_id": "browsergym/miniwob.social-media-all#seed=26"
+    }
+  ],
+  "metrics": {
+    "baseline": {
+      "avg_action_policy_interventions": 0.25,
+      "avg_agent_retry_count": 0.0,
+      "avg_busted_retry_count": 0.0,
+      "avg_input_tokens": 11431.25,
+      "avg_latency_sec": 14.051722049713135,
+      "avg_llm_call_count": 4.0,
+      "avg_normalized_score": 0.75,
+      "avg_output_tokens": 301.375,
+      "avg_step_count": 4.0,
+      "failure_taxonomy": {
+        "zero_score": 2
+      },
+      "success_rate": 0.75,
+      "task_count": 8
+    },
+    "candidate": {
+      "avg_action_policy_interventions": 0.375,
+      "avg_agent_retry_count": 0.0,
+      "avg_busted_retry_count": 0.0,
+      "avg_input_tokens": 21063.0,
+      "avg_latency_sec": 23.3425095975399,
+      "avg_llm_call_count": 6.125,
+      "avg_normalized_score": 0.875,
+      "avg_output_tokens": 511.25,
+      "avg_step_count": 6.125,
+      "failure_taxonomy": {
+        "zero_score": 1
+      },
+      "success_rate": 0.875,
+      "task_count": 8
+    },
+    "delta": {
+      "avg_action_policy_interventions": 0.125,
+      "avg_agent_retry_count": 0.0,
+      "avg_busted_retry_count": 0.0,
+      "avg_input_tokens": 9631.75,
+      "avg_latency_sec": 9.290787547826767,
+      "avg_llm_call_count": 2.125,
+      "avg_normalized_score": 0.125,
+      "avg_output_tokens": 209.875,
+      "avg_step_count": 2.125,
+      "success_rate": 0.125
+    }
+  },
+  "missing_in_baseline": [],
+  "missing_in_candidate": [],
+  "regression_count": 0,
+  "regressions": [],
+  "taskset_id": "miniwob_agentlab_hard"
+}

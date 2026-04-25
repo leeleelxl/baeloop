@@ -1,0 +1,62 @@
+{
+  "critic_decision": "accepted",
+  "critic_notes": [
+    "bounded patch present",
+    "candidate has 1 regressions",
+    "uses 2 candidate failure evidence records"
+  ],
+  "expected_effect": "Preserve the terminal input fix while restoring hidden-target scrolling behavior.",
+  "hypothesis_id": "hyp_combine_scroll_and_terminal_policies",
+  "intervention": {
+    "expected_effect": "Preserve the terminal input fix while restoring hidden-target scrolling behavior.",
+    "id": "hyp_combine_scroll_and_terminal_policies",
+    "kind": "action_policy",
+    "patch": {
+      "action_policy": {
+        "enabled": true,
+        "max_interventions": 20,
+        "name": "composite",
+        "policies": [
+          "scroll_before_submit",
+          "terminal_keyboard_type"
+        ],
+        "policy_limits": {
+          "scroll_before_submit": 1,
+          "terminal_keyboard_type": 20
+        },
+        "scroll_delta_y": 621
+      }
+    },
+    "rationale": "The report shows a candidate regression from `missed_scroll_target` while the baseline still had `terminal_input_action_mismatch`; a single replacement policy would likely fix one task family while breaking the other.",
+    "risk": "Combining task-scoped policies increases wrapper surface area, so each sub-policy must stay bounded and evidence-gated.",
+    "summary": "Compose scroll and terminal action policies instead of replacing one with the other.",
+    "supported_by": [
+      "candidate_root_cause=missed_scroll_target",
+      "baseline_root_cause=terminal_input_action_mismatch",
+      "regression_count>0"
+    ],
+    "target_root_causes": [
+      "missed_scroll_target",
+      "terminal_input_action_mismatch"
+    ]
+  },
+  "patch": {
+    "action_policy": {
+      "enabled": true,
+      "max_interventions": 20,
+      "name": "composite",
+      "policies": [
+        "scroll_before_submit",
+        "terminal_keyboard_type"
+      ],
+      "policy_limits": {
+        "scroll_before_submit": 1,
+        "terminal_keyboard_type": 20
+      },
+      "scroll_delta_y": 621
+    }
+  },
+  "rationale": "The report shows a candidate regression from `missed_scroll_target` while the baseline still had `terminal_input_action_mismatch`; a single replacement policy would likely fix one task family while breaking the other.",
+  "risk": "Combining task-scoped policies increases wrapper surface area, so each sub-policy must stay bounded and evidence-gated.",
+  "summary": "Compose scroll and terminal action policies instead of replacing one with the other."
+}

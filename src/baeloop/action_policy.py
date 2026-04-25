@@ -23,9 +23,18 @@ class ActionPolicyDecision:
 class ActionPolicyState:
     def __init__(self) -> None:
         self.interventions = 0
+        self.interventions_by_policy: dict[str, int] = {}
 
     def reset(self) -> None:
         self.interventions = 0
+        self.interventions_by_policy = {}
+
+    def intervention_count(self, policy_name: str) -> int:
+        return self.interventions_by_policy.get(policy_name, 0)
+
+    def record_intervention(self, policy_name: str) -> None:
+        self.interventions += 1
+        self.interventions_by_policy[policy_name] = self.intervention_count(policy_name) + 1
 
 
 def apply_action_policy(
@@ -36,13 +45,41 @@ def apply_action_policy(
 ) -> ActionPolicyDecision:
     if action is None or not policy.enabled:
         return ActionPolicyDecision(action=action, applied=False)
-    if state.interventions >= policy.max_interventions:
-        return ActionPolicyDecision(action=action, applied=False)
 
-    if policy.name == TERMINAL_KEYBOARD_TYPE:
-        return _apply_terminal_keyboard_type(action, obs, policy, state)
-    if policy.name != SCROLL_BEFORE_SUBMIT:
-        return ActionPolicyDecision(action=action, applied=False)
+    for policy_name in enabled_action_policy_names(policy):
+        if state.intervention_count(policy_name) >= _policy_limit(policy, policy_name):
+            continue
+        if policy_name == TERMINAL_KEYBOARD_TYPE:
+            decision = _terminal_keyboard_type_decision(action, obs, policy_name)
+        elif policy_name == SCROLL_BEFORE_SUBMIT:
+            decision = _scroll_before_submit_decision(action, obs, policy, policy_name)
+        else:
+            continue
+        if decision.applied:
+            state.record_intervention(policy_name)
+            return decision
+
+    return ActionPolicyDecision(action=action, applied=False)
+
+
+def enabled_action_policy_names(policy: ActionPolicyConfig) -> list[str]:
+    if policy.policies:
+        return policy.policies
+    if policy.name != "none":
+        return [policy.name]
+    return []
+
+
+def _policy_limit(policy: ActionPolicyConfig, policy_name: str) -> int:
+    return policy.policy_limits.get(policy_name, policy.max_interventions)
+
+
+def _scroll_before_submit_decision(
+    action: str,
+    obs: dict[str, Any],
+    policy: ActionPolicyConfig,
+    policy_name: str,
+) -> ActionPolicyDecision:
     if not _is_social_media_all_goal(obs):
         return ActionPolicyDecision(action=action, applied=False)
 
@@ -52,21 +89,19 @@ def apply_action_policy(
     if not _has_hidden_unselected_ultricies_reply(html):
         return ActionPolicyDecision(action=action, applied=False)
 
-    state.interventions += 1
     return ActionPolicyDecision(
         action=f"scroll(0, {policy.scroll_delta_y})",
         applied=True,
-        policy_name=policy.name,
+        policy_name=policy_name,
         original_action=action,
         reason="submit intercepted while hidden @ultricies reply remains",
     )
 
 
-def _apply_terminal_keyboard_type(
+def _terminal_keyboard_type_decision(
     action: str,
     obs: dict[str, Any],
-    policy: ActionPolicyConfig,
-    state: ActionPolicyState,
+    policy_name: str,
 ) -> ActionPolicyDecision:
     if not _is_terminal_goal(obs):
         return ActionPolicyDecision(action=action, applied=False)
@@ -80,12 +115,11 @@ def _apply_terminal_keyboard_type(
     if not _is_terminal_target(bid, _observation_text(obs, "pruned_html")):
         return ActionPolicyDecision(action=action, applied=False)
 
-    state.interventions += 1
     rewritten = f"focus({bid!r})\nkeyboard_type({value!r})"
     return ActionPolicyDecision(
         action=rewritten,
         applied=True,
-        policy_name=policy.name,
+        policy_name=policy_name,
         original_action=action,
         reason="terminal fill rewritten to keyboard events for custom terminal input",
     )

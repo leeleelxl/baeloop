@@ -56,6 +56,45 @@ def propose_intervention(analysis: AdvisorAnalysis) -> Intervention:
             supported_by=[f"dominant_failure={analysis.dominant_failure}"],
         )
 
+    if (
+        analysis.regression_count > 0
+        and "missed_scroll_target" in analysis.candidate_root_causes
+        and "terminal_input_action_mismatch" in analysis.baseline_root_causes
+    ):
+        return Intervention(
+            id="hyp_combine_scroll_and_terminal_policies",
+            kind="action_policy",
+            summary="Compose scroll and terminal action policies instead of replacing one with the other.",
+            rationale="The report shows a candidate regression from `missed_scroll_target` while the baseline still had `terminal_input_action_mismatch`; a single replacement policy would likely fix one task family while breaking the other.",
+            expected_effect="Preserve the terminal input fix while restoring hidden-target scrolling behavior.",
+            risk="Combining task-scoped policies increases wrapper surface area, so each sub-policy must stay bounded and evidence-gated.",
+            patch={
+                "action_policy": {
+                    "enabled": True,
+                    "name": "composite",
+                    "policies": [
+                        "scroll_before_submit",
+                        "terminal_keyboard_type",
+                    ],
+                    "max_interventions": 20,
+                    "policy_limits": {
+                        "scroll_before_submit": 1,
+                        "terminal_keyboard_type": 20,
+                    },
+                    "scroll_delta_y": 621,
+                }
+            },
+            target_root_causes=[
+                "missed_scroll_target",
+                "terminal_input_action_mismatch",
+            ],
+            supported_by=[
+                "candidate_root_cause=missed_scroll_target",
+                "baseline_root_cause=terminal_input_action_mismatch",
+                "regression_count>0",
+            ],
+        )
+
     if "missed_scroll_target" in analysis.candidate_root_causes:
         return Intervention(
             id="hyp_scroll_before_submit",

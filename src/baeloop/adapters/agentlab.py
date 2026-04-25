@@ -14,6 +14,7 @@ from baeloop.action_policy import (
     TERMINAL_KEYBOARD_TYPE,
     ActionPolicyState,
     apply_action_policy,
+    enabled_action_policy_names,
 )
 from baeloop.doctor import probe_agentlab_environment
 from baeloop.models import ActionPolicyConfig, AgentConfig, RunRecord, TaskSpec
@@ -21,6 +22,9 @@ from baeloop.models import ActionPolicyConfig, AgentConfig, RunRecord, TaskSpec
 
 class AgentLabAdapterUnavailable(RuntimeError):
     """Raised when the AgentLab adapter cannot run in the current environment."""
+
+
+SUPPORTED_ACTION_POLICIES = {SCROLL_BEFORE_SUBMIT, TERMINAL_KEYBOARD_TYPE}
 
 
 @dataclass
@@ -62,7 +66,10 @@ class PolicyWrappedAgentArgs:
     action_policy: ActionPolicyConfig
 
     def __post_init__(self):
-        self.agent_name = f"{self.base_agent_args.agent_name}-{self.action_policy.name}"
+        self.agent_name = (
+            f"{self.base_agent_args.agent_name}-"
+            f"{_action_policy_label(self.action_policy)}"
+        )
 
     def make_agent(self):
         return PolicyWrappedAgent(
@@ -86,7 +93,7 @@ class PolicyWrappedAgent:
         self.base_agent = base_agent
         self.action_policy = action_policy
         self.policy_state = ActionPolicyState()
-        if action_policy.name == TERMINAL_KEYBOARD_TYPE:
+        if TERMINAL_KEYBOARD_TYPE in enabled_action_policy_names(action_policy):
             self.action_set = _terminal_policy_action_set()
 
     def __getattr__(self, name: str):
@@ -244,14 +251,23 @@ def _make_generic_agent_args(config: AgentConfig):
 def _maybe_wrap_agent_args(agent_args, config: AgentConfig):
     if not config.action_policy.enabled:
         return agent_args
-    if config.action_policy.name not in {SCROLL_BEFORE_SUBMIT, TERMINAL_KEYBOARD_TYPE}:
+    policy_names = enabled_action_policy_names(config.action_policy)
+    unsupported = sorted(set(policy_names) - SUPPORTED_ACTION_POLICIES)
+    if unsupported:
         raise AgentLabAdapterUnavailable(
-            f"Unsupported action policy `{config.action_policy.name}`."
+            f"Unsupported action policy names: {unsupported}."
         )
     return PolicyWrappedAgentArgs(
         base_agent_args=agent_args,
         action_policy=config.action_policy,
     )
+
+
+def _action_policy_label(policy: ActionPolicyConfig) -> str:
+    names = enabled_action_policy_names(policy)
+    if names:
+        return "+".join(names)
+    return policy.name
 
 
 def _terminal_policy_action_set():
@@ -372,7 +388,7 @@ def _diagnostics_from_summary(summary: dict) -> dict[str, int | float | str | bo
 
 def _action_policy_diagnostics(exp_dir: Path) -> dict[str, int | str]:
     interventions = 0
-    policy_name: str | None = None
+    policy_counts: dict[str, int] = {}
     for step_file in sorted(exp_dir.glob("step_*.pkl.gz")):
         try:
             with gzip.open(step_file, "rb") as handle:
@@ -387,10 +403,13 @@ def _action_policy_diagnostics(exp_dir: Path) -> dict[str, int | str]:
             interventions += 1
             if isinstance(extra_info.get("action_policy_name"), str):
                 policy_name = extra_info["action_policy_name"]
+                policy_counts[policy_name] = policy_counts.get(policy_name, 0) + 1
 
     diagnostics: dict[str, int | str] = {"action_policy_interventions": interventions}
-    if policy_name:
-        diagnostics["action_policy_name"] = policy_name
+    if policy_counts:
+        diagnostics["action_policy_name"] = ",".join(sorted(policy_counts))
+        for policy_name, count in sorted(policy_counts.items()):
+            diagnostics[f"action_policy_interventions_{policy_name}"] = count
     return diagnostics
 
 
