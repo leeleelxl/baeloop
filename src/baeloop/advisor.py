@@ -4,6 +4,7 @@ from baeloop.models import AdvisorProposal, ComparisonReport
 
 LATENCY_IMPROVEMENT_SEC = -0.5
 TOKEN_IMPROVEMENT = -100.0
+EXTENDED_STEP_BUDGET = 30
 
 
 def propose_patch(report: ComparisonReport) -> AdvisorProposal:
@@ -56,7 +57,7 @@ def propose_patch(report: ComparisonReport) -> AdvisorProposal:
             rationale=f"Candidate failures are dominated by `{dominant_failure}`, suggesting the agent may need more interaction budget.",
             expected_effect="Improve completion rate on longer tasks.",
             risk="May increase latency and can worsen looping behavior if failures are not actually budget-limited.",
-            patch={"max_steps": 20},
+            patch={"max_steps": EXTENDED_STEP_BUDGET},
         )
 
     return AdvisorProposal(

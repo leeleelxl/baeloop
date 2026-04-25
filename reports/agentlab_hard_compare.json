@@ -1,0 +1,66 @@
+{
+  "baseline_config_id": "relay_gpt54_hard",
+  "candidate_config_id": "relay_gpt54_hard_retry",
+  "compared_task_count": 8,
+  "failure_summary": {
+    "baseline": {
+      "max_steps": 2,
+      "zero_score": 2
+    },
+    "candidate": {
+      "max_steps": 2,
+      "zero_score": 2
+    }
+  },
+  "improvements": [],
+  "metrics": {
+    "baseline": {
+      "avg_agent_retry_count": 0.0,
+      "avg_busted_retry_count": 0.0,
+      "avg_input_tokens": 21168.75,
+      "avg_latency_sec": 28.981853902339935,
+      "avg_llm_call_count": 7.375,
+      "avg_normalized_score": 0.5,
+      "avg_output_tokens": 608.5,
+      "avg_step_count": 7.375,
+      "failure_taxonomy": {
+        "max_steps": 2,
+        "zero_score": 2
+      },
+      "success_rate": 0.5,
+      "task_count": 8
+    },
+    "candidate": {
+      "avg_agent_retry_count": 0.0,
+      "avg_busted_retry_count": 0.0,
+      "avg_input_tokens": 22730.625,
+      "avg_latency_sec": 28.959200501441956,
+      "avg_llm_call_count": 7.75,
+      "avg_normalized_score": 0.5,
+      "avg_output_tokens": 628.0,
+      "avg_step_count": 7.75,
+      "failure_taxonomy": {
+        "max_steps": 2,
+        "zero_score": 2
+      },
+      "success_rate": 0.5,
+      "task_count": 8
+    },
+    "delta": {
+      "avg_agent_retry_count": 0.0,
+      "avg_busted_retry_count": 0.0,
+      "avg_input_tokens": 1561.875,
+      "avg_latency_sec": -0.022653400897979736,
+      "avg_llm_call_count": 0.375,
+      "avg_normalized_score": 0.0,
+      "avg_output_tokens": 19.5,
+      "avg_step_count": 0.375,
+      "success_rate": 0.0
+    }
+  },
+  "missing_in_baseline": [],
+  "missing_in_candidate": [],
+  "regression_count": 0,
+  "regressions": [],
+  "taskset_id": "miniwob_agentlab_hard"
+}

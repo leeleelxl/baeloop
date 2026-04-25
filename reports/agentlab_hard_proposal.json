@@ -1,0 +1,10 @@
+{
+  "expected_effect": "Improve completion rate on longer tasks.",
+  "hypothesis_id": "hyp_extend_step_budget",
+  "patch": {
+    "max_steps": 30
+  },
+  "rationale": "Candidate failures are dominated by `max_steps`, suggesting the agent may need more interaction budget.",
+  "risk": "May increase latency and can worsen looping behavior if failures are not actually budget-limited.",
+  "summary": "Increase the step budget for tasks that appear budget-limited."
+}
