@@ -1,8 +1,29 @@
 {
+  "critic_decision": "accepted",
+  "critic_notes": [
+    "bounded patch present",
+    "no regressions detected",
+    "no candidate failure evidence records"
+  ],
   "expected_effect": "Improve completion rate on longer tasks.",
   "hypothesis_id": "hyp_extend_step_budget",
+  "intervention": {
+    "expected_effect": "Improve completion rate on longer tasks.",
+    "id": "hyp_extend_step_budget",
+    "kind": "config_patch",
+    "patch": {
+      "max_steps": 30
+    },
+    "rationale": "Candidate failures are dominated by `timeout`, suggesting the agent may need more interaction budget.",
+    "risk": "May increase latency and can worsen looping behavior if failures are not actually budget-limited.",
+    "summary": "Increase the step budget for tasks that appear budget-limited.",
+    "supported_by": [
+      "dominant_failure=timeout"
+    ],
+    "target_root_causes": []
+  },
   "patch": {
-    "max_steps": 20
+    "max_steps": 30
   },
   "rationale": "Candidate failures are dominated by `timeout`, suggesting the agent may need more interaction budget.",
   "risk": "May increase latency and can worsen looping behavior if failures are not actually budget-limited.",

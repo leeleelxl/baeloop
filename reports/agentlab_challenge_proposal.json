@@ -1,6 +1,27 @@
 {
+  "critic_decision": "accepted",
+  "critic_notes": [
+    "no patch emitted; recommendation is hold or investigation",
+    "no regressions detected",
+    "no candidate failure evidence records"
+  ],
   "expected_effect": "Preserve solved-task quality while reducing latency or token cost on the measured task set.",
   "hypothesis_id": "hyp_keep_efficiency_winner",
+  "intervention": {
+    "expected_effect": "Preserve solved-task quality while reducing latency or token cost on the measured task set.",
+    "id": "hyp_keep_efficiency_winner",
+    "kind": "hold",
+    "patch": {},
+    "rationale": "The candidate has no failures or regressions and improves at least one efficiency metric enough to justify keeping it.",
+    "risk": "Efficiency gains may be run-to-run noise unless confirmed on a larger task set.",
+    "summary": "Keep the candidate config as an efficiency winner under equal task quality.",
+    "supported_by": [
+      "no_candidate_failures",
+      "quality_not_worse",
+      "efficiency_gain"
+    ],
+    "target_root_causes": []
+  },
   "patch": {},
   "rationale": "The candidate has no failures or regressions and improves at least one efficiency metric enough to justify keeping it.",
   "risk": "Efficiency gains may be run-to-run noise unless confirmed on a larger task set.",

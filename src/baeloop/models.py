@@ -6,6 +6,15 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 RunStatus = Literal["success", "failed", "timeout", "error", "max_steps"]
+InterventionKind = Literal[
+    "config_patch",
+    "retry_policy",
+    "action_policy",
+    "observation_policy",
+    "hold",
+    "investigation",
+]
+CriticDecision = Literal["accepted", "rejected"]
 
 
 class RetryPolicy(BaseModel):
@@ -103,6 +112,31 @@ class ComparisonReport(BaseModel):
     failure_evidence: dict[str, list[FailureEvidence]] = Field(default_factory=dict)
 
 
+class AdvisorAnalysis(BaseModel):
+    candidate_failures: dict[str, int]
+    candidate_root_causes: dict[str, int]
+    dominant_failure: str | None = None
+    dominant_root_cause: str | None = None
+    quality_not_worse: bool
+    efficiency_gain: bool
+    success_rate_delta: float
+    avg_score_delta: float
+    regression_count: int
+    evidence_count: int
+
+
+class Intervention(BaseModel):
+    id: str
+    kind: InterventionKind
+    summary: str
+    rationale: str
+    expected_effect: str
+    risk: str
+    patch: dict[str, Any] = Field(default_factory=dict)
+    target_root_causes: list[str] = Field(default_factory=list)
+    supported_by: list[str] = Field(default_factory=list)
+
+
 class AdvisorProposal(BaseModel):
     hypothesis_id: str
     summary: str
@@ -110,6 +144,9 @@ class AdvisorProposal(BaseModel):
     expected_effect: str
     risk: str
     patch: dict[str, Any]
+    intervention: Intervention | None = None
+    critic_decision: CriticDecision = "accepted"
+    critic_notes: list[str] = Field(default_factory=list)
 
 
 class DependencyProbe(BaseModel):

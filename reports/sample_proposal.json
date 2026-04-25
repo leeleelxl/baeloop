@@ -1,6 +1,30 @@
 {
+  "critic_decision": "accepted",
+  "critic_notes": [
+    "bounded patch present",
+    "candidate has 1 regressions",
+    "no candidate failure evidence records"
+  ],
   "expected_effect": "Improve success rate on recoverable interaction failures with a small latency increase.",
   "hypothesis_id": "hyp_retry_invalid_or_noop",
+  "intervention": {
+    "expected_effect": "Improve success rate on recoverable interaction failures with a small latency increase.",
+    "id": "hyp_retry_invalid_or_noop",
+    "kind": "retry_policy",
+    "patch": {
+      "retry_policy": {
+        "enabled": true,
+        "max_retries": 1
+      }
+    },
+    "rationale": "Candidate failures are dominated by `invalid_action`, which may be recoverable with one bounded retry.",
+    "risk": "May hide deeper policy issues and can increase step count on tasks that are already looping.",
+    "summary": "Enable a conservative retry policy for invalid-action or no-progress failures.",
+    "supported_by": [
+      "dominant_failure=invalid_action"
+    ],
+    "target_root_causes": []
+  },
   "patch": {
     "retry_policy": {
       "enabled": true,

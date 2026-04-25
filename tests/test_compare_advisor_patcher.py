@@ -1,3 +1,4 @@
+from baeloop.advisor_analysis import analyze_report
 from baeloop.advisor import propose_patch
 from baeloop.compare import build_comparison_report, render_markdown
 from baeloop.failure_analysis import collect_failure_evidence
@@ -103,6 +104,39 @@ def test_compare_summarizes_diagnostics_efficiency_metrics() -> None:
     assert report.metrics["candidate"].avg_input_tokens == 800
     assert report.metrics["delta"]["avg_input_tokens"] == -200
     assert report.metrics["delta"]["avg_latency_sec"] == -1
+
+
+def test_analyst_summarizes_candidate_failure_evidence() -> None:
+    baseline = [
+        RunRecord(
+            experiment_id="base",
+            config_id="baseline",
+            task_id="browsergym/miniwob.social-media-all#seed=26",
+            status="success",
+            normalized_score=1.0,
+            step_count=5,
+            latency_sec=1.0,
+        )
+    ]
+    candidate = [
+        RunRecord(
+            experiment_id="new",
+            config_id="variant",
+            task_id="browsergym/miniwob.social-media-all#seed=26",
+            status="failed",
+            normalized_score=0.0,
+            step_count=8,
+            latency_sec=2.0,
+            failure_type="zero_score",
+        )
+    ]
+
+    analysis = analyze_report(build_comparison_report(baseline, candidate, taskset_id="smoke"))
+
+    assert analysis.dominant_failure == "zero_score"
+    assert analysis.dominant_root_cause == "missed_scroll_target"
+    assert analysis.candidate_root_causes == {"missed_scroll_target": 1}
+    assert analysis.evidence_count == 1
 
 
 def test_markdown_report_shows_baseline_and_candidate_failure_taxonomy() -> None:
@@ -368,6 +402,9 @@ def test_advisor_generates_retry_patch_for_invalid_action() -> None:
     proposal = propose_patch(build_comparison_report(baseline, candidate, taskset_id="smoke"))
 
     assert proposal.patch == {"retry_policy": {"enabled": True, "max_retries": 1}}
+    assert proposal.intervention is not None
+    assert proposal.intervention.kind == "retry_policy"
+    assert proposal.critic_decision == "accepted"
 
 
 def test_advisor_extends_step_budget_with_bounded_non_noop_patch() -> None:
@@ -399,6 +436,9 @@ def test_advisor_extends_step_budget_with_bounded_non_noop_patch() -> None:
 
     assert proposal.hypothesis_id == "hyp_extend_step_budget"
     assert proposal.patch == {"max_steps": 30}
+    assert proposal.intervention is not None
+    assert proposal.intervention.kind == "config_patch"
+    assert "bounded patch present" in proposal.critic_notes
 
 
 def test_advisor_holds_config_for_unclassified_zero_score_failures() -> None:
@@ -431,6 +471,8 @@ def test_advisor_holds_config_for_unclassified_zero_score_failures() -> None:
     assert proposal.hypothesis_id == "hyp_investigate_unclassified_failures"
     assert proposal.patch == {}
     assert "unclassified_zero_score=1" in proposal.rationale
+    assert proposal.intervention is not None
+    assert proposal.intervention.kind == "investigation"
 
 
 def test_advisor_avoids_budget_patch_for_terminal_output_blindness() -> None:
@@ -462,6 +504,8 @@ def test_advisor_avoids_budget_patch_for_terminal_output_blindness() -> None:
 
     assert proposal.hypothesis_id == "hyp_investigate_terminal_observation"
     assert proposal.patch == {}
+    assert proposal.intervention is not None
+    assert proposal.intervention.target_root_causes == ["terminal_output_blindness"]
 
 
 def test_advisor_holds_config_when_candidate_has_no_failures_or_regressions() -> None:

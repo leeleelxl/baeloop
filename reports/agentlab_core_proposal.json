@@ -1,6 +1,26 @@
 {
+  "critic_decision": "accepted",
+  "critic_notes": [
+    "no patch emitted; recommendation is hold or investigation",
+    "no regressions detected",
+    "no candidate failure evidence records"
+  ],
   "expected_effect": "Reduce overfitting risk by collecting evidence on harder or broader MiniWoB tasks first.",
   "hypothesis_id": "hyp_hold_config_expand_taskset",
+  "intervention": {
+    "expected_effect": "Reduce overfitting risk by collecting evidence on harder or broader MiniWoB tasks first.",
+    "id": "hyp_hold_config_expand_taskset",
+    "kind": "hold",
+    "patch": {},
+    "rationale": "The candidate has no failures or regressions on the current task set, so another config patch would be weakly supported.",
+    "risk": "Delays optimization if the current task set is already representative, but avoids changing a saturated config without evidence.",
+    "summary": "Keep the candidate config unchanged and expand the task set before optimizing further.",
+    "supported_by": [
+      "no_candidate_failures",
+      "quality_not_worse"
+    ],
+    "target_root_causes": []
+  },
   "patch": {},
   "rationale": "The candidate has no failures or regressions on the current task set, so another config patch would be weakly supported.",
   "risk": "Delays optimization if the current task set is already representative, but avoids changing a saturated config without evidence.",

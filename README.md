@@ -36,6 +36,8 @@ By default, `doctor` imports the Python modules, checks whether Playwright Chrom
 
 BAELOOP is an upper-layer optimization agent system. It does not replace the browser agent; it uses a browser agent as the execution substrate and optimizes configurations around benchmark evidence.
 
+See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the full agent-stage architecture, intervention model, and current implementation boundaries.
+
 Current architecture:
 
 ```text

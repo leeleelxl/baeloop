@@ -1,6 +1,30 @@
 {
+  "critic_decision": "accepted",
+  "critic_notes": [
+    "no patch emitted; recommendation is hold or investigation",
+    "no regressions detected",
+    "uses 3 candidate failure evidence records"
+  ],
   "expected_effect": "Avoid speculative or no-op patches while directing the next work toward better failure evidence.",
   "hypothesis_id": "hyp_investigate_unclassified_failures",
+  "intervention": {
+    "expected_effect": "Avoid speculative or no-op patches while directing the next work toward better failure evidence.",
+    "id": "hyp_investigate_unclassified_failures",
+    "kind": "investigation",
+    "patch": {},
+    "rationale": "`zero_score` is an outcome label, not an actionable root cause, so another bounded config patch would be weakly supported. Candidate evidence points to: coordinate_click_miss=1, missed_scroll_target=1, terminal_output_blindness=1.",
+    "risk": "Does not immediately improve success rate until the residual failures are classified more precisely.",
+    "summary": "Keep the candidate config and classify remaining zero-score failures before changing config again.",
+    "supported_by": [
+      "dominant_failure=zero_score",
+      "root_causes=coordinate_click_miss=1, missed_scroll_target=1, terminal_output_blindness=1"
+    ],
+    "target_root_causes": [
+      "coordinate_click_miss",
+      "missed_scroll_target",
+      "terminal_output_blindness"
+    ]
+  },
   "patch": {},
   "rationale": "`zero_score` is an outcome label, not an actionable root cause, so another bounded config patch would be weakly supported. Candidate evidence points to: coordinate_click_miss=1, missed_scroll_target=1, terminal_output_blindness=1.",
   "risk": "Does not immediately improve success rate until the residual failures are classified more precisely.",
