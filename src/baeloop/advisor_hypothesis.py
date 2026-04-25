@@ -40,7 +40,39 @@ def propose_intervention(analysis: AdvisorAnalysis) -> Intervention:
             supported_by=[f"dominant_failure={analysis.dominant_failure}"],
         )
 
-    if analysis.dominant_root_cause == "terminal_output_blindness":
+    if _has_non_terminal_max_step_failures(analysis):
+        return Intervention(
+            id="hyp_extend_step_budget",
+            kind="config_patch",
+            summary="Increase the step budget for tasks that appear budget-limited.",
+            rationale=f"Candidate failures are dominated by `{analysis.dominant_failure}`, suggesting the agent may need more interaction budget.",
+            expected_effect="Improve completion rate on longer tasks.",
+            risk="May increase latency and can worsen looping behavior if failures are not actually budget-limited.",
+            patch={"max_steps": EXTENDED_STEP_BUDGET},
+            supported_by=[f"dominant_failure={analysis.dominant_failure}"],
+        )
+
+    if "missed_scroll_target" in analysis.candidate_root_causes:
+        return Intervention(
+            id="hyp_scroll_before_submit",
+            kind="action_policy",
+            summary="Enable a bounded scroll-before-submit action policy for hidden target failures.",
+            rationale="Candidate failure evidence includes `missed_scroll_target`, so the agent likely submitted before scanning all hidden actionable targets.",
+            expected_effect="Improve tasks that require scrolling to reveal remaining targets without changing the LLM prompt.",
+            risk="May add one extra step on matching tasks if the hidden-target heuristic is too broad.",
+            patch={
+                "action_policy": {
+                    "enabled": True,
+                    "name": "scroll_before_submit",
+                    "max_interventions": 1,
+                    "scroll_delta_y": 621,
+                }
+            },
+            target_root_causes=["missed_scroll_target"],
+            supported_by=["root_cause=missed_scroll_target"],
+        )
+
+    if _all_max_step_failures_are_terminal_blindness(analysis):
         return Intervention(
             id="hyp_investigate_terminal_observation",
             kind="investigation",
@@ -99,3 +131,16 @@ def _root_cause_summary(analysis: AdvisorAnalysis) -> str:
             key=lambda item: (-item[1], item[0]),
         )
     )
+
+
+def _all_max_step_failures_are_terminal_blindness(analysis: AdvisorAnalysis) -> bool:
+    max_step_count = analysis.candidate_failures.get("max_steps", 0)
+    if not max_step_count:
+        return False
+    return analysis.candidate_root_causes.get("terminal_output_blindness", 0) >= max_step_count
+
+
+def _has_non_terminal_max_step_failures(analysis: AdvisorAnalysis) -> bool:
+    max_step_count = analysis.candidate_failures.get("max_steps", 0)
+    terminal_blind_count = analysis.candidate_root_causes.get("terminal_output_blindness", 0)
+    return max_step_count > terminal_blind_count

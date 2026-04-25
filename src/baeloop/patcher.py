@@ -11,6 +11,7 @@ ALLOWED_PATCH_KEYS = {
     "observation_mode",
     "prompt_version",
     "no_op_policy",
+    "action_policy",
 }
 
 

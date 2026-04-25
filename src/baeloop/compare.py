@@ -30,6 +30,7 @@ def compute_metrics(records: list[RunRecord]) -> MetricSummary:
         avg_llm_call_count=_avg_diagnostic(records, "llm_call_count"),
         avg_agent_retry_count=_avg_diagnostic(records, "agent_retry_count"),
         avg_busted_retry_count=_avg_diagnostic(records, "busted_retry_count"),
+        avg_action_policy_interventions=_avg_diagnostic(records, "action_policy_interventions"),
         failure_taxonomy=summarize_failures(records),
     )
 
@@ -123,6 +124,8 @@ def build_comparison_report(
         - baseline_metrics.avg_agent_retry_count,
         "avg_busted_retry_count": candidate_metrics.avg_busted_retry_count
         - baseline_metrics.avg_busted_retry_count,
+        "avg_action_policy_interventions": candidate_metrics.avg_action_policy_interventions
+        - baseline_metrics.avg_action_policy_interventions,
     }
     return ComparisonReport(
         baseline_config_id=baseline_config_id,
@@ -179,6 +182,7 @@ def render_markdown(report: ComparisonReport) -> str:
         f"| avg_llm_call_count | {baseline.avg_llm_call_count:.2f} | {candidate.avg_llm_call_count:.2f} | {delta['avg_llm_call_count']:.2f} |",
         f"| avg_agent_retry_count | {baseline.avg_agent_retry_count:.2f} | {candidate.avg_agent_retry_count:.2f} | {delta['avg_agent_retry_count']:.2f} |",
         f"| avg_busted_retry_count | {baseline.avg_busted_retry_count:.2f} | {candidate.avg_busted_retry_count:.2f} | {delta['avg_busted_retry_count']:.2f} |",
+        f"| avg_action_policy_interventions | {baseline.avg_action_policy_interventions:.2f} | {candidate.avg_action_policy_interventions:.2f} | {delta['avg_action_policy_interventions']:.2f} |",
         "",
         "## Failure Taxonomy",
         "",

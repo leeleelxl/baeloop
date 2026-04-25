@@ -2,12 +2,16 @@ from __future__ import annotations
 
 from copy import deepcopy
 from dataclasses import dataclass
+import gzip
 import json
 import os
+import pickle
 from pathlib import Path
+from typing import Any
 
+from baeloop.action_policy import SCROLL_BEFORE_SUBMIT, ActionPolicyState, apply_action_policy
 from baeloop.doctor import probe_agentlab_environment
-from baeloop.models import AgentConfig, RunRecord, TaskSpec
+from baeloop.models import ActionPolicyConfig, AgentConfig, RunRecord, TaskSpec
 
 
 class AgentLabAdapterUnavailable(RuntimeError):
@@ -45,6 +49,83 @@ class OpenAICompatibleModelArgs:
 
     def close_server(self):
         pass
+
+
+@dataclass
+class PolicyWrappedAgentArgs:
+    base_agent_args: Any
+    action_policy: ActionPolicyConfig
+
+    def __post_init__(self):
+        self.agent_name = f"{self.base_agent_args.agent_name}-{self.action_policy.name}"
+
+    def make_agent(self):
+        return PolicyWrappedAgent(
+            base_agent=self.base_agent_args.make_agent(),
+            action_policy=self.action_policy,
+        )
+
+    def prepare(self):
+        if hasattr(self.base_agent_args, "prepare"):
+            return self.base_agent_args.prepare()
+        return None
+
+    def close(self):
+        if hasattr(self.base_agent_args, "close"):
+            return self.base_agent_args.close()
+        return None
+
+
+class PolicyWrappedAgent:
+    def __init__(self, base_agent: Any, action_policy: ActionPolicyConfig):
+        self.base_agent = base_agent
+        self.action_policy = action_policy
+        self.policy_state = ActionPolicyState()
+
+    def __getattr__(self, name: str):
+        return getattr(self.base_agent, name)
+
+    def obs_preprocessor(self, obs: dict) -> dict:
+        return self.base_agent.obs_preprocessor(obs)
+
+    def reset(self, seed=None):
+        self.policy_state.reset()
+        return self.base_agent.reset(seed=seed)
+
+    def get_action(self, obs):
+        action, agent_info = self.base_agent.get_action(obs)
+        decision = apply_action_policy(
+            action=action,
+            obs=obs,
+            policy=self.action_policy,
+            state=self.policy_state,
+        )
+        if decision.applied:
+            self._replace_last_base_action(decision.action)
+            self._annotate_agent_info(agent_info, decision)
+            return decision.action, agent_info
+
+        self._annotate_agent_info(agent_info, decision)
+        return action, agent_info
+
+    def _replace_last_base_action(self, action: str | None) -> None:
+        actions = getattr(self.base_agent, "actions", None)
+        if isinstance(actions, list) and actions:
+            actions[-1] = action
+
+    def _annotate_agent_info(self, agent_info, decision) -> None:
+        if getattr(agent_info, "extra_info", None) is None:
+            agent_info.extra_info = {}
+        agent_info.extra_info["action_policy_applied"] = decision.applied
+        if decision.applied:
+            agent_info.extra_info.update(
+                {
+                    "action_policy_name": decision.policy_name,
+                    "action_policy_original_action": decision.original_action,
+                    "action_policy_rewritten_action": decision.action,
+                    "action_policy_reason": decision.reason,
+                }
+            )
 
 
 MODEL_KEY_ALIASES = {
@@ -94,6 +175,7 @@ def run_agentlab_task(config: AgentConfig, task: TaskSpec, experiment_id: str) -
         task=task,
         experiment_id=experiment_id,
         summary=summary,
+        exp_dir=Path(exp_args.exp_dir),
     )
 
 
@@ -107,27 +189,33 @@ def _make_generic_agent_args(config: AgentConfig):
         flags.obs.use_html = True
     if _is_cheat_model(config.model):
         flags.obs.use_html = True
-        return GenericAgentArgs(
-            agent_name="GenericAgent-cheat-miniwob",
-            chat_model_args=CheatMiniWoBLLMArgs(),
-            flags=flags,
-            max_retry=max_retry,
+        return _maybe_wrap_agent_args(
+            GenericAgentArgs(
+                agent_name="GenericAgent-cheat-miniwob",
+                chat_model_args=CheatMiniWoBLLMArgs(),
+                flags=flags,
+                max_retry=max_retry,
+            ),
+            config,
         )
 
     if config.api_base_url:
-        return GenericAgentArgs(
-            chat_model_args=OpenAICompatibleModelArgs(
-                model_name=config.model,
-                base_url=config.api_base_url,
-                api_key_env=config.api_key_env or "OPENAI_API_KEY",
-                max_total_tokens=128000,
-                max_input_tokens=128000,
-                max_new_tokens=16384,
-                temperature=0.1,
-                vision_support=True,
+        return _maybe_wrap_agent_args(
+            GenericAgentArgs(
+                chat_model_args=OpenAICompatibleModelArgs(
+                    model_name=config.model,
+                    base_url=config.api_base_url,
+                    api_key_env=config.api_key_env or "OPENAI_API_KEY",
+                    max_total_tokens=128000,
+                    max_input_tokens=128000,
+                    max_new_tokens=16384,
+                    temperature=0.1,
+                    vision_support=True,
+                ),
+                flags=flags,
+                max_retry=max_retry,
             ),
-            flags=flags,
-            max_retry=max_retry,
+            config,
         )
 
     model_key = MODEL_KEY_ALIASES.get(config.model, config.model)
@@ -136,10 +224,26 @@ def _make_generic_agent_args(config: AgentConfig):
             f"Unsupported AgentLab model `{config.model}`. Use one of the AgentLab "
             "CHAT_MODEL_ARGS_DICT keys or a known alias such as `gpt-4o-mini`."
         )
-    return GenericAgentArgs(
-        chat_model_args=deepcopy(CHAT_MODEL_ARGS_DICT[model_key]),
-        flags=flags,
-        max_retry=max_retry,
+    return _maybe_wrap_agent_args(
+        GenericAgentArgs(
+            chat_model_args=deepcopy(CHAT_MODEL_ARGS_DICT[model_key]),
+            flags=flags,
+            max_retry=max_retry,
+        ),
+        config,
+    )
+
+
+def _maybe_wrap_agent_args(agent_args, config: AgentConfig):
+    if not config.action_policy.enabled:
+        return agent_args
+    if config.action_policy.name != SCROLL_BEFORE_SUBMIT:
+        raise AgentLabAdapterUnavailable(
+            f"Unsupported action policy `{config.action_policy.name}`."
+        )
+    return PolicyWrappedAgentArgs(
+        base_agent_args=agent_args,
+        action_policy=config.action_policy,
     )
 
 
@@ -209,6 +313,7 @@ def _run_record_from_summary(
     task: TaskSpec,
     experiment_id: str,
     summary: dict,
+    exp_dir: Path | None = None,
 ) -> RunRecord:
     score = max(0.0, min(float(summary.get("cum_reward", 0.0)), 1.0))
     err_msg = summary.get("err_msg")
@@ -216,6 +321,9 @@ def _run_record_from_summary(
     latency = float(summary.get("stats.cum_step_elapsed", 0.0) or 0.0) + float(
         summary.get("stats.cum_agent_elapsed", 0.0) or 0.0
     )
+    diagnostics = _diagnostics_from_summary(summary)
+    if exp_dir:
+        diagnostics.update(_action_policy_diagnostics(exp_dir))
     return RunRecord(
         experiment_id=experiment_id,
         config_id=config.id,
@@ -226,7 +334,7 @@ def _run_record_from_summary(
         latency_sec=latency,
         failure_type=_failure_type(status=status, error=err_msg),
         error=err_msg,
-        diagnostics=_diagnostics_from_summary(summary),
+        diagnostics=diagnostics,
     )
 
 
@@ -246,6 +354,30 @@ def _diagnostics_from_summary(summary: dict) -> dict[str, int | float | str | bo
         value = summary.get(summary_key)
         if isinstance(value, int | float | str | bool):
             diagnostics[name] = value
+    return diagnostics
+
+
+def _action_policy_diagnostics(exp_dir: Path) -> dict[str, int | str]:
+    interventions = 0
+    policy_name: str | None = None
+    for step_file in sorted(exp_dir.glob("step_*.pkl.gz")):
+        try:
+            with gzip.open(step_file, "rb") as handle:
+                step_info = pickle.load(handle)
+        except Exception:
+            continue
+        agent_info = getattr(step_info, "agent_info", None)
+        extra_info = getattr(agent_info, "extra_info", None)
+        if not isinstance(extra_info, dict):
+            continue
+        if extra_info.get("action_policy_applied") is True:
+            interventions += 1
+            if isinstance(extra_info.get("action_policy_name"), str):
+                policy_name = extra_info["action_policy_name"]
+
+    diagnostics: dict[str, int | str] = {"action_policy_interventions": interventions}
+    if policy_name:
+        diagnostics["action_policy_name"] = policy_name
     return diagnostics
 
 

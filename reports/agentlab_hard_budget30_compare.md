@@ -18,6 +18,7 @@
 | avg_llm_call_count | 7.75 | 7.88 | 0.12 |
 | avg_agent_retry_count | 0.00 | 0.00 | 0.00 |
 | avg_busted_retry_count | 0.00 | 0.00 | 0.00 |
+| avg_action_policy_interventions | 0.00 | 0.00 | 0.00 |
 
 ## Failure Taxonomy
 

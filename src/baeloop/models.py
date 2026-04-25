@@ -22,6 +22,13 @@ class RetryPolicy(BaseModel):
     max_retries: int = Field(default=0, ge=0)
 
 
+class ActionPolicyConfig(BaseModel):
+    enabled: bool = False
+    name: str = "none"
+    max_interventions: int = Field(default=0, ge=0)
+    scroll_delta_y: int = 621
+
+
 class AgentConfig(BaseModel):
     model_config = ConfigDict(extra="allow")
 
@@ -33,6 +40,7 @@ class AgentConfig(BaseModel):
     prompt_version: str = "v1"
     max_steps: int = Field(gt=0)
     retry_policy: RetryPolicy = Field(default_factory=RetryPolicy)
+    action_policy: ActionPolicyConfig = Field(default_factory=ActionPolicyConfig)
     observation_mode: str = "text"
 
 
@@ -76,6 +84,7 @@ class MetricSummary(BaseModel):
     avg_llm_call_count: float = 0.0
     avg_agent_retry_count: float = 0.0
     avg_busted_retry_count: float = 0.0
+    avg_action_policy_interventions: float = 0.0
     failure_taxonomy: dict[str, int]
 
 

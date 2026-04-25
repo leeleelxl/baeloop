@@ -1,67 +1,9 @@
 {
-  "baseline_config_id": "relay_gpt54_hard_retry",
-  "candidate_config_id": "relay_gpt54_hard_retry_hyp_extend_step_budget",
+  "baseline_config_id": "relay_gpt54_hard_retry_hyp_extend_step_budget",
+  "candidate_config_id": "relay_gpt54_hard_retry_hyp_extend_step_budget_hyp_scroll_before_submit",
   "compared_task_count": 8,
   "failure_evidence": {
     "baseline": [
-      {
-        "confidence": "medium",
-        "evidence": [
-          "status=max_steps",
-          "failure_type=max_steps",
-          "step_count=20",
-          "score=0.00",
-          "flight form task exhausted budget while resolving autocomplete-backed fields"
-        ],
-        "failure_type": "max_steps",
-        "root_cause": "autocomplete_validation_loop",
-        "suggested_action": "Prefer autocomplete-selection checks or a higher step budget only if trace evidence shows near-completion.",
-        "task_id": "browsergym/miniwob.book-flight#seed=21"
-      },
-      {
-        "confidence": "medium",
-        "evidence": [
-          "status=failed",
-          "failure_type=zero_score",
-          "step_count=1",
-          "score=0.00",
-          "coordinate task failed after an SVG/grid click attempt"
-        ],
-        "failure_type": "zero_score",
-        "root_cause": "coordinate_click_miss",
-        "suggested_action": "Add coordinate-aware click evidence or a point-targeting policy before changing generic retry settings.",
-        "task_id": "browsergym/miniwob.grid-coordinate#seed=25"
-      },
-      {
-        "confidence": "medium",
-        "evidence": [
-          "status=failed",
-          "failure_type=zero_score",
-          "step_count=9",
-          "score=0.00",
-          "multi-item social task failed after several visible interactions"
-        ],
-        "failure_type": "zero_score",
-        "root_cause": "missed_scroll_target",
-        "suggested_action": "Test a scroll-before-submit policy or trace check for hidden remaining targets.",
-        "task_id": "browsergym/miniwob.social-media-all#seed=26"
-      },
-      {
-        "confidence": "medium",
-        "evidence": [
-          "status=max_steps",
-          "failure_type=max_steps",
-          "step_count=20",
-          "score=0.00",
-          "terminal task exhausted step budget while command output was not captured as structured state"
-        ],
-        "failure_type": "max_steps",
-        "root_cause": "terminal_output_blindness",
-        "suggested_action": "Inspect terminal traces and add an observation policy for command output before increasing budget again.",
-        "task_id": "browsergym/miniwob.terminal#seed=27"
-      }
-    ],
-    "candidate": [
       {
         "confidence": "medium",
         "evidence": [
@@ -104,47 +46,60 @@
         "suggested_action": "Inspect terminal traces and add an observation policy for command output before increasing budget again.",
         "task_id": "browsergym/miniwob.terminal#seed=27"
       }
+    ],
+    "candidate": [
+      {
+        "confidence": "medium",
+        "evidence": [
+          "status=failed",
+          "failure_type=zero_score",
+          "step_count=1",
+          "score=0.00",
+          "coordinate task failed after an SVG/grid click attempt"
+        ],
+        "failure_type": "zero_score",
+        "root_cause": "coordinate_click_miss",
+        "suggested_action": "Add coordinate-aware click evidence or a point-targeting policy before changing generic retry settings.",
+        "task_id": "browsergym/miniwob.grid-coordinate#seed=25"
+      },
+      {
+        "confidence": "medium",
+        "evidence": [
+          "status=max_steps",
+          "failure_type=max_steps",
+          "step_count=30",
+          "score=0.00",
+          "terminal task exhausted step budget while command output was not captured as structured state"
+        ],
+        "failure_type": "max_steps",
+        "root_cause": "terminal_output_blindness",
+        "suggested_action": "Inspect terminal traces and add an observation policy for command output before increasing budget again.",
+        "task_id": "browsergym/miniwob.terminal#seed=27"
+      }
     ]
   },
   "failure_summary": {
     "baseline": {
-      "max_steps": 2,
+      "max_steps": 1,
       "zero_score": 2
     },
     "candidate": {
       "max_steps": 1,
-      "zero_score": 2
+      "zero_score": 1
     }
   },
   "improvements": [
     {
       "baseline_score": 0.0,
-      "baseline_status": "max_steps",
+      "baseline_status": "failed",
       "candidate_score": 1.0,
       "candidate_status": "success",
       "score_delta": 1.0,
-      "task_id": "browsergym/miniwob.book-flight#seed=21"
+      "task_id": "browsergym/miniwob.social-media-all#seed=26"
     }
   ],
   "metrics": {
     "baseline": {
-      "avg_action_policy_interventions": 0.0,
-      "avg_agent_retry_count": 0.0,
-      "avg_busted_retry_count": 0.0,
-      "avg_input_tokens": 22730.625,
-      "avg_latency_sec": 28.959200501441956,
-      "avg_llm_call_count": 7.75,
-      "avg_normalized_score": 0.5,
-      "avg_output_tokens": 628.0,
-      "avg_step_count": 7.75,
-      "failure_taxonomy": {
-        "max_steps": 2,
-        "zero_score": 2
-      },
-      "success_rate": 0.5,
-      "task_count": 8
-    },
-    "candidate": {
       "avg_action_policy_interventions": 0.0,
       "avg_agent_retry_count": 0.0,
       "avg_busted_retry_count": 0.0,
@@ -161,16 +116,33 @@
       "success_rate": 0.625,
       "task_count": 8
     },
+    "candidate": {
+      "avg_action_policy_interventions": 0.0,
+      "avg_agent_retry_count": 0.0,
+      "avg_busted_retry_count": 0.0,
+      "avg_input_tokens": 20514.25,
+      "avg_latency_sec": 32.23783978819847,
+      "avg_llm_call_count": 7.875,
+      "avg_normalized_score": 0.75,
+      "avg_output_tokens": 635.75,
+      "avg_step_count": 7.875,
+      "failure_taxonomy": {
+        "max_steps": 1,
+        "zero_score": 1
+      },
+      "success_rate": 0.75,
+      "task_count": 8
+    },
     "delta": {
       "avg_action_policy_interventions": 0.0,
       "avg_agent_retry_count": 0.0,
       "avg_busted_retry_count": 0.0,
-      "avg_input_tokens": -1946.125,
-      "avg_latency_sec": 4.756661623716354,
-      "avg_llm_call_count": 0.125,
+      "avg_input_tokens": -270.25,
+      "avg_latency_sec": -1.4780223369598389,
+      "avg_llm_call_count": 0.0,
       "avg_normalized_score": 0.125,
-      "avg_output_tokens": 4.125,
-      "avg_step_count": 0.125,
+      "avg_output_tokens": 3.625,
+      "avg_step_count": 0.0,
       "success_rate": 0.125
     }
   },

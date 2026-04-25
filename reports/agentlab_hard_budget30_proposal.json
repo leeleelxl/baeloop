@@ -1,32 +1,43 @@
 {
   "critic_decision": "accepted",
   "critic_notes": [
-    "no patch emitted; recommendation is hold or investigation",
+    "bounded patch present",
     "no regressions detected",
     "uses 3 candidate failure evidence records"
   ],
-  "expected_effect": "Avoid speculative or no-op patches while directing the next work toward better failure evidence.",
-  "hypothesis_id": "hyp_investigate_unclassified_failures",
+  "expected_effect": "Improve tasks that require scrolling to reveal remaining targets without changing the LLM prompt.",
+  "hypothesis_id": "hyp_scroll_before_submit",
   "intervention": {
-    "expected_effect": "Avoid speculative or no-op patches while directing the next work toward better failure evidence.",
-    "id": "hyp_investigate_unclassified_failures",
-    "kind": "investigation",
-    "patch": {},
-    "rationale": "`zero_score` is an outcome label, not an actionable root cause, so another bounded config patch would be weakly supported. Candidate evidence points to: coordinate_click_miss=1, missed_scroll_target=1, terminal_output_blindness=1.",
-    "risk": "Does not immediately improve success rate until the residual failures are classified more precisely.",
-    "summary": "Keep the candidate config and classify remaining zero-score failures before changing config again.",
+    "expected_effect": "Improve tasks that require scrolling to reveal remaining targets without changing the LLM prompt.",
+    "id": "hyp_scroll_before_submit",
+    "kind": "action_policy",
+    "patch": {
+      "action_policy": {
+        "enabled": true,
+        "max_interventions": 1,
+        "name": "scroll_before_submit",
+        "scroll_delta_y": 621
+      }
+    },
+    "rationale": "Candidate failure evidence includes `missed_scroll_target`, so the agent likely submitted before scanning all hidden actionable targets.",
+    "risk": "May add one extra step on matching tasks if the hidden-target heuristic is too broad.",
+    "summary": "Enable a bounded scroll-before-submit action policy for hidden target failures.",
     "supported_by": [
-      "dominant_failure=zero_score",
-      "root_causes=coordinate_click_miss=1, missed_scroll_target=1, terminal_output_blindness=1"
+      "root_cause=missed_scroll_target"
     ],
     "target_root_causes": [
-      "coordinate_click_miss",
-      "missed_scroll_target",
-      "terminal_output_blindness"
+      "missed_scroll_target"
     ]
   },
-  "patch": {},
-  "rationale": "`zero_score` is an outcome label, not an actionable root cause, so another bounded config patch would be weakly supported. Candidate evidence points to: coordinate_click_miss=1, missed_scroll_target=1, terminal_output_blindness=1.",
-  "risk": "Does not immediately improve success rate until the residual failures are classified more precisely.",
-  "summary": "Keep the candidate config and classify remaining zero-score failures before changing config again."
+  "patch": {
+    "action_policy": {
+      "enabled": true,
+      "max_interventions": 1,
+      "name": "scroll_before_submit",
+      "scroll_delta_y": 621
+    }
+  },
+  "rationale": "Candidate failure evidence includes `missed_scroll_target`, so the agent likely submitted before scanning all hidden actionable targets.",
+  "risk": "May add one extra step on matching tasks if the hidden-target heuristic is too broad.",
+  "summary": "Enable a bounded scroll-before-submit action policy for hidden target failures."
 }

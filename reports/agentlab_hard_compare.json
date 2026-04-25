@@ -133,6 +133,7 @@
   "improvements": [],
   "metrics": {
     "baseline": {
+      "avg_action_policy_interventions": 0.0,
       "avg_agent_retry_count": 0.0,
       "avg_busted_retry_count": 0.0,
       "avg_input_tokens": 21168.75,
@@ -149,6 +150,7 @@
       "task_count": 8
     },
     "candidate": {
+      "avg_action_policy_interventions": 0.0,
       "avg_agent_retry_count": 0.0,
       "avg_busted_retry_count": 0.0,
       "avg_input_tokens": 22730.625,
@@ -165,6 +167,7 @@
       "task_count": 8
     },
     "delta": {
+      "avg_action_policy_interventions": 0.0,
       "avg_agent_retry_count": 0.0,
       "avg_busted_retry_count": 0.0,
       "avg_input_tokens": 1561.875,

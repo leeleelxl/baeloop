@@ -1,0 +1,29 @@
+{
+  "critic_decision": "accepted",
+  "critic_notes": [
+    "no patch emitted; recommendation is hold or investigation",
+    "no regressions detected",
+    "uses 2 candidate failure evidence records"
+  ],
+  "expected_effect": "Identify whether the terminal task needs an observation extraction fix or should remain a documented baseline limitation.",
+  "hypothesis_id": "hyp_investigate_terminal_observation",
+  "intervention": {
+    "expected_effect": "Identify whether the terminal task needs an observation extraction fix or should remain a documented baseline limitation.",
+    "id": "hyp_investigate_terminal_observation",
+    "kind": "investigation",
+    "patch": {},
+    "rationale": "Failure evidence points to terminal output blindness, so more steps would likely extend the command loop without fixing state visibility.",
+    "risk": "Does not immediately improve terminal success until the observation issue is addressed.",
+    "summary": "Keep the candidate config and inspect terminal observation failure before increasing budget again.",
+    "supported_by": [
+      "dominant_root_cause=terminal_output_blindness"
+    ],
+    "target_root_causes": [
+      "terminal_output_blindness"
+    ]
+  },
+  "patch": {},
+  "rationale": "Failure evidence points to terminal output blindness, so more steps would likely extend the command loop without fixing state visibility.",
+  "risk": "Does not immediately improve terminal success until the observation issue is addressed.",
+  "summary": "Keep the candidate config and inspect terminal observation failure before increasing budget again."
+}

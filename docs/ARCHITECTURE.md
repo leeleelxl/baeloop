@@ -130,7 +130,7 @@ Outputs:
 - `supported_by`: compact evidence references
 - expected effect and risk
 
-The current patch materializer handles config-level interventions. Action-policy and observation-policy interventions are planned next; they should be implemented only when they can be verified with a rerun.
+The current patch materializer handles config-level interventions and a bounded `action_policy` patch. The AgentLab adapter currently implements one action policy, `scroll_before_submit`. Observation-policy interventions are still planned and should be implemented only when they can be verified with a rerun.
 
 ## Current Evidence
 
@@ -146,7 +146,7 @@ The hard MiniWoB run currently shows:
 
 ## Next Engineering Milestone
 
-The next non-prompt experiment should target `missed_scroll_target` with an action-policy intervention such as `scroll-before-submit`.
+The first non-prompt experiment targets `missed_scroll_target` with an action-policy intervention: `scroll-before-submit`.
 
 Acceptance criteria:
 
@@ -155,3 +155,10 @@ Acceptance criteria:
 - policy behavior is bounded and task/evidence scoped
 - hard taskset rerun completes
 - compare report shows whether success improves and whether regressions occur
+
+Current result:
+
+- `configs/agents/generated_agentlab_hard_scroll_policy.yaml` reached 0.750 success rate on the hard task set
+- `social-media-all` improved from 0.0 to 1.0
+- `avg_action_policy_interventions` was 0.0, so this run is evidence that the policy wrapper is safe on the hard slice, not causal proof that the rewrite caused the improvement
+- the next causal check should use repeated seeds or a trace-replay/policy-fire test where the submit action is actually intercepted

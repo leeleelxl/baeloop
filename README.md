@@ -16,8 +16,8 @@ This repository currently implements the current dependency-light MVP:
 - AgentLab/BrowserGym environment probe and executable MiniWoB smoke adapter
 - normalized run-record schema
 - compare report generation
-- rule-based advisor proposal
-- bounded config patch materialization
+- deterministic Analyst/Hypothesis/Critic advisor stages
+- bounded config and action-policy patch materialization
 - sample configs and run records
 
 AgentLab and BrowserGym integration is available behind the optional benchmark dependencies. The `mock` adapter is not a benchmark result; it exists to keep the optimization loop executable without browser dependencies.
@@ -38,13 +38,13 @@ BAELOOP is an upper-layer optimization agent system. It does not replace the bro
 
 See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the full agent-stage architecture, intervention model, and current implementation boundaries.
 
-Current architecture:
+Current implemented architecture:
 
 ```text
-AgentLab generic_agent -> RunRecord JSONL -> Compare Report -> Advisor -> Config Patch
+AgentLab generic_agent -> RunRecord JSONL -> Compare Report -> Analyst -> Hypothesis -> Critic -> Patch
 ```
 
-The current advisor is a deterministic single-agent decision layer. It already has bounded inputs and outputs, but it is intentionally not a full multi-agent system yet.
+The current advisor stages are deterministic and structured. They are intentionally not LLM-driven agents yet, but the code paths already separate factual analysis, hypothesis generation, and critique.
 
 Target architecture:
 
@@ -191,6 +191,25 @@ uv run baeloop compare \
   --json-out reports/agentlab_hard_compare.json \
   --markdown-out reports/agentlab_hard_compare.md
 ```
+
+The current hard-slice loop also includes a non-prompt `scroll_before_submit` action-policy experiment:
+
+```bash
+uv run baeloop run \
+  --adapter agentlab \
+  --config configs/agents/generated_agentlab_hard_scroll_policy.yaml \
+  --taskset datasets/miniwob/taskset_agentlab_hard.yaml \
+  --out runs/agentlab_hard_scroll_policy.jsonl
+
+uv run baeloop compare \
+  --base runs/agentlab_hard_budget30.jsonl \
+  --new runs/agentlab_hard_scroll_policy.jsonl \
+  --taskset-id miniwob_agentlab_hard \
+  --json-out reports/agentlab_hard_scroll_policy_compare.json \
+  --markdown-out reports/agentlab_hard_scroll_policy_compare.md
+```
+
+Committed evidence: `configs/agents/generated_agentlab_hard_scroll_policy.yaml` reaches `0.750` success rate versus `0.625` for the step-budget config, with no regressions on the eight-task hard slice. The action policy did not fire in that run (`avg_action_policy_interventions = 0.0`), so this is a safe-wrapper result and not causal proof of the rewrite.
 
 ## Quickstart
 
