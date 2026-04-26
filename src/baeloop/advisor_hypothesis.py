@@ -10,6 +10,21 @@ TERMINAL_INTERACTION_ROOT_CAUSES = {
 
 
 def propose_intervention(analysis: AdvisorAnalysis) -> Intervention:
+    if (
+        not analysis.candidate_failures
+        and analysis.quality_not_worse
+        and (analysis.success_rate_delta > 0 or analysis.avg_score_delta > 0)
+    ):
+        return Intervention(
+            id="hyp_keep_quality_winner",
+            kind="hold",
+            summary="Keep the candidate config as a quality winner on the measured task set.",
+            rationale="The candidate has no failures or regressions and improves success or normalized score.",
+            expected_effect="Preserve the improved solved-task quality before expanding the benchmark slice.",
+            risk="Quality gains may be seed-specific unless confirmed with repeated or broader runs.",
+            supported_by=["no_candidate_failures", "quality_not_worse", "quality_gain"],
+        )
+
     if not analysis.candidate_failures and analysis.quality_not_worse and analysis.efficiency_gain:
         return Intervention(
             id="hyp_keep_efficiency_winner",
@@ -132,6 +147,36 @@ def propose_intervention(analysis: AdvisorAnalysis) -> Intervention:
             },
             target_root_causes=["terminal_input_action_mismatch"],
             supported_by=["root_cause=terminal_input_action_mismatch"],
+        )
+
+    if "coordinate_click_miss" in analysis.candidate_root_causes:
+        return Intervention(
+            id="hyp_grid_coordinate_click",
+            kind="action_policy",
+            summary="Enable a coordinate-aware click policy for SVG grid-coordinate targets.",
+            rationale="Candidate failure evidence shows the agent identified the target coordinate but clicked the SVG root because the target circle had no bid-addressable action.",
+            expected_effect="Convert SVG-root clicks into precise mouse clicks on the requested grid point without changing the prompt.",
+            risk="Only applies when the grid target can be parsed from goal/html/bbox evidence; otherwise it should no-op rather than guess.",
+            patch={
+                "action_policy": {
+                    "enabled": True,
+                    "name": "composite",
+                    "policies": [
+                        "scroll_before_submit",
+                        "terminal_keyboard_type",
+                        "grid_coordinate_click",
+                    ],
+                    "max_interventions": 25,
+                    "policy_limits": {
+                        "scroll_before_submit": 1,
+                        "terminal_keyboard_type": 20,
+                        "grid_coordinate_click": 1,
+                    },
+                    "scroll_delta_y": 621,
+                }
+            },
+            target_root_causes=["coordinate_click_miss"],
+            supported_by=["root_cause=coordinate_click_miss"],
         )
 
     if _all_max_step_failures_are_terminal_interaction_issues(analysis):

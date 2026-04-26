@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from baeloop.action_policy import (
+    GRID_COORDINATE_CLICK,
     SCROLL_BEFORE_SUBMIT,
     TERMINAL_KEYBOARD_TYPE,
     ActionPolicyState,
@@ -24,7 +25,11 @@ class AgentLabAdapterUnavailable(RuntimeError):
     """Raised when the AgentLab adapter cannot run in the current environment."""
 
 
-SUPPORTED_ACTION_POLICIES = {SCROLL_BEFORE_SUBMIT, TERMINAL_KEYBOARD_TYPE}
+SUPPORTED_ACTION_POLICIES = {
+    GRID_COORDINATE_CLICK,
+    SCROLL_BEFORE_SUBMIT,
+    TERMINAL_KEYBOARD_TYPE,
+}
 
 
 @dataclass
@@ -93,8 +98,8 @@ class PolicyWrappedAgent:
         self.base_agent = base_agent
         self.action_policy = action_policy
         self.policy_state = ActionPolicyState()
-        if TERMINAL_KEYBOARD_TYPE in enabled_action_policy_names(action_policy):
-            self.action_set = _terminal_policy_action_set()
+        if _needs_coord_action_set(action_policy):
+            self.action_set = _coord_policy_action_set()
 
     def __getattr__(self, name: str):
         return getattr(self.base_agent, name)
@@ -270,7 +275,12 @@ def _action_policy_label(policy: ActionPolicyConfig) -> str:
     return policy.name
 
 
-def _terminal_policy_action_set():
+def _needs_coord_action_set(policy: ActionPolicyConfig) -> bool:
+    names = set(enabled_action_policy_names(policy))
+    return bool(names & {GRID_COORDINATE_CLICK, TERMINAL_KEYBOARD_TYPE})
+
+
+def _coord_policy_action_set():
     from browsergym.core.action.highlevel import HighLevelActionSet
 
     return HighLevelActionSet(["bid", "coord"], multiaction=True)

@@ -1,0 +1,89 @@
+{
+  "baseline_config_id": "relay_gpt54_hard_retry_hyp_extend_step_budget_hyp_scroll_before_submit_hyp_terminal_keyboard_type_combined",
+  "candidate_config_id": "relay_gpt54_hard_retry_hyp_extend_step_budget_hyp_scroll_before_submit_hyp_terminal_keyboard_type_hyp_grid_coordinate_click",
+  "compared_task_count": 8,
+  "failure_evidence": {
+    "baseline": [
+      {
+        "confidence": "medium",
+        "evidence": [
+          "status=failed",
+          "failure_type=zero_score",
+          "step_count=1",
+          "score=0.00",
+          "coordinate task failed after an SVG/grid click attempt"
+        ],
+        "failure_type": "zero_score",
+        "root_cause": "coordinate_click_miss",
+        "suggested_action": "Add coordinate-aware click evidence or a point-targeting policy before changing generic retry settings.",
+        "task_id": "browsergym/miniwob.grid-coordinate#seed=25"
+      }
+    ],
+    "candidate": []
+  },
+  "failure_summary": {
+    "baseline": {
+      "zero_score": 1
+    },
+    "candidate": {}
+  },
+  "improvements": [
+    {
+      "baseline_score": 0.0,
+      "baseline_status": "failed",
+      "candidate_score": 1.0,
+      "candidate_status": "success",
+      "score_delta": 1.0,
+      "task_id": "browsergym/miniwob.grid-coordinate#seed=25"
+    }
+  ],
+  "metrics": {
+    "baseline": {
+      "avg_action_policy_interventions": 0.375,
+      "avg_agent_retry_count": 0.0,
+      "avg_busted_retry_count": 0.0,
+      "avg_input_tokens": 21063.0,
+      "avg_latency_sec": 23.3425095975399,
+      "avg_llm_call_count": 6.125,
+      "avg_normalized_score": 0.875,
+      "avg_output_tokens": 511.25,
+      "avg_step_count": 6.125,
+      "failure_taxonomy": {
+        "zero_score": 1
+      },
+      "success_rate": 0.875,
+      "task_count": 8
+    },
+    "candidate": {
+      "avg_action_policy_interventions": 0.625,
+      "avg_agent_retry_count": 0.0,
+      "avg_busted_retry_count": 0.0,
+      "avg_input_tokens": 20464.125,
+      "avg_latency_sec": 35.97661864757538,
+      "avg_llm_call_count": 6.25,
+      "avg_normalized_score": 1.0,
+      "avg_output_tokens": 503.25,
+      "avg_step_count": 6.25,
+      "failure_taxonomy": {},
+      "success_rate": 1.0,
+      "task_count": 8
+    },
+    "delta": {
+      "avg_action_policy_interventions": 0.25,
+      "avg_agent_retry_count": 0.0,
+      "avg_busted_retry_count": 0.0,
+      "avg_input_tokens": -598.875,
+      "avg_latency_sec": 12.634109050035477,
+      "avg_llm_call_count": 0.125,
+      "avg_normalized_score": 0.125,
+      "avg_output_tokens": -8.0,
+      "avg_step_count": 0.125,
+      "success_rate": 0.125
+    }
+  },
+  "missing_in_baseline": [],
+  "missing_in_candidate": [],
+  "regression_count": 0,
+  "regressions": [],
+  "taskset_id": "miniwob_agentlab_hard"
+}

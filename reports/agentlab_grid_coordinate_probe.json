@@ -1,0 +1,250 @@
+{
+  "base_url": "file:///Users/lxl/lxl_code/hermes_lxl/external/miniwob-plusplus/miniwob/html/miniwob/",
+  "results": [
+    {
+      "action": "click(\"13\")",
+      "action_error": "",
+      "final_state": {
+        "done": true,
+        "goal": "Click on the grid coordinate (1,2).",
+        "raw_reward": -1.0,
+        "reward": -1.0,
+        "svg_bbox": [
+          12.0,
+          162.0,
+          450.0,
+          450.0
+        ],
+        "svg_bid": "13",
+        "svg_extent": [
+          0.0,
+          0.0,
+          150.0,
+          150.0
+        ],
+        "target_circle_bbox": [
+          105.0,
+          65.0,
+          8.0,
+          8.0
+        ],
+        "target_click_point": [
+          164,
+          104
+        ],
+        "target_coordinate": [
+          1,
+          2
+        ],
+        "target_svg_point": [
+          105.0,
+          15.0
+        ]
+      },
+      "initial_state": {
+        "done": false,
+        "goal": "Click on the grid coordinate (1,2).",
+        "raw_reward": 0.0,
+        "reward": 0.0,
+        "svg_bbox": [
+          12.0,
+          162.0,
+          450.0,
+          450.0
+        ],
+        "svg_bid": "13",
+        "svg_extent": [
+          0.0,
+          0.0,
+          150.0,
+          150.0
+        ],
+        "target_circle_bbox": [
+          105.0,
+          65.0,
+          8.0,
+          8.0
+        ],
+        "target_click_point": [
+          164,
+          104
+        ],
+        "target_coordinate": [
+          1,
+          2
+        ],
+        "target_svg_point": [
+          105.0,
+          15.0
+        ]
+      },
+      "name": "svg_root_bid_click",
+      "reward": 0.0,
+      "terminated": true
+    },
+    {
+      "action": "mouse_click(164, 104)",
+      "action_error": "",
+      "final_state": {
+        "done": true,
+        "goal": "Click on the grid coordinate (1,2).",
+        "raw_reward": 1.0,
+        "reward": 0.999852,
+        "svg_bbox": [
+          12.0,
+          162.0,
+          450.0,
+          450.0
+        ],
+        "svg_bid": "13",
+        "svg_extent": [
+          0.0,
+          0.0,
+          150.0,
+          150.0
+        ],
+        "target_circle_bbox": [
+          105.0,
+          65.0,
+          8.0,
+          8.0
+        ],
+        "target_click_point": [
+          164,
+          104
+        ],
+        "target_coordinate": [
+          1,
+          2
+        ],
+        "target_svg_point": [
+          105.0,
+          15.0
+        ]
+      },
+      "initial_state": {
+        "done": false,
+        "goal": "Click on the grid coordinate (1,2).",
+        "raw_reward": 0.0,
+        "reward": 0.0,
+        "svg_bbox": [
+          12.0,
+          162.0,
+          450.0,
+          450.0
+        ],
+        "svg_bid": "13",
+        "svg_extent": [
+          0.0,
+          0.0,
+          150.0,
+          150.0
+        ],
+        "target_circle_bbox": [
+          105.0,
+          65.0,
+          8.0,
+          8.0
+        ],
+        "target_click_point": [
+          164,
+          104
+        ],
+        "target_coordinate": [
+          1,
+          2
+        ],
+        "target_svg_point": [
+          105.0,
+          15.0
+        ]
+      },
+      "name": "mapped_mouse_click",
+      "reward": 1.0,
+      "terminated": true
+    },
+    {
+      "action": "mouse_click(109, 69)",
+      "action_error": "",
+      "final_state": {
+        "done": false,
+        "goal": "Click on the grid coordinate (1,2).",
+        "raw_reward": 0.0,
+        "reward": 0.0,
+        "svg_bbox": [
+          12.0,
+          162.0,
+          450.0,
+          450.0
+        ],
+        "svg_bid": "13",
+        "svg_extent": [
+          0.0,
+          0.0,
+          150.0,
+          150.0
+        ],
+        "target_circle_bbox": [
+          105.0,
+          65.0,
+          8.0,
+          8.0
+        ],
+        "target_click_point": [
+          164,
+          104
+        ],
+        "target_coordinate": [
+          1,
+          2
+        ],
+        "target_svg_point": [
+          105.0,
+          15.0
+        ]
+      },
+      "initial_state": {
+        "done": false,
+        "goal": "Click on the grid coordinate (1,2).",
+        "raw_reward": 0.0,
+        "reward": 0.0,
+        "svg_bbox": [
+          12.0,
+          162.0,
+          450.0,
+          450.0
+        ],
+        "svg_bid": "13",
+        "svg_extent": [
+          0.0,
+          0.0,
+          150.0,
+          150.0
+        ],
+        "target_circle_bbox": [
+          105.0,
+          65.0,
+          8.0,
+          8.0
+        ],
+        "target_click_point": [
+          164,
+          104
+        ],
+        "target_coordinate": [
+          1,
+          2
+        ],
+        "target_svg_point": [
+          105.0,
+          15.0
+        ]
+      },
+      "name": "circle_center_mouse_click",
+      "reward": 0.0,
+      "terminated": false
+    }
+  ],
+  "seed": 25,
+  "task_name": "browsergym/miniwob.grid-coordinate"
+}

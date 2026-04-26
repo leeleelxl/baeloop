@@ -626,6 +626,56 @@ def test_advisor_avoids_budget_patch_for_terminal_input_action_mismatch() -> Non
     assert proposal.intervention.target_root_causes == ["terminal_input_action_mismatch"]
 
 
+def test_advisor_generates_grid_coordinate_action_policy_for_coordinate_click_miss() -> None:
+    baseline = [
+        RunRecord(
+            experiment_id="base",
+            config_id="combined_policy",
+            task_id="browsergym/miniwob.grid-coordinate#seed=25",
+            status="success",
+            normalized_score=1.0,
+            step_count=1,
+            latency_sec=1.0,
+        )
+    ]
+    candidate = [
+        RunRecord(
+            experiment_id="new",
+            config_id="combined_policy_new",
+            task_id="browsergym/miniwob.grid-coordinate#seed=25",
+            status="failed",
+            normalized_score=0.0,
+            step_count=1,
+            latency_sec=1.0,
+            failure_type="zero_score",
+        )
+    ]
+
+    proposal = propose_patch(build_comparison_report(baseline, candidate, taskset_id="smoke"))
+
+    assert proposal.hypothesis_id == "hyp_grid_coordinate_click"
+    assert proposal.patch == {
+        "action_policy": {
+            "enabled": True,
+            "name": "composite",
+            "policies": [
+                "scroll_before_submit",
+                "terminal_keyboard_type",
+                "grid_coordinate_click",
+            ],
+            "max_interventions": 25,
+            "policy_limits": {
+                "scroll_before_submit": 1,
+                "terminal_keyboard_type": 20,
+                "grid_coordinate_click": 1,
+            },
+            "scroll_delta_y": 621,
+        }
+    }
+    assert proposal.intervention is not None
+    assert proposal.intervention.target_root_causes == ["coordinate_click_miss"]
+
+
 def test_advisor_avoids_budget_patch_when_all_max_step_failures_are_terminal_interaction_issues() -> None:
     baseline = [
         RunRecord(
@@ -709,6 +759,37 @@ def test_advisor_holds_config_when_candidate_has_no_failures_or_regressions() ->
     proposal = propose_patch(build_comparison_report(baseline, candidate, taskset_id="smoke"))
 
     assert proposal.hypothesis_id == "hyp_hold_config_expand_taskset"
+    assert proposal.patch == {}
+
+
+def test_advisor_keeps_quality_winner_when_quality_improves() -> None:
+    baseline = [
+        RunRecord(
+            experiment_id="base",
+            config_id="baseline",
+            task_id="task_a",
+            status="failed",
+            normalized_score=0.0,
+            step_count=2,
+            latency_sec=1.0,
+            failure_type="zero_score",
+        )
+    ]
+    candidate = [
+        RunRecord(
+            experiment_id="new",
+            config_id="variant",
+            task_id="task_a",
+            status="success",
+            normalized_score=1.0,
+            step_count=2,
+            latency_sec=2.0,
+        )
+    ]
+
+    proposal = propose_patch(build_comparison_report(baseline, candidate, taskset_id="smoke"))
+
+    assert proposal.hypothesis_id == "hyp_keep_quality_winner"
     assert proposal.patch == {}
 
 

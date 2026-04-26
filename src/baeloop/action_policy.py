@@ -9,6 +9,7 @@ from baeloop.models import ActionPolicyConfig
 
 SCROLL_BEFORE_SUBMIT = "scroll_before_submit"
 TERMINAL_KEYBOARD_TYPE = "terminal_keyboard_type"
+GRID_COORDINATE_CLICK = "grid_coordinate_click"
 
 
 @dataclass
@@ -51,6 +52,8 @@ def apply_action_policy(
             continue
         if policy_name == TERMINAL_KEYBOARD_TYPE:
             decision = _terminal_keyboard_type_decision(action, obs, policy_name)
+        elif policy_name == GRID_COORDINATE_CLICK:
+            decision = _grid_coordinate_click_decision(action, obs, policy_name)
         elif policy_name == SCROLL_BEFORE_SUBMIT:
             decision = _scroll_before_submit_decision(action, obs, policy, policy_name)
         else:
@@ -125,11 +128,58 @@ def _terminal_keyboard_type_decision(
     )
 
 
+def _grid_coordinate_click_decision(
+    action: str,
+    obs: dict[str, Any],
+    policy_name: str,
+) -> ActionPolicyDecision:
+    if not _is_grid_coordinate_goal(obs):
+        return ActionPolicyDecision(action=action, applied=False)
+
+    html = _observation_text(obs, "pruned_html")
+    svg_bid = _first_svg_bid(html)
+    if not svg_bid or _click_bid(action) != svg_bid:
+        return ActionPolicyDecision(action=action, applied=False)
+
+    target = _target_grid_coordinate(obs)
+    if not target:
+        return ActionPolicyDecision(action=action, applied=False)
+    svg_point = _circle_svg_point(html, target)
+    svg_extent = _svg_extent(html, svg_bid)
+    svg_bbox = _element_bbox(obs, svg_bid)
+    if not svg_point or not svg_extent or not svg_bbox:
+        return ActionPolicyDecision(action=action, applied=False)
+    svg_bbox = _action_space_bbox(obs, svg_bbox)
+
+    min_x, min_y, width, height = svg_extent
+    if width <= 0 or height <= 0:
+        return ActionPolicyDecision(action=action, applied=False)
+
+    bbox_x, bbox_y, bbox_width, bbox_height = svg_bbox
+    click_x = round(bbox_x + (svg_point[0] - min_x) * bbox_width / width)
+    click_y = round(bbox_y + (svg_point[1] - min_y) * bbox_height / height)
+    rewritten = f"mouse_click({click_x}, {click_y})"
+    return ActionPolicyDecision(
+        action=rewritten,
+        applied=True,
+        policy_name=policy_name,
+        original_action=action,
+        reason=f"svg root click rewritten to target grid coordinate {target}",
+    )
+
+
 def _is_social_media_all_goal(obs: dict[str, Any]) -> bool:
     goal = _observation_text(obs, "goal")
     return 'Reply" button on all posts by @ultricies' in goal or (
         "social-media-all" in _observation_text(obs, "url").lower()
     )
+
+
+def _is_grid_coordinate_goal(obs: dict[str, Any]) -> bool:
+    goal = _observation_text(obs, "goal")
+    return "Click on the grid coordinate" in goal or "grid-coordinate" in _observation_text(
+        obs, "url"
+    ).lower()
 
 
 def _is_terminal_goal(obs: dict[str, Any]) -> bool:
@@ -176,6 +226,107 @@ def _is_submit_click(action: str, html: str) -> bool:
 def _click_bid(action: str) -> str | None:
     match = re.fullmatch(r"\s*click\(\s*['\"]([^'\"]+)['\"]\s*\)\s*", action)
     return match.group(1) if match else None
+
+
+def _first_svg_bid(html: str) -> str | None:
+    match = re.search(r"<svg[^>]*\bbid=\"([^\"]+)\"", html)
+    return match.group(1) if match else None
+
+
+def _target_grid_coordinate(obs: dict[str, Any]) -> tuple[int, int] | None:
+    match = re.search(
+        r"grid coordinate\s*\((-?\d+)\s*,\s*(-?\d+)\)",
+        _observation_text(obs, "goal"),
+    )
+    if not match:
+        return None
+    return int(match.group(1)), int(match.group(2))
+
+
+def _circle_svg_point(html: str, coordinate: tuple[int, int]) -> tuple[float, float] | None:
+    escaped_coordinate = re.escape(f"({coordinate[0]},{coordinate[1]})")
+    circle_match = re.search(
+        rf"<circle\b[^>]*\bid=\"{escaped_coordinate}\"[^>]*>",
+        html,
+        flags=re.DOTALL,
+    )
+    if not circle_match:
+        return None
+    tag = circle_match.group(0)
+    cx = _float_attr(tag, "cx")
+    cy = _float_attr(tag, "cy")
+    if cx is None or cy is None:
+        return None
+    return cx, cy
+
+
+def _svg_extent(html: str, svg_bid: str) -> tuple[float, float, float, float] | None:
+    svg_match = re.search(
+        rf"<svg\b[^>]*\bbid=\"{re.escape(svg_bid)}\"[^>]*>(.*?)</svg>",
+        html,
+        flags=re.DOTALL,
+    )
+    if not svg_match:
+        return None
+
+    svg = svg_match.group(1)
+    x_values = _float_attrs(svg, ("x1", "x2", "cx"))
+    y_values = _float_attrs(svg, ("y1", "y2", "cy"))
+    if not x_values or not y_values:
+        return None
+    min_x = min(0.0, *x_values)
+    min_y = min(0.0, *y_values)
+    return min_x, min_y, max(x_values) - min_x, max(y_values) - min_y
+
+
+def _element_bbox(obs: dict[str, Any], bid: str) -> tuple[float, float, float, float] | None:
+    properties = obs.get("extra_element_properties")
+    if not isinstance(properties, dict):
+        return None
+    element = properties.get(bid)
+    if not isinstance(element, dict):
+        return None
+    bbox = element.get("bbox")
+    if not isinstance(bbox, list) or len(bbox) != 4:
+        return None
+    try:
+        x, y, width, height = bbox
+        return float(x), float(y), float(width), float(height)
+    except (TypeError, ValueError):
+        return None
+
+
+def _action_space_bbox(
+    obs: dict[str, Any],
+    bbox: tuple[float, float, float, float],
+) -> tuple[float, float, float, float]:
+    scale = _bbox_coordinate_scale(obs)
+    x, y, width, height = bbox
+    return x / scale, y / scale, width / scale, height / scale
+
+
+def _bbox_coordinate_scale(obs: dict[str, Any]) -> float:
+    screenshot = obs.get("screenshot")
+    root_bbox = _element_bbox(obs, "0")
+    shape = getattr(screenshot, "shape", None)
+    if root_bbox and isinstance(shape, tuple) and len(shape) >= 2 and shape[1]:
+        return max(root_bbox[2] / float(shape[1]), 1.0)
+    return 2.0
+
+
+def _float_attrs(source: str, names: tuple[str, ...]) -> list[float]:
+    values: list[float] = []
+    for name in names:
+        values.extend(
+            float(match.group(1))
+            for match in re.finditer(rf"\b{name}=\"(-?\d+(?:\.\d+)?)\"", source)
+        )
+    return values
+
+
+def _float_attr(source: str, name: str) -> float | None:
+    match = re.search(rf"\b{name}=\"(-?\d+(?:\.\d+)?)\"", source)
+    return float(match.group(1)) if match else None
 
 
 def _fill_target_and_value(action: str) -> tuple[str, str] | None:

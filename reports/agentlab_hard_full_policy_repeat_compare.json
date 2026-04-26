@@ -1,0 +1,61 @@
+{
+  "baseline_config_id": "relay_gpt54_hard_retry_hyp_extend_step_budget_hyp_scroll_before_submit_hyp_terminal_keyboard_type_hyp_grid_coordinate_click",
+  "candidate_config_id": "relay_gpt54_hard_retry_hyp_extend_step_budget_hyp_scroll_before_submit_hyp_terminal_keyboard_type_hyp_grid_coordinate_click",
+  "compared_task_count": 8,
+  "failure_evidence": {
+    "baseline": [],
+    "candidate": []
+  },
+  "failure_summary": {
+    "baseline": {},
+    "candidate": {}
+  },
+  "improvements": [],
+  "metrics": {
+    "baseline": {
+      "avg_action_policy_interventions": 0.625,
+      "avg_agent_retry_count": 0.0,
+      "avg_busted_retry_count": 0.0,
+      "avg_input_tokens": 20464.125,
+      "avg_latency_sec": 35.97661864757538,
+      "avg_llm_call_count": 6.25,
+      "avg_normalized_score": 1.0,
+      "avg_output_tokens": 503.25,
+      "avg_step_count": 6.25,
+      "failure_taxonomy": {},
+      "success_rate": 1.0,
+      "task_count": 8
+    },
+    "candidate": {
+      "avg_action_policy_interventions": 0.375,
+      "avg_agent_retry_count": 0.0,
+      "avg_busted_retry_count": 0.0,
+      "avg_input_tokens": 13899.5,
+      "avg_latency_sec": 18.707802325487137,
+      "avg_llm_call_count": 4.75,
+      "avg_normalized_score": 1.0,
+      "avg_output_tokens": 378.625,
+      "avg_step_count": 4.75,
+      "failure_taxonomy": {},
+      "success_rate": 1.0,
+      "task_count": 8
+    },
+    "delta": {
+      "avg_action_policy_interventions": -0.25,
+      "avg_agent_retry_count": 0.0,
+      "avg_busted_retry_count": 0.0,
+      "avg_input_tokens": -6564.625,
+      "avg_latency_sec": -17.26881632208824,
+      "avg_llm_call_count": -1.5,
+      "avg_normalized_score": 0.0,
+      "avg_output_tokens": -124.625,
+      "avg_step_count": -1.5,
+      "success_rate": 0.0
+    }
+  },
+  "missing_in_baseline": [],
+  "missing_in_candidate": [],
+  "regression_count": 0,
+  "regressions": [],
+  "taskset_id": "miniwob_agentlab_hard"
+}

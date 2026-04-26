@@ -18,6 +18,7 @@ This repository currently implements the current dependency-light MVP:
 - compare report generation
 - deterministic Analyst/Hypothesis/Critic advisor stages
 - bounded config and action-policy patch materialization
+- action-surface probes for terminal and SVG grid-coordinate tasks
 - sample configs and run records
 
 AgentLab and BrowserGym integration is available behind the optional benchmark dependencies. The `mock` adapter is not a benchmark result; it exists to keep the optimization loop executable without browser dependencies.
@@ -57,6 +58,31 @@ Compare Report
 ```
 
 The next milestone is better evidence for this advisor layer: broader tasksets and richer run diagnostics, not a dashboard or a new browser agent. The compare layer now tracks diagnostics such as average input tokens, output tokens, LLM calls, agent retries, and busted retries, so the advisor can reason about efficiency when success rates are saturated.
+
+## Current Hard-Slice Result
+
+The current committed MiniWoB++ hard-slice loop shows a full benchmark-driven optimization sequence:
+
+| Config | Success Rate | Main Change |
+|---|---:|---|
+| `relay_gpt54_hard_retry` | 0.500 | baseline retry config |
+| `generated_agentlab_hard_advisor` | 0.625 | larger step budget |
+| `generated_agentlab_hard_scroll_policy` | 0.750 | bounded social scroll policy |
+| `generated_agentlab_hard_combined_policy` | 0.875 | composed scroll + terminal policies |
+| `generated_agentlab_hard_full_policy` | 1.000 | adds coordinate-aware SVG click policy |
+| `generated_agentlab_hard_full_policy_repeat` | 1.000 | same-slice repeat check |
+
+The important point is that the final gains are not prompt-only changes. They are bounded action-policy interventions driven by failure evidence:
+
+- `terminal_keyboard_type`: rewrites terminal `fill(...)` actions into keyboard events after the terminal probe showed `fill(...)` did not affect MiniWoB's custom terminal.
+- `grid_coordinate_click`: rewrites an SVG-root bid click into `mouse_click(164, 104)` after the grid probe showed the mapped coordinate click solves seed 25.
+- `scroll_before_submit`: preserves the social-task fix when policies are composed instead of replacing each other.
+
+The main reports are:
+
+- `reports/agentlab_hard_full_policy_compare.md`
+- `reports/agentlab_hard_full_policy_repeat_compare.md`
+- `reports/agentlab_grid_coordinate_probe.md`
 
 ## MiniWoB++ Assets
 
@@ -233,6 +259,34 @@ uv run baeloop probe-terminal \
 ```
 
 The committed probe report shows that `fill(...)` does not mutate MiniWoB's custom terminal command buffer, while `focus(...)` plus `keyboard_type(...)` does. The oracle check solves seed 27 by listing files, selecting `vim.gpg`, and removing it with keyboard events.
+
+Probe the MiniWoB grid-coordinate action interface before proposing coordinate-specific policies:
+
+```bash
+uv run baeloop probe-grid-coordinate \
+  --seed 25 \
+  --json-out reports/agentlab_grid_coordinate_probe.json \
+  --markdown-out reports/agentlab_grid_coordinate_probe.md
+```
+
+The committed probe report shows that `click("13")` on the SVG root fails, while mapped `mouse_click(164, 104)` solves the target coordinate `(1,2)`.
+
+Run the current full hard-slice policy:
+
+```bash
+uv run baeloop run \
+  --adapter agentlab \
+  --config configs/agents/generated_agentlab_hard_full_policy.yaml \
+  --taskset datasets/miniwob/taskset_agentlab_hard.yaml \
+  --out runs/agentlab_hard_full_policy.jsonl
+
+uv run baeloop compare \
+  --base runs/agentlab_hard_combined_policy.jsonl \
+  --new runs/agentlab_hard_full_policy.jsonl \
+  --taskset-id miniwob_agentlab_hard \
+  --json-out reports/agentlab_hard_full_policy_compare.json \
+  --markdown-out reports/agentlab_hard_full_policy_compare.md
+```
 
 ## Quickstart
 

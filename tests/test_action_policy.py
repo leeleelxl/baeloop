@@ -35,6 +35,26 @@ def _terminal_obs() -> dict[str, str]:
     }
 
 
+def _grid_obs() -> dict:
+    return {
+        "goal": "Click on the grid coordinate (1,2).",
+        "url": "file:///tmp/miniwob/grid-coordinate.html",
+        "pruned_html": """
+        <div bid="12" id="area" visible="">
+          <svg bid="13" visible="">
+            <line x1="0" x2="150" y1="75" y2="75"></line>
+            <line x1="75" x2="75" y1="0" y2="150"></line>
+            <circle class="plot-point" cx="75" cy="75" id="(0,0)" r="4"></circle>
+            <circle class="plot-point" cx="105" cy="15" id="(1,2)" r="4"></circle>
+          </svg>
+        </div>
+        """,
+        "extra_element_properties": {
+            "13": {"bbox": [12.0, 162.0, 450.0, 450.0]},
+        },
+    }
+
+
 def test_scroll_before_submit_rewrites_submit_when_hidden_reply_remains() -> None:
     state = ActionPolicyState()
     decision = apply_action_policy(
@@ -229,6 +249,43 @@ def test_terminal_keyboard_type_ignores_non_terminal_tasks() -> None:
     assert decision.action == "fill('25', 'ls')"
 
 
+def test_grid_coordinate_click_rewrites_svg_root_click_to_mouse_click() -> None:
+    state = ActionPolicyState()
+    decision = apply_action_policy(
+        action="click('13')",
+        obs=_grid_obs(),
+        policy=ActionPolicyConfig(
+            enabled=True,
+            name="grid_coordinate_click",
+            max_interventions=1,
+        ),
+        state=state,
+    )
+
+    assert decision.applied is True
+    assert decision.action == "mouse_click(164, 104)"
+    assert decision.original_action == "click('13')"
+    assert decision.policy_name == "grid_coordinate_click"
+    assert state.interventions_by_policy == {"grid_coordinate_click": 1}
+
+
+def test_grid_coordinate_click_ignores_non_svg_clicks() -> None:
+    state = ActionPolicyState()
+    decision = apply_action_policy(
+        action="click('99')",
+        obs=_grid_obs(),
+        policy=ActionPolicyConfig(
+            enabled=True,
+            name="grid_coordinate_click",
+            max_interventions=1,
+        ),
+        state=state,
+    )
+
+    assert decision.applied is False
+    assert decision.action == "click('99')"
+
+
 def test_policy_wrapper_exposes_extended_action_set_for_composite_terminal_policy() -> None:
     base_agent = SimpleNamespace(
         actions=[],
@@ -252,6 +309,29 @@ def test_policy_wrapper_exposes_extended_action_set_for_composite_terminal_polic
     python_code = wrapped.action_set.to_python_code("focus('25')\nkeyboard_type('ls')")
 
     assert "def keyboard_type" in python_code
+
+
+def test_policy_wrapper_exposes_extended_action_set_for_grid_policy() -> None:
+    base_agent = SimpleNamespace(
+        actions=[],
+        action_set=SimpleNamespace(to_python_code=lambda _action: ""),
+        obs_preprocessor=lambda obs: obs,
+    )
+    base_agent.get_action = lambda _obs: ("click('13')", SimpleNamespace(extra_info={}))
+    base_agent.reset = lambda seed=None: None
+
+    wrapped = PolicyWrappedAgent(
+        base_agent=base_agent,
+        action_policy=ActionPolicyConfig(
+            enabled=True,
+            name="grid_coordinate_click",
+            max_interventions=1,
+        ),
+    )
+
+    python_code = wrapped.action_set.to_python_code("mouse_click(164, 104)")
+
+    assert "def mouse_click" in python_code
 
 
 def test_agentlab_wrapper_rejects_unknown_composite_action_policy() -> None:

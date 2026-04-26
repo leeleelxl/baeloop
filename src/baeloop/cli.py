@@ -8,6 +8,7 @@ from baeloop.adapters.agentlab import AgentLabAdapterUnavailable
 from baeloop.advisor import propose_patch
 from baeloop.compare import build_comparison_report, render_markdown
 from baeloop.doctor import probe_agentlab_environment
+from baeloop.grid_probe import run_grid_coordinate_probe, render_grid_coordinate_probe_markdown
 from baeloop.io import (
     read_agent_config,
     append_jsonl_record,
@@ -212,6 +213,35 @@ def probe_terminal(
 
     typer.echo(
         f"Probed terminal seed={seed}: "
+        f"results={len(report.results)}, working={len(report.working_results)}"
+    )
+
+
+@app.command(name="probe-grid-coordinate")
+def probe_grid_coordinate(
+    seed: int = typer.Option(25, help="MiniWoB grid-coordinate task seed."),
+    base_url: str | None = typer.Option(
+        None,
+        help="MiniWoB base URL. Defaults to MINIWOB_URL or local external/miniwob-plusplus assets.",
+    ),
+    json_out: Path | None = typer.Option(None, help="Path for machine-readable grid probe report."),
+    markdown_out: Path | None = typer.Option(None, help="Path for markdown grid probe report."),
+) -> None:
+    """Probe whether coordinate clicks solve MiniWoB grid-coordinate targets."""
+    try:
+        report = run_grid_coordinate_probe(seed=seed, base_url=base_url)
+    except ValueError as exc:
+        typer.secho(f"Error: {exc}", err=True, fg=typer.colors.RED)
+        raise typer.Exit(1) from exc
+
+    if json_out:
+        write_json(json_out, report)
+    if markdown_out:
+        markdown_out.parent.mkdir(parents=True, exist_ok=True)
+        markdown_out.write_text(render_grid_coordinate_probe_markdown(report), encoding="utf-8")
+
+    typer.echo(
+        f"Probed grid-coordinate seed={seed}: "
         f"results={len(report.results)}, working={len(report.working_results)}"
     )
 

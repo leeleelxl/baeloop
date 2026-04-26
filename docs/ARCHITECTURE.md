@@ -130,7 +130,13 @@ Outputs:
 - `supported_by`: compact evidence references
 - expected effect and risk
 
-The current patch materializer handles config-level interventions and a bounded `action_policy` patch. The AgentLab adapter currently implements one action policy, `scroll_before_submit`. Observation-policy interventions are still planned and should be implemented only when they can be verified with a rerun.
+The current patch materializer handles config-level interventions and bounded `action_policy` patches. The AgentLab adapter implements three evidence-scoped policies:
+
+- `scroll_before_submit`
+- `terminal_keyboard_type`
+- `grid_coordinate_click`
+
+Observation-policy interventions are still planned and should be implemented only when they can be verified with a rerun.
 
 ## Current Evidence
 
@@ -138,15 +144,18 @@ The hard MiniWoB run currently shows:
 
 - `relay_gpt54_hard_retry`: 0.500 success rate
 - `generated_agentlab_hard_advisor` with `max_steps: 30`: 0.625 success rate
-- improvement: `book-flight` moved from 0.0 to 1.0
-- remaining root causes:
-  - `coordinate_click_miss`
-  - `missed_scroll_target`
-  - `terminal_input_action_mismatch`
+- `generated_agentlab_hard_scroll_policy`: 0.750 success rate
+- `generated_agentlab_hard_combined_policy`: 0.875 success rate
+- `generated_agentlab_hard_full_policy`: 1.000 success rate
+- `generated_agentlab_hard_full_policy_repeat`: 1.000 success rate on a same-slice repeat run
 
-## Next Engineering Milestone
+## Completed Non-Prompt Milestone
 
-The first non-prompt experiment targets `missed_scroll_target` with an action-policy intervention: `scroll-before-submit`.
+The current non-prompt experiments target three concrete action-surface failures:
+
+- `missed_scroll_target`: submit was attempted before all hidden social targets were selected.
+- `terminal_input_action_mismatch`: `fill(...)` did not mutate MiniWoB's custom terminal state.
+- `coordinate_click_miss`: the agent identified the SVG point but could only bid-click the SVG root.
 
 Acceptance criteria:
 
@@ -164,4 +173,6 @@ Current result:
 - `reports/agentlab_social_scroll_policy_replay.*` shows a counterfactual policy-fire check on the earlier failing `social-media-all` trace: step 7 would be rewritten from `click('104')` to `scroll(0, 621)`
 - `reports/agentlab_terminal_trace_diagnosis.md` refines the remaining terminal failure as `terminal_input_action_mismatch`, making another step-budget increase weakly supported
 - `reports/agentlab_terminal_action_probe.*` verifies the terminal fix surface: `fill(...)` does not populate the custom terminal, while `focus(...)` plus `keyboard_type(...)` does; the oracle check solves seed 27 with reward 1.0
-- the next generated config is `configs/agents/generated_agentlab_hard_terminal_policy.yaml`, which enables the bounded `terminal_keyboard_type` action policy
+- `reports/agentlab_grid_coordinate_probe.*` verifies the grid-coordinate action surface: bid-clicking the SVG root fails, while mapped `mouse_click(164, 104)` solves seed 25 with reward 1.0
+- `configs/agents/generated_agentlab_hard_full_policy.yaml` combines all three bounded policies and solves 8/8 hard-slice tasks
+- `reports/agentlab_hard_full_policy_repeat_compare.*` confirms a same-slice repeat run stayed at 1.000 success rate with no regressions
