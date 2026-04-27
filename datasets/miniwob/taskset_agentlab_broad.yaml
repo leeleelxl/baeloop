@@ -1,0 +1,63 @@
+id: miniwob_agentlab_broad
+benchmark: miniwob
+tasks:
+  - env_id: browsergym/miniwob.click-button
+    seed: 1
+    max_steps: 8
+  - env_id: browsergym/miniwob.enter-text
+    seed: 2
+    max_steps: 8
+  - env_id: browsergym/miniwob.click-checkboxes
+    seed: 3
+    max_steps: 15
+  - env_id: browsergym/miniwob.click-button-sequence
+    seed: 11
+    max_steps: 12
+  - env_id: browsergym/miniwob.enter-text-2
+    seed: 12
+    max_steps: 12
+  - env_id: browsergym/miniwob.click-scroll-list
+    seed: 13
+    max_steps: 18
+  - env_id: browsergym/miniwob.use-autocomplete-nodelay
+    seed: 14
+    max_steps: 18
+  - env_id: browsergym/miniwob.email-inbox-noscroll
+    seed: 15
+    max_steps: 20
+  - env_id: browsergym/miniwob.book-flight
+    seed: 21
+    max_steps: 30
+  - env_id: browsergym/miniwob.choose-date-medium
+    seed: 22
+    max_steps: 25
+  - env_id: browsergym/miniwob.login-user-popup
+    seed: 23
+    max_steps: 25
+  - env_id: browsergym/miniwob.email-inbox-forward-nl
+    seed: 24
+    max_steps: 35
+  - env_id: browsergym/miniwob.grid-coordinate
+    seed: 25
+    max_steps: 25
+  - env_id: browsergym/miniwob.social-media-all
+    seed: 26
+    max_steps: 35
+  - env_id: browsergym/miniwob.terminal
+    seed: 27
+    max_steps: 35
+  - env_id: browsergym/miniwob.use-spinner
+    seed: 28
+    max_steps: 25
+  - env_id: browsergym/miniwob.click-tab-2-medium
+    seed: 31
+    max_steps: 18
+  - env_id: browsergym/miniwob.email-inbox-reply
+    seed: 32
+    max_steps: 30
+  - env_id: browsergym/miniwob.social-media-some
+    seed: 33
+    max_steps: 30
+  - env_id: browsergym/miniwob.use-slider
+    seed: 34
+    max_steps: 25

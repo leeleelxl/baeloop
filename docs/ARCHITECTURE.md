@@ -149,6 +149,14 @@ The hard MiniWoB run currently shows:
 - `generated_agentlab_hard_full_policy`: 1.000 success rate
 - `generated_agentlab_hard_full_policy_repeat`: 1.000 success rate on a same-slice repeat run
 
+The broader 20-task MiniWoB validation currently shows:
+
+- `relay_gpt54_hard_retry`: 0.800 success rate
+- `generated_agentlab_hard_full_policy`: 1.000 success rate
+- broad comparison: 4 improvements, 0 regressions
+- improved root causes: `autocomplete_validation_loop`, `coordinate_click_miss`, `missed_scroll_target`, and `terminal_input_action_mismatch`
+- advisor output: `hyp_keep_quality_winner`, meaning the next optimization should expand coverage or target new evidence rather than mutate the saturated config
+
 ## Completed Non-Prompt Milestone
 
 The current non-prompt experiments target three concrete action-surface failures:
@@ -176,3 +184,5 @@ Current result:
 - `reports/agentlab_grid_coordinate_probe.*` verifies the grid-coordinate action surface: bid-clicking the SVG root fails, while mapped `mouse_click(164, 104)` solves seed 25 with reward 1.0
 - `configs/agents/generated_agentlab_hard_full_policy.yaml` combines all three bounded policies and solves 8/8 hard-slice tasks
 - `reports/agentlab_hard_full_policy_repeat_compare.*` confirms a same-slice repeat run stayed at 1.000 success rate with no regressions
+- `datasets/miniwob/taskset_agentlab_broad.yaml` expands validation to 20 tasks
+- `reports/agentlab_broad_full_policy_compare.*` shows the full policy improves 0.800 -> 1.000 against the reference config on the broader slice with 0 regressions

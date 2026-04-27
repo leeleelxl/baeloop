@@ -84,6 +84,30 @@ The main reports are:
 - `reports/agentlab_hard_full_policy_repeat_compare.md`
 - `reports/agentlab_grid_coordinate_probe.md`
 
+## Current Broad-Slice Validation
+
+The hard-slice result has now been checked on a broader 20-task MiniWoB++ slice that combines the earlier core, challenge, and hard tasks with additional tab, email, social, and slider tasks:
+
+| Config | Task Count | Success Rate | Regressions |
+|---|---:|---:|---:|
+| `relay_gpt54_hard_retry` | 20 | 0.800 | - |
+| `generated_agentlab_hard_full_policy` | 20 | 1.000 | 0 |
+
+The broad comparison improves four tasks without regressions:
+
+- `book-flight`: recovered by the larger step budget from the advisor loop.
+- `grid-coordinate`: recovered by `grid_coordinate_click`.
+- `social-media-all`: recovered by `scroll_before_submit`.
+- `terminal`: recovered by `terminal_keyboard_type`.
+
+The broad run is stronger evidence than the original 8-task slice because the same full policy also no-ops safely across unrelated click, text, checkbox, autocomplete, tab, email, social-some, spinner, and slider tasks. The main broad-slice artifacts are:
+
+- `datasets/miniwob/taskset_agentlab_broad.yaml`
+- `runs/agentlab_broad_relay_gpt54_retry.jsonl`
+- `runs/agentlab_broad_full_policy.jsonl`
+- `reports/agentlab_broad_full_policy_compare.md`
+- `reports/agentlab_broad_full_policy_proposal.json`
+
 ## MiniWoB++ Assets
 
 Real AgentLab/BrowserGym runs use the optional benchmark dependencies:
