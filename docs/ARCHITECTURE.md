@@ -125,12 +125,19 @@ Outputs:
 
 ## Advisor Modes
 
-BAELOOP currently supports two advisor modes through the same CLI command:
+BAELOOP currently supports three advisor modes through the same CLI command:
 
 - `deterministic`: reproducible Python Analyst/Hypothesis/Critic stages used for tests and baseline behavior.
 - `llm`: OpenAI-compatible streaming chat completions for Analyst, Hypothesis, and Critic roles.
+- `llm-v2`: LLM Analyst/Hypothesis/Critic stages plus a deterministic-reference tool and evidence-maturity selector.
 
-Both modes output the same `AdvisorProposal` schema. The LLM mode is not allowed to mutate arbitrary config: it must emit an `Intervention`, pass Pydantic validation, and keep patch keys inside the patcher allowlist. If the LLM stage returns invalid JSON, an unsupported patch, or an invalid critic decision, the system falls back to the deterministic advisor and records `advisor_mode=llm_fallback`.
+All modes output the same `AdvisorProposal` schema. The LLM modes are not allowed to mutate arbitrary config: they must emit an `Intervention`, pass Pydantic validation, and keep patch keys inside the patcher allowlist. If v1 returns invalid JSON, an unsupported patch, or an invalid critic decision, the system falls back to the deterministic advisor and records `advisor_mode=llm_fallback`. If v2 has a transient LLM failure, it falls back to its local evidence-maturity selector and records `advisor_mode=llm-v2-fallback`.
+
+The v2 selector is the current decision layer that lets the agent beat the deterministic baseline:
+
+- preserve deterministic proposals that are already evidence-mature, such as quality winners, terminal input fixes, composite policy fixes, and first non-terminal max-step budget patches
+- force weak action-policy ideas such as `missed_scroll_target` or `coordinate_click_miss` into a probe/investigation when the report has not yet proven a bounded rewrite primitive
+- keep control-heavy failures as capability-boundary probes rather than prompt or budget patches
 
 ## Advisor Evaluation Harness
 
@@ -141,7 +148,7 @@ Current implementation:
 - `src/baeloop/advisor_eval.py`
 - CLI: `baeloop eval-advisor`
 - inputs: historical `ComparisonReport` JSON files
-- outputs: `reports/advisor_eval_deterministic.*` and `reports/advisor_eval_llm.*`
+- outputs: `reports/advisor_eval_deterministic.*`, `reports/advisor_eval_llm.*`, and `reports/advisor_eval_llm_v2.*`
 
 Each case scores whether the advisor output is schema-valid, critic-accepted, patch-safe, directionally aligned with the expected next step, grounded in failure evidence, and aware of capability boundaries. This is a decision-quality evaluation, not an LLM-as-judge benchmark.
 
@@ -151,8 +158,9 @@ Current 8-case result:
 |---|---:|---:|---:|---:|---:|
 | `deterministic` | 0.896 | 0.750 | 1.000 | 0.875 | 0.750 |
 | `llm` | 0.875 | 0.625 | 0.875 | 1.000 | 0.875 |
+| `llm-v2` | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
 
-The result is deliberately mixed. The deterministic path is more stable and patch-safe, while the LLM path uses evidence and boundary reasoning more consistently. The remaining gap is to improve the critic so patch-bearing hypotheses are not accepted when the evidence only justifies a probe or investigation.
+The v1 result is deliberately mixed: deterministic is more stable and patch-safe, while plain LLM uses evidence and boundary reasoning more consistently. The v2 result is the current target architecture working on the historical suite: it combines model-backed analysis with deterministic-reference and evidence-maturity selection, so it avoids over-patching when the evidence only justifies a probe.
 
 ## Intervention Model
 

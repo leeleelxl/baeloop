@@ -6,7 +6,7 @@ from typing import Callable
 
 from baeloop.advisor import propose_patch
 from baeloop.io import read_model_json
-from baeloop.llm_advisor import LLMAdvisorConfig, propose_patch_with_llm
+from baeloop.llm_advisor import LLMAdvisorConfig, propose_patch_with_llm, propose_patch_with_llm_v2
 from baeloop.models import AdvisorProposal, ComparisonReport
 from baeloop.patcher import ALLOWED_PATCH_KEYS
 
@@ -79,6 +79,7 @@ def run_advisor_eval(
     *,
     cases: list[AdvisorEvalCase] | None = None,
     include_llm: bool = False,
+    include_llm_v2: bool = False,
     llm_config: LLMAdvisorConfig | None = None,
 ) -> dict:
     resolved_cases = cases or DEFAULT_EVAL_CASES
@@ -94,10 +95,19 @@ def run_advisor_eval(
                     propose_patch_with_llm(report, config=llm_config),
                 )
             )
+        if include_llm_v2:
+            rows.append(
+                _score_case(
+                    case,
+                    "llm-v2",
+                    propose_patch_with_llm_v2(report, config=llm_config),
+                )
+            )
 
     return {
         "case_count": len(resolved_cases),
         "include_llm": include_llm,
+        "include_llm_v2": include_llm_v2,
         "summary": _summarize(rows),
         "rows": rows,
     }
@@ -109,6 +119,7 @@ def render_advisor_eval_markdown(report: dict) -> str:
         "",
         f"- Cases: `{report['case_count']}`",
         f"- Include LLM: `{report['include_llm']}`",
+        f"- Include LLM v2: `{report.get('include_llm_v2', False)}`",
         "",
         "## Summary",
         "",

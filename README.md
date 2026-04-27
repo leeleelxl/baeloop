@@ -48,6 +48,7 @@ AgentLab generic_agent -> RunRecord JSONL -> Compare Report -> Analyst -> Hypoth
 
 The default advisor stages are deterministic and structured, which keeps the closed loop reproducible and testable.
 The optional LLM advisor path runs Analyst, Hypothesis, and Critic as model-backed stages while preserving the same structured schemas and deterministic guardrails.
+The `llm-v2` path adds a deterministic-reference tool and an evidence-maturity selector, so the agent can choose between patch, hold, and investigation instead of emitting a single unconstrained answer.
 
 Target architecture:
 
@@ -80,7 +81,18 @@ uv run baeloop advise \
   --out reports/agentlab_control_full_policy_llm_proposal.json
 ```
 
-The LLM advisor uses streaming OpenAI-compatible chat completions by default and falls back to the deterministic advisor if JSON parsing, schema validation, or patch-boundary checks fail.
+Run the v2 advisor with deterministic-reference and evidence-maturity selection:
+
+```bash
+export OHFI_API_KEY="sk-..."
+uv run baeloop advise \
+  --advisor-mode llm-v2 \
+  --model gpt-5.4 \
+  --report reports/agentlab_control_full_policy_compare.json \
+  --out reports/agentlab_control_full_policy_llm_v2_proposal.json
+```
+
+The LLM advisor uses streaming OpenAI-compatible chat completions by default. The v1 path falls back to the deterministic advisor if JSON parsing, schema validation, or patch-boundary checks fail. The v2 path falls back to its local evidence-maturity selector, so transient LLM formatting failures do not discard the v2 decision policy.
 
 Evaluate the advisor layer over committed historical compare reports:
 
@@ -94,6 +106,12 @@ uv run baeloop eval-advisor \
   --model gpt-5.4 \
   --json-out reports/advisor_eval_llm.json \
   --markdown-out reports/advisor_eval_llm.md
+
+uv run baeloop eval-advisor \
+  --include-llm-v2 \
+  --model gpt-5.4 \
+  --json-out reports/advisor_eval_llm_v2.json \
+  --markdown-out reports/advisor_eval_llm_v2.md
 ```
 
 Current advisor-eval result on 8 historical cases:
@@ -102,8 +120,9 @@ Current advisor-eval result on 8 historical cases:
 |---|---:|---:|---:|---:|---:|
 | `deterministic` | 0.896 | 0.750 | 1.000 | 0.875 | 0.750 |
 | `llm` | 0.875 | 0.625 | 0.875 | 1.000 | 0.875 |
+| `llm-v2` | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
 
-This is intentionally not reported as "LLM wins". The useful result is diagnostic: the deterministic advisor is more predictable and always emits safe top-level patches, while the LLM advisor cites evidence more consistently and is better at capability-boundary warnings. The evaluation also exposes weak spots where either advisor can over-patch instead of recommending another investigation.
+The useful result is diagnostic: v1 showed that a plain LLM advisor is not automatically better than deterministic rules. The v2 agent beats the deterministic baseline by adding a deterministic-reference tool and an evidence-maturity selector that forces weak action-policy ideas into probe/investigation decisions before patching.
 
 ## Current Hard-Slice Result
 

@@ -21,7 +21,7 @@ from baeloop.io import (
     write_json,
     write_yaml_dict,
 )
-from baeloop.llm_advisor import LLMAdvisorConfig, propose_patch_with_llm
+from baeloop.llm_advisor import LLMAdvisorConfig, propose_patch_with_llm, propose_patch_with_llm_v2
 from baeloop.models import AdvisorProposal, ComparisonReport
 from baeloop.patcher import materialize_config_patch
 from baeloop.policy_replay import replay_action_policy_trace, render_policy_replay_markdown
@@ -138,7 +138,7 @@ def advise(
     advisor_mode: str = typer.Option(
         "deterministic",
         "--advisor-mode",
-        help="Advisor implementation: deterministic or llm.",
+        help="Advisor implementation: deterministic, llm, or llm-v2.",
     ),
     model: str = typer.Option("gpt-5.4", help="LLM advisor model when --advisor-mode llm."),
     base_url: str = typer.Option(
@@ -169,8 +169,18 @@ def advise(
                 stream=stream,
             ),
         )
+    elif advisor_mode == "llm-v2":
+        proposal = propose_patch_with_llm_v2(
+            comparison,
+            config=LLMAdvisorConfig(
+                model=model,
+                base_url=base_url,
+                api_key_env=api_key_env,
+                stream=stream,
+            ),
+        )
     else:
-        raise typer.BadParameter("Unsupported advisor mode. Use deterministic or llm.")
+        raise typer.BadParameter("Unsupported advisor mode. Use deterministic, llm, or llm-v2.")
     write_json(out, proposal)
     typer.echo(f"Wrote advisor proposal {proposal.hypothesis_id} to {out}")
 
@@ -183,6 +193,11 @@ def eval_advisor(
         False,
         "--include-llm/--deterministic-only",
         help="Also evaluate the LLM advisor on each case.",
+    ),
+    include_llm_v2: bool = typer.Option(
+        False,
+        "--include-llm-v2/--no-llm-v2",
+        help="Also evaluate the LLM v2 advisor on each case.",
     ),
     model: str = typer.Option("gpt-5.4", help="LLM advisor model when --include-llm is set."),
     base_url: str = typer.Option(
@@ -202,6 +217,7 @@ def eval_advisor(
     """Evaluate advisor proposals over committed historical compare reports."""
     report = run_advisor_eval(
         include_llm=include_llm,
+        include_llm_v2=include_llm_v2,
         llm_config=LLMAdvisorConfig(
             model=model,
             base_url=base_url,
@@ -215,7 +231,7 @@ def eval_advisor(
         markdown_out.write_text(render_advisor_eval_markdown(report), encoding="utf-8")
     typer.echo(
         f"Evaluated advisor cases={report['case_count']}, "
-        f"include_llm={include_llm}, out={json_out}"
+        f"include_llm={include_llm}, include_llm_v2={include_llm_v2}, out={json_out}"
     )
 
 
