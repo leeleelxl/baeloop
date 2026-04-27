@@ -8,6 +8,7 @@ from baeloop.adapters.agentlab import AgentLabAdapterUnavailable
 from baeloop.advisor import propose_patch
 from baeloop.advisor_eval import EVAL_CASE_SUITES, render_advisor_eval_markdown, run_advisor_eval
 from baeloop.compare import build_comparison_report, render_markdown
+from baeloop.demo import render_demo_summary
 from baeloop.doctor import probe_agentlab_environment
 from baeloop.grid_probe import run_grid_coordinate_probe, render_grid_coordinate_probe_markdown
 from baeloop.io import (
@@ -29,6 +30,19 @@ from baeloop.runner import iter_taskset_records
 from baeloop.terminal_probe import run_terminal_probe, render_terminal_probe_markdown
 
 app = typer.Typer(help="Browser-agent evaluation and optimization loop.")
+
+
+@app.command(name="demo-summary")
+def demo_summary(
+    reports_dir: Path = typer.Option(Path("reports"), exists=True, file_okay=False, readable=True),
+    out: Path | None = typer.Option(None, help="Optional path for the markdown demo summary."),
+) -> None:
+    """Print the current project story from committed report artifacts."""
+    summary = render_demo_summary(reports_dir)
+    if out:
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(summary, encoding="utf-8")
+    typer.echo(summary)
 
 
 @app.command()

@@ -181,20 +181,26 @@ AdvisorProposal
 - [x] 加入 `llm-v2` advisor：LLM stage + deterministic reference tool + evidence-maturity selector。
   证据：commit `fd17b0c add llm v2 advisor selector`；报告 `reports/advisor_eval_llm_v2.md`。
 - [x] 验证当前代码库。
-  证据：`uv run pytest` 通过，结果为 `77 passed`。
+  证据：`uv run pytest` 通过，结果为 `79 passed`。
 - [x] 初始化中文项目进度账本。
   证据：`project.md`。
 - [x] 增加 holdout advisor-eval case，避免只在已调过的 8 个 case 上证明 v2。
   证据：`reports/advisor_eval_holdout_deterministic.md`、`reports/advisor_eval_holdout_llm_v2.md`。
 - [x] 提升 advisor eval 报告透明度。
   证据：holdout Markdown 表格新增 `Mode` 和 `Source`，能看到最终决策来自 `deterministic_reference` 还是 `investigation_fallback`。
+- [x] 增加一键 demo summary 命令。
+  证据：`uv run baeloop demo-summary --out reports/demo_summary.md`；输出 hard-slice ladder、broad validation、control boundary、advisor holdout eval。
+- [x] 重新评估项目是否达到大厂 agent 日常实习标准。
+  证据：`docs/project-readiness-review.md`。
 
 #### 今日验证证据
 
 - `reports/advisor_eval_llm_v2.md` 显示 `llm-v2` 在 8 个历史 case 上平均分 `1.000`。
 - `reports/advisor_eval_holdout_llm_v2.md` 显示 `llm-v2` 在 5 个 holdout case 上平均分 `1.000`，deterministic 为 `0.933`。
 - holdout 中 `holdout_combined_vs_terminal_remaining_coordinate` 证明 v2 会把弱 coordinate patch 转成 `hyp_probe_before_action_policy`，来源为 `investigation_fallback`。
-- `uv run pytest` 通过，`77 passed`。
+- `reports/demo_summary.md` 可以一页展示当前项目主线。
+- `docs/project-readiness-review.md` 给出当前诚实评分：约 `7.5/10` 到 `8/10`，继续补强后可冲 `8.5/10`。
+- `uv run pytest` 通过，`79 passed`。
 - `git push` 已推送到 GitHub main，关键项目账本 commit 包含 `d2c4e6e`。
 
 #### 今日 Review
@@ -212,10 +218,16 @@ AdvisorProposal
   完成证据：新增 5 个 holdout case；生成 `reports/advisor_eval_holdout_deterministic.*` 和 `reports/advisor_eval_holdout_llm_v2.*`。
 - [x] 提升 `llm-v2` eval 报告透明度。
   完成证据：Markdown 表格新增 `Mode` 和 `Source`，能区分 `deterministic_reference` 与 `investigation_fallback`。
-- [ ] 增加一个 demo 命令或脚本，能一键展示项目主线。
-  完成标准：一个命令输出 hard-slice ladder、broad validation、control boundary、advisor-v2 eval summary。
-- [ ] 重新评估项目是否达到大厂 agent 日常实习标准。
-  完成标准：写一份简洁 review，列出优势、短板、下一步最高收益工作。
+- [x] 增加一个 demo 命令或脚本，能一键展示项目主线。
+  完成证据：新增 `baeloop demo-summary`，生成 `reports/demo_summary.md`。
+- [x] 重新评估项目是否达到大厂 agent 日常实习标准。
+  完成证据：新增 `docs/project-readiness-review.md`。
+- [ ] 补两个 advisor 输入/输出样例。
+  完成标准：至少包含一个成功 patch 例子和一个拒绝 patch 转 investigation 例子。
+- [ ] 扩大 holdout advisor-eval 到 10 到 15 个 case。
+  完成标准：新增 case 先固定 expected label，再运行 eval，不根据结果倒改。
+- [ ] 在 README 顶部增加 “60 秒 Demo”。
+  完成标准：读者 1 分钟内能理解项目目标、架构、关键结果和如何运行 demo。
 
 ## Backlog
 

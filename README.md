@@ -133,6 +133,14 @@ Current holdout advisor-eval result on 5 additional cases not used to tune v2:
 
 The holdout report also shows the final decision source for each case. Most mature cases select `deterministic_reference`; the weak coordinate-action case selects `investigation_fallback`, which is the behavior the v2 selector is designed to enforce.
 
+Print the current demo story from committed report artifacts:
+
+```bash
+uv run baeloop demo-summary --out reports/demo_summary.md
+```
+
+See `docs/project-readiness-review.md` for the current internship-readiness assessment and remaining gaps.
+
 ## Current Hard-Slice Result
 
 The current committed MiniWoB++ hard-slice loop shows a full benchmark-driven optimization sequence:
