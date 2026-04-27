@@ -20,6 +20,7 @@ from baeloop.io import (
     write_json,
     write_yaml_dict,
 )
+from baeloop.llm_advisor import LLMAdvisorConfig, propose_patch_with_llm
 from baeloop.models import AdvisorProposal, ComparisonReport
 from baeloop.patcher import materialize_config_patch
 from baeloop.policy_replay import replay_action_policy_trace, render_policy_replay_markdown
@@ -133,9 +134,42 @@ def compare(
 def advise(
     report: Path = typer.Option(..., exists=True, readable=True, help="JSON compare report."),
     out: Path = typer.Option(..., help="Path for advisor proposal JSON."),
+    advisor_mode: str = typer.Option(
+        "deterministic",
+        "--advisor-mode",
+        help="Advisor implementation: deterministic or llm.",
+    ),
+    model: str = typer.Option("gpt-5.4", help="LLM advisor model when --advisor-mode llm."),
+    base_url: str = typer.Option(
+        "https://api.ai.ohfi.com.cn/v1",
+        help="OpenAI-compatible base URL for the LLM advisor.",
+    ),
+    api_key_env: str = typer.Option(
+        "OHFI_API_KEY",
+        help="Environment variable containing the LLM advisor API key.",
+    ),
+    stream: bool = typer.Option(
+        True,
+        "--stream/--no-stream",
+        help="Use streaming chat completions for the LLM advisor.",
+    ),
 ) -> None:
     """Generate a bounded next-config patch proposal."""
-    proposal = propose_patch(read_model_json(report, ComparisonReport))
+    comparison = read_model_json(report, ComparisonReport)
+    if advisor_mode == "deterministic":
+        proposal = propose_patch(comparison)
+    elif advisor_mode == "llm":
+        proposal = propose_patch_with_llm(
+            comparison,
+            config=LLMAdvisorConfig(
+                model=model,
+                base_url=base_url,
+                api_key_env=api_key_env,
+                stream=stream,
+            ),
+        )
+    else:
+        raise typer.BadParameter("Unsupported advisor mode. Use deterministic or llm.")
     write_json(out, proposal)
     typer.echo(f"Wrote advisor proposal {proposal.hypothesis_id} to {out}")
 

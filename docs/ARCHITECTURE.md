@@ -55,6 +55,7 @@ Current implementation:
 
 - `src/baeloop/advisor_analysis.py`
 - computes quality deltas, efficiency deltas, dominant failure types, and dominant root causes
+- optional LLM-backed stage in `src/baeloop/llm_advisor.py` summarizes the same structured report with schema validation
 
 Inputs:
 
@@ -74,6 +75,7 @@ Current implementation:
 
 - `src/baeloop/advisor_hypothesis.py`
 - maps failure evidence such as `autocomplete_validation_loop` or `terminal_input_action_mismatch` to bounded next steps
+- optional LLM-backed stage in `src/baeloop/llm_advisor.py` emits an `Intervention` JSON object and must stay within allowed patch keys
 
 Inputs:
 
@@ -91,6 +93,7 @@ Current implementation:
 
 - `src/baeloop/advisor_critic.py`
 - adds `critic_decision` and `critic_notes` to proposals
+- optional LLM-backed critic in `src/baeloop/llm_advisor.py` can reject proposals, but deterministic guardrails still validate patch boundaries
 
 Inputs:
 
@@ -119,6 +122,15 @@ Inputs:
 Outputs:
 
 - generated agent config
+
+## Advisor Modes
+
+BAELOOP currently supports two advisor modes through the same CLI command:
+
+- `deterministic`: reproducible Python Analyst/Hypothesis/Critic stages used for tests and baseline behavior.
+- `llm`: OpenAI-compatible streaming chat completions for Analyst, Hypothesis, and Critic roles.
+
+Both modes output the same `AdvisorProposal` schema. The LLM mode is not allowed to mutate arbitrary config: it must emit an `Intervention`, pass Pydantic validation, and keep patch keys inside the patcher allowlist. If the LLM stage returns invalid JSON, an unsupported patch, or an invalid critic decision, the system falls back to the deterministic advisor and records `advisor_mode=llm_fallback`.
 
 ## Intervention Model
 
@@ -165,6 +177,7 @@ The 16-task control stress slice currently shows:
 - improved task: `use-slider-2`
 - remaining root causes: `coordinate_click_surface_mismatch`, `coordinate_drag_surface_mismatch`, `coordinate_draw_surface_mismatch`, `directional_drag_control_mismatch`, and `list_drag_semantics_mismatch`
 - advisor output: `hyp_probe_coordinate_control`, meaning the next implementation should be a probe-backed coordinate control policy rather than another budget patch
+- LLM advisor validation: `reports/agentlab_control_full_policy_llm_proposal.json` was generated with `--advisor-mode llm`, using the same report and preserving the bounded investigation recommendation
 
 ## Completed Non-Prompt Milestone
 

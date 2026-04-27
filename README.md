@@ -17,6 +17,7 @@ This repository currently implements the current dependency-light MVP:
 - normalized run-record schema
 - compare report generation
 - deterministic Analyst/Hypothesis/Critic advisor stages
+- optional LLM-backed Analyst/Hypothesis/Critic advisor mode
 - bounded config and action-policy patch materialization
 - action-surface probes for terminal and SVG grid-coordinate tasks
 - sample configs and run records
@@ -45,7 +46,8 @@ Current implemented architecture:
 AgentLab generic_agent -> RunRecord JSONL -> Compare Report -> Analyst -> Hypothesis -> Critic -> Patch
 ```
 
-The current advisor stages are deterministic and structured. They are intentionally not LLM-driven agents yet, but the code paths already separate factual analysis, hypothesis generation, and critique.
+The default advisor stages are deterministic and structured, which keeps the closed loop reproducible and testable.
+The optional LLM advisor path runs Analyst, Hypothesis, and Critic as model-backed stages while preserving the same structured schemas and deterministic guardrails.
 
 Target architecture:
 
@@ -58,6 +60,27 @@ Compare Report
 ```
 
 The next milestone is better evidence for this advisor layer: broader tasksets and richer run diagnostics, not a dashboard or a new browser agent. The compare layer now tracks diagnostics such as average input tokens, output tokens, LLM calls, agent retries, and busted retries, so the advisor can reason about efficiency when success rates are saturated.
+
+Run the deterministic advisor:
+
+```bash
+uv run baeloop advise \
+  --report reports/agentlab_control_full_policy_compare.json \
+  --out reports/agentlab_control_full_policy_proposal.json
+```
+
+Run the LLM-backed advisor over the same structured report:
+
+```bash
+export OHFI_API_KEY="sk-..."
+uv run baeloop advise \
+  --advisor-mode llm \
+  --model gpt-5.4 \
+  --report reports/agentlab_control_full_policy_compare.json \
+  --out reports/agentlab_control_full_policy_llm_proposal.json
+```
+
+The LLM advisor uses streaming OpenAI-compatible chat completions by default and falls back to the deterministic advisor if JSON parsing, schema validation, or patch-boundary checks fail.
 
 ## Current Hard-Slice Result
 
@@ -126,10 +149,12 @@ The full policy only improves `use-slider-2`, so the remaining value is not anot
 - `list_drag_semantics_mismatch`: list reordering needs a probe for source/target/drop semantics.
 
 The advisor now emits `hyp_probe_coordinate_control` for this slice, directing the next work toward coordinate drag/click/draw probes before adding another action policy. Main artifacts:
+This slice is treated as capability-boundary evidence, not as a mandate to hand-code every control task.
 
 - `datasets/miniwob/taskset_agentlab_control.yaml`
 - `reports/agentlab_control_full_policy_compare.md`
 - `reports/agentlab_control_full_policy_proposal.json`
+- `reports/agentlab_control_full_policy_llm_proposal.json`
 
 ## MiniWoB++ Assets
 

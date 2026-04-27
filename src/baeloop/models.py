@@ -160,6 +160,8 @@ class AdvisorProposal(BaseModel):
     intervention: Intervention | None = None
     critic_decision: CriticDecision = "accepted"
     critic_notes: list[str] = Field(default_factory=list)
+    advisor_mode: str = "deterministic"
+    advisor_stage_notes: dict[str, Any] = Field(default_factory=dict)
 
 
 class DependencyProbe(BaseModel):
