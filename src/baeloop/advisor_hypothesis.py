@@ -7,6 +7,14 @@ TERMINAL_INTERACTION_ROOT_CAUSES = {
     "terminal_input_action_mismatch",
     "terminal_output_blindness",
 }
+CONTROL_SURFACE_ROOT_CAUSES = {
+    "coordinate_click_surface_mismatch",
+    "coordinate_drag_surface_mismatch",
+    "coordinate_draw_surface_mismatch",
+    "directional_drag_control_mismatch",
+    "list_drag_semantics_mismatch",
+    "multi_slider_control_loop",
+}
 
 
 def propose_intervention(analysis: AdvisorAnalysis) -> Intervention:
@@ -57,6 +65,19 @@ def propose_intervention(analysis: AdvisorAnalysis) -> Intervention:
             risk="May hide deeper policy issues and can increase step count on tasks that are already looping.",
             patch={"retry_policy": {"enabled": True, "max_retries": 1}},
             supported_by=[f"dominant_failure={analysis.dominant_failure}"],
+        )
+
+    if _has_control_surface_failures(analysis):
+        control_roots = _control_root_causes(analysis)
+        return Intervention(
+            id="hyp_probe_coordinate_control",
+            kind="investigation",
+            summary="Probe coordinate-level control actions before changing the config again.",
+            rationale="Candidate failures point to slider, drag, drawing, or SVG click surfaces where bid-level actions are too coarse; another step-budget patch would likely repeat the same ineffective actions.",
+            expected_effect="Identify which coordinate click, drag, or action-compression primitive can become a bounded action policy.",
+            risk="Does not immediately improve success rate until a probe-backed coordinate-control policy is implemented.",
+            target_root_causes=control_roots,
+            supported_by=[f"control_root_causes={','.join(control_roots)}"],
         )
 
     if _has_non_terminal_max_step_failures(analysis):
@@ -266,4 +287,16 @@ def _terminal_root_causes(analysis: AdvisorAnalysis) -> list[str]:
         root_cause
         for root_cause in analysis.candidate_root_causes
         if root_cause in TERMINAL_INTERACTION_ROOT_CAUSES
+    )
+
+
+def _has_control_surface_failures(analysis: AdvisorAnalysis) -> bool:
+    return bool(set(analysis.candidate_root_causes) & CONTROL_SURFACE_ROOT_CAUSES)
+
+
+def _control_root_causes(analysis: AdvisorAnalysis) -> list[str]:
+    return sorted(
+        root_cause
+        for root_cause in analysis.candidate_root_causes
+        if root_cause in CONTROL_SURFACE_ROOT_CAUSES
     )

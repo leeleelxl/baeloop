@@ -1,0 +1,51 @@
+id: miniwob_agentlab_control
+benchmark: miniwob
+tasks:
+  - env_id: browsergym/miniwob.use-slider
+    seed: 34
+    max_steps: 25
+  - env_id: browsergym/miniwob.use-slider-2
+    seed: 35
+    max_steps: 30
+  - env_id: browsergym/miniwob.use-spinner
+    seed: 36
+    max_steps: 20
+  - env_id: browsergym/miniwob.use-colorwheel
+    seed: 37
+    max_steps: 25
+  - env_id: browsergym/miniwob.use-colorwheel-2
+    seed: 38
+    max_steps: 30
+  - env_id: browsergym/miniwob.drag-box
+    seed: 39
+    max_steps: 25
+  - env_id: browsergym/miniwob.drag-circle
+    seed: 40
+    max_steps: 25
+  - env_id: browsergym/miniwob.drag-cube
+    seed: 41
+    max_steps: 25
+  - env_id: browsergym/miniwob.drag-items
+    seed: 42
+    max_steps: 35
+  - env_id: browsergym/miniwob.drag-items-grid
+    seed: 43
+    max_steps: 35
+  - env_id: browsergym/miniwob.drag-shapes
+    seed: 44
+    max_steps: 35
+  - env_id: browsergym/miniwob.drag-single-shape
+    seed: 45
+    max_steps: 25
+  - env_id: browsergym/miniwob.resize-textarea
+    seed: 46
+    max_steps: 25
+  - env_id: browsergym/miniwob.draw-line
+    seed: 47
+    max_steps: 25
+  - env_id: browsergym/miniwob.draw-circle
+    seed: 48
+    max_steps: 30
+  - env_id: browsergym/miniwob.click-pie
+    seed: 49
+    max_steps: 20

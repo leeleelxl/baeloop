@@ -157,6 +157,15 @@ The broader 20-task MiniWoB validation currently shows:
 - improved root causes: `autocomplete_validation_loop`, `coordinate_click_miss`, `missed_scroll_target`, and `terminal_input_action_mismatch`
 - advisor output: `hyp_keep_quality_winner`, meaning the next optimization should expand coverage or target new evidence rather than mutate the saturated config
 
+The 16-task control stress slice currently shows:
+
+- `relay_gpt54_hard_retry`: 0.438 success rate
+- `generated_agentlab_hard_full_policy`: 0.500 success rate
+- control comparison: 1 improvement, 0 regressions
+- improved task: `use-slider-2`
+- remaining root causes: `coordinate_click_surface_mismatch`, `coordinate_drag_surface_mismatch`, `coordinate_draw_surface_mismatch`, `directional_drag_control_mismatch`, and `list_drag_semantics_mismatch`
+- advisor output: `hyp_probe_coordinate_control`, meaning the next implementation should be a probe-backed coordinate control policy rather than another budget patch
+
 ## Completed Non-Prompt Milestone
 
 The current non-prompt experiments target three concrete action-surface failures:

@@ -108,6 +108,29 @@ The broad run is stronger evidence than the original 8-task slice because the sa
 - `reports/agentlab_broad_full_policy_compare.md`
 - `reports/agentlab_broad_full_policy_proposal.json`
 
+## Current Control-Slice Finding
+
+The next stress slice targets continuous and coordinate-heavy controls: sliders, spinners, color wheels, SVG drag/draw tasks, resize handles, and pie menus.
+
+| Config | Task Count | Success Rate | Regressions |
+|---|---:|---:|---:|
+| `relay_gpt54_hard_retry` | 16 | 0.438 | - |
+| `generated_agentlab_hard_full_policy` | 16 | 0.500 | 0 |
+
+The full policy only improves `use-slider-2`, so the remaining value is not another generic prompt or step-budget patch. The dominant unsolved failures are now coordinate-control surfaces:
+
+- `coordinate_drag_surface_mismatch`: SVG/resize tasks need directional drags with distance.
+- `coordinate_draw_surface_mismatch`: drawing tasks need coordinate-level strokes inside an SVG canvas.
+- `coordinate_click_surface_mismatch`: pie menus expose SVG-internal controls that are not reliable bid targets.
+- `directional_drag_control_mismatch`: cube rotation needs controlled drag direction and magnitude.
+- `list_drag_semantics_mismatch`: list reordering needs a probe for source/target/drop semantics.
+
+The advisor now emits `hyp_probe_coordinate_control` for this slice, directing the next work toward coordinate drag/click/draw probes before adding another action policy. Main artifacts:
+
+- `datasets/miniwob/taskset_agentlab_control.yaml`
+- `reports/agentlab_control_full_policy_compare.md`
+- `reports/agentlab_control_full_policy_proposal.json`
+
 ## MiniWoB++ Assets
 
 Real AgentLab/BrowserGym runs use the optional benchmark dependencies:

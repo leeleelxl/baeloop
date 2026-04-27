@@ -218,6 +218,82 @@ def test_failure_evidence_classifies_known_hard_task_patterns() -> None:
     ]
 
 
+def test_failure_evidence_classifies_control_surface_patterns() -> None:
+    evidence = collect_failure_evidence(
+        [
+            RunRecord(
+                experiment_id="new",
+                config_id="variant",
+                task_id="browsergym/miniwob.use-slider-2#seed=35",
+                status="max_steps",
+                normalized_score=0.0,
+                step_count=20,
+                latency_sec=1.0,
+                failure_type="max_steps",
+            ),
+            RunRecord(
+                experiment_id="new",
+                config_id="variant",
+                task_id="browsergym/miniwob.drag-circle#seed=40",
+                status="failed",
+                normalized_score=0.0,
+                step_count=2,
+                latency_sec=1.0,
+                failure_type="zero_score",
+            ),
+            RunRecord(
+                experiment_id="new",
+                config_id="variant",
+                task_id="browsergym/miniwob.drag-cube#seed=41",
+                status="failed",
+                normalized_score=0.0,
+                step_count=9,
+                latency_sec=1.0,
+                failure_type="zero_score",
+            ),
+            RunRecord(
+                experiment_id="new",
+                config_id="variant",
+                task_id="browsergym/miniwob.drag-items-grid#seed=43",
+                status="failed",
+                normalized_score=0.0,
+                step_count=1,
+                latency_sec=1.0,
+                failure_type="zero_score",
+            ),
+            RunRecord(
+                experiment_id="new",
+                config_id="variant",
+                task_id="browsergym/miniwob.draw-circle#seed=48",
+                status="failed",
+                normalized_score=0.0,
+                step_count=6,
+                latency_sec=1.0,
+                failure_type="zero_score",
+            ),
+            RunRecord(
+                experiment_id="new",
+                config_id="variant",
+                task_id="browsergym/miniwob.click-pie#seed=49",
+                status="max_steps",
+                normalized_score=0.0,
+                step_count=20,
+                latency_sec=1.0,
+                failure_type="max_steps",
+            ),
+        ]
+    )
+
+    assert [item.root_cause for item in evidence] == [
+        "multi_slider_control_loop",
+        "coordinate_drag_surface_mismatch",
+        "directional_drag_control_mismatch",
+        "list_drag_semantics_mismatch",
+        "coordinate_draw_surface_mismatch",
+        "coordinate_click_surface_mismatch",
+    ]
+
+
 def test_compare_report_renders_failure_evidence() -> None:
     baseline = [
         RunRecord(
@@ -442,6 +518,62 @@ def test_advisor_extends_step_budget_with_bounded_non_noop_patch() -> None:
     assert proposal.intervention is not None
     assert proposal.intervention.kind == "config_patch"
     assert "bounded patch present" in proposal.critic_notes
+
+
+def test_advisor_probes_coordinate_control_before_extending_budget() -> None:
+    baseline = [
+        RunRecord(
+            experiment_id="base",
+            config_id="baseline",
+            task_id="browsergym/miniwob.click-pie#seed=49",
+            status="success",
+            normalized_score=1.0,
+            step_count=2,
+            latency_sec=1.0,
+        ),
+        RunRecord(
+            experiment_id="base",
+            config_id="baseline",
+            task_id="browsergym/miniwob.drag-circle#seed=40",
+            status="success",
+            normalized_score=1.0,
+            step_count=2,
+            latency_sec=1.0,
+        ),
+    ]
+    candidate = [
+        RunRecord(
+            experiment_id="new",
+            config_id="variant",
+            task_id="browsergym/miniwob.click-pie#seed=49",
+            status="max_steps",
+            normalized_score=0.0,
+            step_count=20,
+            latency_sec=20.0,
+            failure_type="max_steps",
+        ),
+        RunRecord(
+            experiment_id="new",
+            config_id="variant",
+            task_id="browsergym/miniwob.drag-circle#seed=40",
+            status="failed",
+            normalized_score=0.0,
+            step_count=2,
+            latency_sec=2.0,
+            failure_type="zero_score",
+        ),
+    ]
+
+    proposal = propose_patch(build_comparison_report(baseline, candidate, taskset_id="smoke"))
+
+    assert proposal.hypothesis_id == "hyp_probe_coordinate_control"
+    assert proposal.patch == {}
+    assert proposal.intervention is not None
+    assert proposal.intervention.kind == "investigation"
+    assert proposal.intervention.target_root_causes == [
+        "coordinate_click_surface_mismatch",
+        "coordinate_drag_surface_mismatch",
+    ]
 
 
 def test_advisor_holds_config_for_unclassified_zero_score_failures() -> None:

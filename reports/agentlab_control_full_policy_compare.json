@@ -1,0 +1,322 @@
+{
+  "baseline_config_id": "relay_gpt54_hard_retry",
+  "candidate_config_id": "relay_gpt54_hard_retry_hyp_extend_step_budget_hyp_scroll_before_submit_hyp_terminal_keyboard_type_hyp_grid_coordinate_click",
+  "compared_task_count": 16,
+  "failure_evidence": {
+    "baseline": [
+      {
+        "confidence": "medium",
+        "evidence": [
+          "status=max_steps",
+          "failure_type=max_steps",
+          "step_count=20",
+          "score=0.00",
+          "pie-menu target is inside an SVG control without a reliable bid-level click target"
+        ],
+        "failure_type": "max_steps",
+        "root_cause": "coordinate_click_surface_mismatch",
+        "suggested_action": "Probe coordinate clicks on the spreader and target slice before proposing another budget patch.",
+        "task_id": "browsergym/miniwob.click-pie#seed=49"
+      },
+      {
+        "confidence": "medium",
+        "evidence": [
+          "status=failed",
+          "failure_type=zero_score",
+          "step_count=8",
+          "score=0.00",
+          "task requires a directional drag with distance, but bid-level drag lacks precise coordinates"
+        ],
+        "failure_type": "zero_score",
+        "root_cause": "coordinate_drag_surface_mismatch",
+        "suggested_action": "Probe coordinate drag actions and add a bounded coordinate-drag policy only after the probe succeeds.",
+        "task_id": "browsergym/miniwob.drag-circle#seed=40"
+      },
+      {
+        "confidence": "medium",
+        "evidence": [
+          "status=max_steps",
+          "failure_type=max_steps",
+          "step_count=20",
+          "score=0.00",
+          "cube rotation needs directional drag magnitude rather than repeated element-to-element drags"
+        ],
+        "failure_type": "max_steps",
+        "root_cause": "directional_drag_control_mismatch",
+        "suggested_action": "Probe directional coordinate drags for cube rotation before increasing budget.",
+        "task_id": "browsergym/miniwob.drag-cube#seed=41"
+      },
+      {
+        "confidence": "medium",
+        "evidence": [
+          "status=failed",
+          "failure_type=zero_score",
+          "step_count=1",
+          "score=0.00",
+          "list drag task failed despite exposed source and target items"
+        ],
+        "failure_type": "zero_score",
+        "root_cause": "list_drag_semantics_mismatch",
+        "suggested_action": "Probe whether list reorder expects source-to-target, target-to-source, or coordinate drop semantics.",
+        "task_id": "browsergym/miniwob.drag-items#seed=42"
+      },
+      {
+        "confidence": "medium",
+        "evidence": [
+          "status=failed",
+          "failure_type=zero_score",
+          "step_count=1",
+          "score=0.00",
+          "list drag task failed despite exposed source and target items"
+        ],
+        "failure_type": "zero_score",
+        "root_cause": "list_drag_semantics_mismatch",
+        "suggested_action": "Probe whether list reorder expects source-to-target, target-to-source, or coordinate drop semantics.",
+        "task_id": "browsergym/miniwob.drag-items-grid#seed=43"
+      },
+      {
+        "confidence": "medium",
+        "evidence": [
+          "status=failed",
+          "failure_type=zero_score",
+          "step_count=3",
+          "score=0.00",
+          "task requires a directional drag with distance, but bid-level drag lacks precise coordinates"
+        ],
+        "failure_type": "zero_score",
+        "root_cause": "coordinate_drag_surface_mismatch",
+        "suggested_action": "Probe coordinate drag actions and add a bounded coordinate-drag policy only after the probe succeeds.",
+        "task_id": "browsergym/miniwob.drag-single-shape#seed=45"
+      },
+      {
+        "confidence": "medium",
+        "evidence": [
+          "status=failed",
+          "failure_type=zero_score",
+          "step_count=3",
+          "score=0.00",
+          "drawing task needs a coordinate-level stroke inside the SVG canvas"
+        ],
+        "failure_type": "zero_score",
+        "root_cause": "coordinate_draw_surface_mismatch",
+        "suggested_action": "Probe coordinate drag/drawing primitives before changing prompt or step budget.",
+        "task_id": "browsergym/miniwob.draw-circle#seed=48"
+      },
+      {
+        "confidence": "medium",
+        "evidence": [
+          "status=failed",
+          "failure_type=zero_score",
+          "step_count=11",
+          "score=0.00",
+          "task requires a directional drag with distance, but bid-level drag lacks precise coordinates"
+        ],
+        "failure_type": "zero_score",
+        "root_cause": "coordinate_drag_surface_mismatch",
+        "suggested_action": "Probe coordinate drag actions and add a bounded coordinate-drag policy only after the probe succeeds.",
+        "task_id": "browsergym/miniwob.resize-textarea#seed=46"
+      },
+      {
+        "confidence": "medium",
+        "evidence": [
+          "status=max_steps",
+          "failure_type=max_steps",
+          "step_count=20",
+          "score=0.00",
+          "multi-slider task failed while repeatedly selecting or adjusting slider handles"
+        ],
+        "failure_type": "max_steps",
+        "root_cause": "multi_slider_control_loop",
+        "suggested_action": "Probe slider handle targeting and action compression before increasing the generic step budget.",
+        "task_id": "browsergym/miniwob.use-slider-2#seed=35"
+      }
+    ],
+    "candidate": [
+      {
+        "confidence": "medium",
+        "evidence": [
+          "status=max_steps",
+          "failure_type=max_steps",
+          "step_count=20",
+          "score=0.00",
+          "pie-menu target is inside an SVG control without a reliable bid-level click target"
+        ],
+        "failure_type": "max_steps",
+        "root_cause": "coordinate_click_surface_mismatch",
+        "suggested_action": "Probe coordinate clicks on the spreader and target slice before proposing another budget patch.",
+        "task_id": "browsergym/miniwob.click-pie#seed=49"
+      },
+      {
+        "confidence": "medium",
+        "evidence": [
+          "status=failed",
+          "failure_type=zero_score",
+          "step_count=2",
+          "score=0.00",
+          "task requires a directional drag with distance, but bid-level drag lacks precise coordinates"
+        ],
+        "failure_type": "zero_score",
+        "root_cause": "coordinate_drag_surface_mismatch",
+        "suggested_action": "Probe coordinate drag actions and add a bounded coordinate-drag policy only after the probe succeeds.",
+        "task_id": "browsergym/miniwob.drag-circle#seed=40"
+      },
+      {
+        "confidence": "medium",
+        "evidence": [
+          "status=failed",
+          "failure_type=zero_score",
+          "step_count=9",
+          "score=0.00",
+          "cube rotation needs directional drag magnitude rather than repeated element-to-element drags"
+        ],
+        "failure_type": "zero_score",
+        "root_cause": "directional_drag_control_mismatch",
+        "suggested_action": "Probe directional coordinate drags for cube rotation before increasing budget.",
+        "task_id": "browsergym/miniwob.drag-cube#seed=41"
+      },
+      {
+        "confidence": "medium",
+        "evidence": [
+          "status=failed",
+          "failure_type=zero_score",
+          "step_count=1",
+          "score=0.00",
+          "list drag task failed despite exposed source and target items"
+        ],
+        "failure_type": "zero_score",
+        "root_cause": "list_drag_semantics_mismatch",
+        "suggested_action": "Probe whether list reorder expects source-to-target, target-to-source, or coordinate drop semantics.",
+        "task_id": "browsergym/miniwob.drag-items#seed=42"
+      },
+      {
+        "confidence": "medium",
+        "evidence": [
+          "status=failed",
+          "failure_type=zero_score",
+          "step_count=1",
+          "score=0.00",
+          "list drag task failed despite exposed source and target items"
+        ],
+        "failure_type": "zero_score",
+        "root_cause": "list_drag_semantics_mismatch",
+        "suggested_action": "Probe whether list reorder expects source-to-target, target-to-source, or coordinate drop semantics.",
+        "task_id": "browsergym/miniwob.drag-items-grid#seed=43"
+      },
+      {
+        "confidence": "medium",
+        "evidence": [
+          "status=failed",
+          "failure_type=zero_score",
+          "step_count=3",
+          "score=0.00",
+          "task requires a directional drag with distance, but bid-level drag lacks precise coordinates"
+        ],
+        "failure_type": "zero_score",
+        "root_cause": "coordinate_drag_surface_mismatch",
+        "suggested_action": "Probe coordinate drag actions and add a bounded coordinate-drag policy only after the probe succeeds.",
+        "task_id": "browsergym/miniwob.drag-single-shape#seed=45"
+      },
+      {
+        "confidence": "medium",
+        "evidence": [
+          "status=failed",
+          "failure_type=zero_score",
+          "step_count=6",
+          "score=0.00",
+          "drawing task needs a coordinate-level stroke inside the SVG canvas"
+        ],
+        "failure_type": "zero_score",
+        "root_cause": "coordinate_draw_surface_mismatch",
+        "suggested_action": "Probe coordinate drag/drawing primitives before changing prompt or step budget.",
+        "task_id": "browsergym/miniwob.draw-circle#seed=48"
+      },
+      {
+        "confidence": "medium",
+        "evidence": [
+          "status=failed",
+          "failure_type=zero_score",
+          "step_count=9",
+          "score=0.00",
+          "task requires a directional drag with distance, but bid-level drag lacks precise coordinates"
+        ],
+        "failure_type": "zero_score",
+        "root_cause": "coordinate_drag_surface_mismatch",
+        "suggested_action": "Probe coordinate drag actions and add a bounded coordinate-drag policy only after the probe succeeds.",
+        "task_id": "browsergym/miniwob.resize-textarea#seed=46"
+      }
+    ]
+  },
+  "failure_summary": {
+    "baseline": {
+      "max_steps": 3,
+      "zero_score": 6
+    },
+    "candidate": {
+      "max_steps": 1,
+      "zero_score": 7
+    }
+  },
+  "improvements": [
+    {
+      "baseline_score": 0.0,
+      "baseline_status": "max_steps",
+      "candidate_score": 1.0,
+      "candidate_status": "success",
+      "score_delta": 1.0,
+      "task_id": "browsergym/miniwob.use-slider-2#seed=35"
+    }
+  ],
+  "metrics": {
+    "baseline": {
+      "avg_action_policy_interventions": 0.0,
+      "avg_agent_retry_count": 0.0,
+      "avg_busted_retry_count": 0.0,
+      "avg_input_tokens": 12486.4375,
+      "avg_latency_sec": 31.089484304189682,
+      "avg_llm_call_count": 6.9375,
+      "avg_normalized_score": 0.4375,
+      "avg_output_tokens": 776.5,
+      "avg_step_count": 6.9375,
+      "failure_taxonomy": {
+        "max_steps": 3,
+        "zero_score": 6
+      },
+      "success_rate": 0.4375,
+      "task_count": 16
+    },
+    "candidate": {
+      "avg_action_policy_interventions": 0.0,
+      "avg_agent_retry_count": 0.0,
+      "avg_busted_retry_count": 0.0,
+      "avg_input_tokens": 9334.375,
+      "avg_latency_sec": 22.557988241314888,
+      "avg_llm_call_count": 5.125,
+      "avg_normalized_score": 0.5,
+      "avg_output_tokens": 568.3125,
+      "avg_step_count": 5.125,
+      "failure_taxonomy": {
+        "max_steps": 1,
+        "zero_score": 7
+      },
+      "success_rate": 0.5,
+      "task_count": 16
+    },
+    "delta": {
+      "avg_action_policy_interventions": 0.0,
+      "avg_agent_retry_count": 0.0,
+      "avg_busted_retry_count": 0.0,
+      "avg_input_tokens": -3152.0625,
+      "avg_latency_sec": -8.531496062874794,
+      "avg_llm_call_count": -1.8125,
+      "avg_normalized_score": 0.0625,
+      "avg_output_tokens": -208.1875,
+      "avg_step_count": -1.8125,
+      "success_rate": 0.0625
+    }
+  },
+  "missing_in_baseline": [],
+  "missing_in_candidate": [],
+  "regression_count": 0,
+  "regressions": [],
+  "taskset_id": "miniwob_agentlab_control"
+}

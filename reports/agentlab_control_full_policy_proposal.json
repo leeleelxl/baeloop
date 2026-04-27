@@ -1,0 +1,33 @@
+{
+  "critic_decision": "accepted",
+  "critic_notes": [
+    "no patch emitted; recommendation is hold or investigation",
+    "no regressions detected",
+    "uses 8 candidate failure evidence records"
+  ],
+  "expected_effect": "Identify which coordinate click, drag, or action-compression primitive can become a bounded action policy.",
+  "hypothesis_id": "hyp_probe_coordinate_control",
+  "intervention": {
+    "expected_effect": "Identify which coordinate click, drag, or action-compression primitive can become a bounded action policy.",
+    "id": "hyp_probe_coordinate_control",
+    "kind": "investigation",
+    "patch": {},
+    "rationale": "Candidate failures point to slider, drag, drawing, or SVG click surfaces where bid-level actions are too coarse; another step-budget patch would likely repeat the same ineffective actions.",
+    "risk": "Does not immediately improve success rate until a probe-backed coordinate-control policy is implemented.",
+    "summary": "Probe coordinate-level control actions before changing the config again.",
+    "supported_by": [
+      "control_root_causes=coordinate_click_surface_mismatch,coordinate_drag_surface_mismatch,coordinate_draw_surface_mismatch,directional_drag_control_mismatch,list_drag_semantics_mismatch"
+    ],
+    "target_root_causes": [
+      "coordinate_click_surface_mismatch",
+      "coordinate_drag_surface_mismatch",
+      "coordinate_draw_surface_mismatch",
+      "directional_drag_control_mismatch",
+      "list_drag_semantics_mismatch"
+    ]
+  },
+  "patch": {},
+  "rationale": "Candidate failures point to slider, drag, drawing, or SVG click surfaces where bid-level actions are too coarse; another step-budget patch would likely repeat the same ineffective actions.",
+  "risk": "Does not immediately improve success rate until a probe-backed coordinate-control policy is implemented.",
+  "summary": "Probe coordinate-level control actions before changing the config again."
+}
