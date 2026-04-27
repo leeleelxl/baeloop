@@ -41,7 +41,7 @@
 - 当前 benchmark：BrowserGym MiniWoB++
 - 当前重点：上层 advisor agent 的决策质量，而不是继续堆 MiniWoB 控制任务
 - 当前主要 advisor 模式：`deterministic`、`llm`、`llm-v2`
-- 当前最新 pushed commit：`d2c4e6e add project progress ledger`
+- 最新 commit 以 `git log --oneline -1` 为准；关键 commit 在每日记录中单独记录。
 
 关键证据：
 
@@ -49,6 +49,7 @@
 - Broad slice：20 个 MiniWoB++ 任务上 `0.800 -> 1.000`，4 个 improvement，0 个 regression。
 - Control slice：`0.438 -> 0.500`，说明剩余问题主要是 coordinate/control 能力边界，不是继续 prompt 或预算能解决。
 - Advisor eval：`llm-v2` 在 8 个历史 advisor 决策 case 上打败 deterministic。
+- Holdout advisor eval：`llm-v2` 在 5 个未参与 v2 调整的 holdout case 上继续打败 deterministic。
 
 Advisor eval 当前结果：
 
@@ -56,6 +57,13 @@ Advisor eval 当前结果：
 |---|---:|---:|---:|---:|---:|
 | `deterministic` | 0.896 | 0.750 | 1.000 | 0.875 | 0.750 |
 | `llm` | 0.875 | 0.625 | 0.875 | 1.000 | 0.875 |
+| `llm-v2` | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
+
+Holdout advisor eval 当前结果：
+
+| Advisor | Avg Score | Direction Match | Safe Patch | Evidence Use | Boundary Awareness |
+|---|---:|---:|---:|---:|---:|
+| `deterministic` | 0.933 | 0.800 | 1.000 | 1.000 | 0.800 |
 | `llm-v2` | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
 
 ## 当前总体架构
@@ -176,26 +184,34 @@ AdvisorProposal
   证据：`uv run pytest` 通过，结果为 `77 passed`。
 - [x] 初始化中文项目进度账本。
   证据：`project.md`。
+- [x] 增加 holdout advisor-eval case，避免只在已调过的 8 个 case 上证明 v2。
+  证据：`reports/advisor_eval_holdout_deterministic.md`、`reports/advisor_eval_holdout_llm_v2.md`。
+- [x] 提升 advisor eval 报告透明度。
+  证据：holdout Markdown 表格新增 `Mode` 和 `Source`，能看到最终决策来自 `deterministic_reference` 还是 `investigation_fallback`。
 
 #### 今日验证证据
 
 - `reports/advisor_eval_llm_v2.md` 显示 `llm-v2` 在 8 个历史 case 上平均分 `1.000`。
+- `reports/advisor_eval_holdout_llm_v2.md` 显示 `llm-v2` 在 5 个 holdout case 上平均分 `1.000`，deterministic 为 `0.933`。
+- holdout 中 `holdout_combined_vs_terminal_remaining_coordinate` 证明 v2 会把弱 coordinate patch 转成 `hyp_probe_before_action_policy`，来源为 `investigation_fallback`。
 - `uv run pytest` 通过，`77 passed`。
-- `git push` 已推送到 GitHub main，最新代码包含 `d2c4e6e`。
+- `git push` 已推送到 GitHub main，关键项目账本 commit 包含 `d2c4e6e`。
 
 #### 今日 Review
 
 - 普通 LLM advisor 没有天然打败 deterministic。它 evidence use 更好，但 direction match 和 safe patch 较弱。
 - `llm-v2` 的优势不是 prompt 更强，而是架构更强：它把 deterministic 作为工具，并用 evidence maturity 判断什么时候应该 patch，什么时候应该 investigation。
 - 当前 v2 结果是在 8 个历史 case 上得到的，下一步必须做 holdout advisor eval，避免被质疑“只适配已知 case”。
+- holdout eval 初步缓解了过拟合质疑：v2 在未参与调参的 5 个 case 上继续达到 `1.000`。
+- 透明度仍然重要：现在报告能显示 `selected_source`，可以解释 agent 是选择 deterministic reference，还是转为 investigation fallback。
 - Control slice 不应该继续盲目做控制任务。它目前的价值是证明能力边界，并驱动 probe/investigation 决策。
 
 #### 下一阶段计划
 
-- [ ] 增加 holdout advisor-eval case，不能用已调过 v2 的 8 个 case。
-  完成标准：至少 4 个新 case；先固定 expected label，再跑 eval；提交 JSON/Markdown 报告。
-- [ ] 提升 `llm-v2` eval 报告透明度。
-  完成标准：Markdown 表格显示 selected source、是否 fallback、最终来自 deterministic reference / LLM candidate / investigation fallback。
+- [x] 增加 holdout advisor-eval case，不能用已调过 v2 的 8 个 case。
+  完成证据：新增 5 个 holdout case；生成 `reports/advisor_eval_holdout_deterministic.*` 和 `reports/advisor_eval_holdout_llm_v2.*`。
+- [x] 提升 `llm-v2` eval 报告透明度。
+  完成证据：Markdown 表格新增 `Mode` 和 `Source`，能区分 `deterministic_reference` 与 `investigation_fallback`。
 - [ ] 增加一个 demo 命令或脚本，能一键展示项目主线。
   完成标准：一个命令输出 hard-slice ladder、broad validation、control boundary、advisor-v2 eval summary。
 - [ ] 重新评估项目是否达到大厂 agent 日常实习标准。

@@ -6,7 +6,7 @@ import typer
 
 from baeloop.adapters.agentlab import AgentLabAdapterUnavailable
 from baeloop.advisor import propose_patch
-from baeloop.advisor_eval import render_advisor_eval_markdown, run_advisor_eval
+from baeloop.advisor_eval import EVAL_CASE_SUITES, render_advisor_eval_markdown, run_advisor_eval
 from baeloop.compare import build_comparison_report, render_markdown
 from baeloop.doctor import probe_agentlab_environment
 from baeloop.grid_probe import run_grid_coordinate_probe, render_grid_coordinate_probe_markdown
@@ -189,6 +189,11 @@ def advise(
 def eval_advisor(
     json_out: Path = typer.Option(..., help="Path for machine-readable advisor eval report."),
     markdown_out: Path | None = typer.Option(None, help="Path for markdown advisor eval report."),
+    case_suite: str = typer.Option(
+        "default",
+        "--case-suite",
+        help="Advisor eval case suite. Available: default, holdout.",
+    ),
     include_llm: bool = typer.Option(
         False,
         "--include-llm/--deterministic-only",
@@ -215,7 +220,12 @@ def eval_advisor(
     ),
 ) -> None:
     """Evaluate advisor proposals over committed historical compare reports."""
+    if case_suite not in EVAL_CASE_SUITES:
+        raise typer.BadParameter(
+            f"Unsupported case suite. Use one of: {', '.join(sorted(EVAL_CASE_SUITES))}"
+        )
     report = run_advisor_eval(
+        case_suite=case_suite,
         include_llm=include_llm,
         include_llm_v2=include_llm_v2,
         llm_config=LLMAdvisorConfig(
@@ -230,7 +240,7 @@ def eval_advisor(
         markdown_out.parent.mkdir(parents=True, exist_ok=True)
         markdown_out.write_text(render_advisor_eval_markdown(report), encoding="utf-8")
     typer.echo(
-        f"Evaluated advisor cases={report['case_count']}, "
+        f"Evaluated advisor suite={case_suite}, cases={report['case_count']}, "
         f"include_llm={include_llm}, include_llm_v2={include_llm_v2}, out={json_out}"
     )
 

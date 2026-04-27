@@ -162,6 +162,15 @@ Current 8-case result:
 
 The v1 result is deliberately mixed: deterministic is more stable and patch-safe, while plain LLM uses evidence and boundary reasoning more consistently. The v2 result is the current target architecture working on the historical suite: it combines model-backed analysis with deterministic-reference and evidence-maturity selection, so it avoids over-patching when the evidence only justifies a probe.
 
+Current 5-case holdout result:
+
+| Advisor | Avg Score | Direction Match | Safe Patch | Evidence Use | Boundary Awareness |
+|---|---:|---:|---:|---:|---:|
+| `deterministic` | 0.933 | 0.800 | 1.000 | 1.000 | 0.800 |
+| `llm-v2` | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
+
+The holdout suite includes saturated tasksets, efficiency winners, a remaining coordinate-action failure, and a timeout-budget mock case. The Markdown reports now expose `Mode` and `Source`, so a reviewer can see whether the final decision came from `deterministic_reference` or `investigation_fallback`.
+
 ## Intervention Model
 
 `Intervention` is the structured unit of optimization. It records:

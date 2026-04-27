@@ -1,0 +1,1031 @@
+{
+  "case_count": 5,
+  "case_suite": "holdout",
+  "include_llm": false,
+  "include_llm_v2": true,
+  "rows": [
+    {
+      "advisor": "deterministic",
+      "boundary_awareness": true,
+      "case_id": "holdout_core_saturated",
+      "critic_decision": "accepted",
+      "critic_ok": true,
+      "direction_match": true,
+      "expected_direction": "hold_expand_taskset",
+      "hypothesis_id": "hyp_hold_config_expand_taskset",
+      "notes": [
+        "expected=hold_expand_taskset",
+        "mode=deterministic",
+        "no candidate failure evidence records"
+      ],
+      "patch_keys": [],
+      "proposal": {
+        "advisor_mode": "deterministic",
+        "advisor_stage_notes": {},
+        "critic_decision": "accepted",
+        "critic_notes": [
+          "no patch emitted; recommendation is hold or investigation",
+          "no regressions detected",
+          "no candidate failure evidence records"
+        ],
+        "expected_effect": "Reduce overfitting risk by collecting evidence on harder or broader MiniWoB tasks first.",
+        "hypothesis_id": "hyp_hold_config_expand_taskset",
+        "intervention": {
+          "expected_effect": "Reduce overfitting risk by collecting evidence on harder or broader MiniWoB tasks first.",
+          "id": "hyp_hold_config_expand_taskset",
+          "kind": "hold",
+          "patch": {},
+          "rationale": "The candidate has no failures or regressions on the current task set, so another config patch would be weakly supported.",
+          "risk": "Delays optimization if the current task set is already representative, but avoids changing a saturated config without evidence.",
+          "summary": "Keep the candidate config unchanged and expand the task set before optimizing further.",
+          "supported_by": [
+            "no_candidate_failures",
+            "quality_not_worse"
+          ],
+          "target_root_causes": []
+        },
+        "patch": {},
+        "rationale": "The candidate has no failures or regressions on the current task set, so another config patch would be weakly supported.",
+        "risk": "Delays optimization if the current task set is already representative, but avoids changing a saturated config without evidence.",
+        "summary": "Keep the candidate config unchanged and expand the task set before optimizing further."
+      },
+      "proposal_mode": "deterministic",
+      "safe_patch": true,
+      "schema_valid": true,
+      "score": 1.0,
+      "selected_source": "-",
+      "target_root_causes": [],
+      "used_fallback": false,
+      "uses_failure_evidence": true
+    },
+    {
+      "advisor": "llm-v2",
+      "boundary_awareness": true,
+      "case_id": "holdout_core_saturated",
+      "critic_decision": "accepted",
+      "critic_ok": true,
+      "direction_match": true,
+      "expected_direction": "hold_expand_taskset",
+      "hypothesis_id": "hyp_hold_config_expand_taskset",
+      "notes": [
+        "expected=hold_expand_taskset",
+        "mode=llm-v2",
+        "v2 final selector accepted evidence-mature intervention"
+      ],
+      "patch_keys": [],
+      "proposal": {
+        "advisor_mode": "llm-v2",
+        "advisor_stage_notes": {
+          "analyst": {
+            "dominant_root_causes": [
+              "No observable behavioral difference; both configs succeeded on all 3 tasks with identical scores and step counts.",
+              "Retry logic was not exercised in this sample, as avg_agent_retry_count and avg_busted_retry_count remained 0.0 for both configs."
+            ],
+            "key_deltas": [
+              "Success rate unchanged at 1.0 for both baseline and candidate.",
+              "Average normalized score unchanged at 1.0 for both configs.",
+              "Average step count unchanged at 1.67 for both configs.",
+              "Candidate latency was slightly higher by 0.0038s on average, a negligible difference in this sample.",
+              "No improvements or regressions were recorded."
+            ],
+            "risk_flags": [
+              "Very small sample size (3 tasks) limits confidence.",
+              "No failures occurred, so failure-handling/retry behavior was not validated.",
+              "Zero retry counts indicate the candidate\u2019s intended retry capability may be untested under these conditions."
+            ],
+            "summary": "The candidate configuration performed identically to baseline on this 3-task comparison: 100% success, perfect normalized score, and no changes in step count or other behavioral metrics. The only measured difference was a negligible increase in average latency for the candidate. Because no failures or retries occurred, there is no evidence here that the retry-enabled configuration provides benefit, and its core added behavior remains unvalidated in this experiment."
+          },
+          "critic": {
+            "decision": "accepted",
+            "notes": [
+              "No patch is proposed; hold/investigate recommendation is bounded and supported by the evidence.",
+              "Observed metrics show no behavioral difference: identical success rate, score, and step count across all 3 tasks.",
+              "Retry-related behavior was untested: both avg_agent_retry_count and avg_busted_retry_count are 0.0.",
+              "Sample size is too small and too clean to justify a config-changing patch.",
+              "Patch payload is empty, which is valid and does not violate allowed_patch_keys constraints."
+            ]
+          },
+          "deterministic_reference": {
+            "expected_effect": "Reduce overfitting risk by collecting evidence on harder or broader MiniWoB tasks first.",
+            "id": "hyp_hold_config_expand_taskset",
+            "kind": "hold",
+            "patch": {},
+            "rationale": "The candidate has no failures or regressions on the current task set, so another config patch would be weakly supported.",
+            "risk": "Delays optimization if the current task set is already representative, but avoids changing a saturated config without evidence.",
+            "summary": "Keep the candidate config unchanged and expand the task set before optimizing further.",
+            "supported_by": [
+              "no_candidate_failures",
+              "quality_not_worse"
+            ],
+            "target_root_causes": []
+          },
+          "llm_candidate": {
+            "expected_effect": "Increase confidence in whether retry-related behavior helps by evaluating on a broader or harder task set before changing configuration.",
+            "id": "hyp_hold_config_expand_taskset",
+            "kind": "hold",
+            "patch": {},
+            "rationale": "The baseline and candidate are behaviorally identical on all observed outcome metrics across only 3 tasks, and the candidate's distinguishing retry capability was never exercised. With no failures, no regressions, and no evidence of benefit, a config change would be unsupported. Holding the current config and gathering more evidence is the most bounded action.",
+            "risk": "May delay optimization if the current 3-task sample is already representative, but avoids making unsupported changes to a saturated configuration.",
+            "summary": "Keep the candidate config unchanged and expand evaluation to harder or broader tasks before optimizing further.",
+            "supported_by": [
+              "no_candidate_failures",
+              "quality_not_worse",
+              "identical_success_and_score",
+              "retry_behavior_untested",
+              "sample_size_too_small"
+            ],
+            "target_root_causes": [
+              "No observable behavioral difference; both configs succeeded on all 3 tasks with identical scores and step counts.",
+              "Retry logic was not exercised in this sample, as avg_agent_retry_count and avg_busted_retry_count remained 0.0 for both configs."
+            ]
+          },
+          "selector": {
+            "notes": [
+              "deterministic reference is already evidence-mature"
+            ],
+            "selected_source": "deterministic_reference"
+          }
+        },
+        "critic_decision": "accepted",
+        "critic_notes": [
+          "no patch emitted; recommendation is hold or investigation",
+          "no regressions detected",
+          "no candidate failure evidence records",
+          "llm critic advisory (accepted): No patch is proposed; hold/investigate recommendation is bounded and supported by the evidence.",
+          "llm critic advisory (accepted): Observed metrics show no behavioral difference: identical success rate, score, and step count across all 3 tasks.",
+          "llm critic advisory (accepted): Retry-related behavior was untested: both avg_agent_retry_count and avg_busted_retry_count are 0.0.",
+          "llm critic advisory (accepted): Sample size is too small and too clean to justify a config-changing patch.",
+          "llm critic advisory (accepted): Patch payload is empty, which is valid and does not violate allowed_patch_keys constraints.",
+          "v2 final selector accepted evidence-mature intervention"
+        ],
+        "expected_effect": "Reduce overfitting risk by collecting evidence on harder or broader MiniWoB tasks first.",
+        "hypothesis_id": "hyp_hold_config_expand_taskset",
+        "intervention": {
+          "expected_effect": "Reduce overfitting risk by collecting evidence on harder or broader MiniWoB tasks first.",
+          "id": "hyp_hold_config_expand_taskset",
+          "kind": "hold",
+          "patch": {},
+          "rationale": "The candidate has no failures or regressions on the current task set, so another config patch would be weakly supported.",
+          "risk": "Delays optimization if the current task set is already representative, but avoids changing a saturated config without evidence.",
+          "summary": "Keep the candidate config unchanged and expand the task set before optimizing further.",
+          "supported_by": [
+            "no_candidate_failures",
+            "quality_not_worse"
+          ],
+          "target_root_causes": []
+        },
+        "patch": {},
+        "rationale": "The candidate has no failures or regressions on the current task set, so another config patch would be weakly supported.",
+        "risk": "Delays optimization if the current task set is already representative, but avoids changing a saturated config without evidence.",
+        "summary": "Keep the candidate config unchanged and expand the task set before optimizing further."
+      },
+      "proposal_mode": "llm-v2",
+      "safe_patch": true,
+      "schema_valid": true,
+      "score": 1.0,
+      "selected_source": "deterministic_reference",
+      "target_root_causes": [],
+      "used_fallback": false,
+      "uses_failure_evidence": true
+    },
+    {
+      "advisor": "deterministic",
+      "boundary_awareness": true,
+      "case_id": "holdout_challenge_efficiency_winner",
+      "critic_decision": "accepted",
+      "critic_ok": true,
+      "direction_match": true,
+      "expected_direction": "efficiency_winner",
+      "hypothesis_id": "hyp_keep_efficiency_winner",
+      "notes": [
+        "expected=efficiency_winner",
+        "mode=deterministic",
+        "no candidate failure evidence records"
+      ],
+      "patch_keys": [],
+      "proposal": {
+        "advisor_mode": "deterministic",
+        "advisor_stage_notes": {},
+        "critic_decision": "accepted",
+        "critic_notes": [
+          "no patch emitted; recommendation is hold or investigation",
+          "no regressions detected",
+          "no candidate failure evidence records"
+        ],
+        "expected_effect": "Preserve solved-task quality while reducing latency or token cost on the measured task set.",
+        "hypothesis_id": "hyp_keep_efficiency_winner",
+        "intervention": {
+          "expected_effect": "Preserve solved-task quality while reducing latency or token cost on the measured task set.",
+          "id": "hyp_keep_efficiency_winner",
+          "kind": "hold",
+          "patch": {},
+          "rationale": "The candidate has no failures or regressions and improves at least one efficiency metric enough to justify keeping it.",
+          "risk": "Efficiency gains may be run-to-run noise unless confirmed on a larger task set.",
+          "summary": "Keep the candidate config as an efficiency winner under equal task quality.",
+          "supported_by": [
+            "no_candidate_failures",
+            "quality_not_worse",
+            "efficiency_gain"
+          ],
+          "target_root_causes": []
+        },
+        "patch": {},
+        "rationale": "The candidate has no failures or regressions and improves at least one efficiency metric enough to justify keeping it.",
+        "risk": "Efficiency gains may be run-to-run noise unless confirmed on a larger task set.",
+        "summary": "Keep the candidate config as an efficiency winner under equal task quality."
+      },
+      "proposal_mode": "deterministic",
+      "safe_patch": true,
+      "schema_valid": true,
+      "score": 1.0,
+      "selected_source": "-",
+      "target_root_causes": [],
+      "used_fallback": false,
+      "uses_failure_evidence": true
+    },
+    {
+      "advisor": "llm-v2",
+      "boundary_awareness": true,
+      "case_id": "holdout_challenge_efficiency_winner",
+      "critic_decision": "accepted",
+      "critic_ok": true,
+      "direction_match": true,
+      "expected_direction": "efficiency_winner",
+      "hypothesis_id": "hyp_keep_efficiency_winner",
+      "notes": [
+        "expected=efficiency_winner",
+        "mode=llm-v2",
+        "v2 final selector accepted evidence-mature intervention"
+      ],
+      "patch_keys": [],
+      "proposal": {
+        "advisor_mode": "llm-v2",
+        "advisor_stage_notes": {
+          "analyst": {
+            "dominant_root_causes": [],
+            "key_deltas": [
+              "No quality difference: both baseline and candidate achieved 100% success_rate and 1.0 avg_normalized_score across 5/5 tasks.",
+              "Latency improved for candidate by 0.98s on average (9.46s -> 8.49s, delta -0.98s).",
+              "Token usage was effectively unchanged on input tokens (4048.2 -> 4048.2) and slightly higher on output tokens for candidate (163.0 -> 166.4, +3.4).",
+              "Execution behavior was identical: avg_llm_call_count 2.6, avg_step_count 2.6, zero retries, zero busted retries, zero action policy interventions."
+            ],
+            "risk_flags": [
+              "Very small sample size (5 tasks) limits confidence in the latency improvement.",
+              "No failures, regressions, or improvements were observed, so there is no evidence of robustness differences between configs.",
+              "Slight increase in output tokens may marginally affect cost without measurable quality gain in this sample."
+            ],
+            "summary": "Candidate matches baseline on all success and quality metrics for the 5-task challenge set, with the only notable change being a modest average latency improvement of about 1 second. Aside from a small increase in output tokens, behavior is otherwise identical and no failure-based root causes are evidenced."
+          },
+          "critic": {
+            "decision": "accepted",
+            "notes": [
+              "Proposal emits no patch, so there is no unsupported or unbounded patch-bearing change to reject.",
+              "Evidence shows parity on success and quality metrics with a modest latency improvement, but confidence is limited by the 5-task sample.",
+              "Accept as a hold/no-op recommendation only; treat the efficiency gain as provisional until validated on a larger task set."
+            ]
+          },
+          "deterministic_reference": {
+            "expected_effect": "Preserve solved-task quality while reducing latency or token cost on the measured task set.",
+            "id": "hyp_keep_efficiency_winner",
+            "kind": "hold",
+            "patch": {},
+            "rationale": "The candidate has no failures or regressions and improves at least one efficiency metric enough to justify keeping it.",
+            "risk": "Efficiency gains may be run-to-run noise unless confirmed on a larger task set.",
+            "summary": "Keep the candidate config as an efficiency winner under equal task quality.",
+            "supported_by": [
+              "no_candidate_failures",
+              "quality_not_worse",
+              "efficiency_gain"
+            ],
+            "target_root_causes": []
+          },
+          "llm_candidate": {
+            "expected_effect": "Preserve solved-task quality while keeping the observed latency improvement, pending broader validation.",
+            "id": "hyp_keep_efficiency_winner",
+            "kind": "hold",
+            "patch": {},
+            "rationale": "The candidate matches baseline on success rate and normalized score across all 5 tasks, with identical execution dynamics and no observed failures or regressions. The only meaningful difference is a modest latency improvement of about 0.98s on average, which is directionally favorable. Given the very small sample size and lack of robustness evidence, the appropriate bounded intervention is to hold rather than modify configuration.",
+            "risk": "The latency gain may be run-to-run noise due to the 5-task sample, and the slight output-token increase could marginally raise cost without demonstrated quality benefit.",
+            "summary": "Keep the candidate config as the current efficiency winner under equal measured task quality; do not patch based on this evidence alone.",
+            "supported_by": [
+              "quality_not_worse",
+              "no_candidate_failures",
+              "efficiency_gain",
+              "identical_execution_behavior",
+              "small_sample_size"
+            ],
+            "target_root_causes": []
+          },
+          "selector": {
+            "notes": [
+              "deterministic reference is already evidence-mature"
+            ],
+            "selected_source": "deterministic_reference"
+          }
+        },
+        "critic_decision": "accepted",
+        "critic_notes": [
+          "no patch emitted; recommendation is hold or investigation",
+          "no regressions detected",
+          "no candidate failure evidence records",
+          "llm critic advisory (accepted): Proposal emits no patch, so there is no unsupported or unbounded patch-bearing change to reject.",
+          "llm critic advisory (accepted): Evidence shows parity on success and quality metrics with a modest latency improvement, but confidence is limited by the 5-task sample.",
+          "llm critic advisory (accepted): Accept as a hold/no-op recommendation only; treat the efficiency gain as provisional until validated on a larger task set.",
+          "v2 final selector accepted evidence-mature intervention"
+        ],
+        "expected_effect": "Preserve solved-task quality while reducing latency or token cost on the measured task set.",
+        "hypothesis_id": "hyp_keep_efficiency_winner",
+        "intervention": {
+          "expected_effect": "Preserve solved-task quality while reducing latency or token cost on the measured task set.",
+          "id": "hyp_keep_efficiency_winner",
+          "kind": "hold",
+          "patch": {},
+          "rationale": "The candidate has no failures or regressions and improves at least one efficiency metric enough to justify keeping it.",
+          "risk": "Efficiency gains may be run-to-run noise unless confirmed on a larger task set.",
+          "summary": "Keep the candidate config as an efficiency winner under equal task quality.",
+          "supported_by": [
+            "no_candidate_failures",
+            "quality_not_worse",
+            "efficiency_gain"
+          ],
+          "target_root_causes": []
+        },
+        "patch": {},
+        "rationale": "The candidate has no failures or regressions and improves at least one efficiency metric enough to justify keeping it.",
+        "risk": "Efficiency gains may be run-to-run noise unless confirmed on a larger task set.",
+        "summary": "Keep the candidate config as an efficiency winner under equal task quality."
+      },
+      "proposal_mode": "llm-v2",
+      "safe_patch": true,
+      "schema_valid": true,
+      "score": 1.0,
+      "selected_source": "deterministic_reference",
+      "target_root_causes": [],
+      "used_fallback": false,
+      "uses_failure_evidence": true
+    },
+    {
+      "advisor": "deterministic",
+      "boundary_awareness": true,
+      "case_id": "holdout_hard_repeat_efficiency_winner",
+      "critic_decision": "accepted",
+      "critic_ok": true,
+      "direction_match": true,
+      "expected_direction": "efficiency_winner",
+      "hypothesis_id": "hyp_keep_efficiency_winner",
+      "notes": [
+        "expected=efficiency_winner",
+        "mode=deterministic",
+        "no candidate failure evidence records"
+      ],
+      "patch_keys": [],
+      "proposal": {
+        "advisor_mode": "deterministic",
+        "advisor_stage_notes": {},
+        "critic_decision": "accepted",
+        "critic_notes": [
+          "no patch emitted; recommendation is hold or investigation",
+          "no regressions detected",
+          "no candidate failure evidence records"
+        ],
+        "expected_effect": "Preserve solved-task quality while reducing latency or token cost on the measured task set.",
+        "hypothesis_id": "hyp_keep_efficiency_winner",
+        "intervention": {
+          "expected_effect": "Preserve solved-task quality while reducing latency or token cost on the measured task set.",
+          "id": "hyp_keep_efficiency_winner",
+          "kind": "hold",
+          "patch": {},
+          "rationale": "The candidate has no failures or regressions and improves at least one efficiency metric enough to justify keeping it.",
+          "risk": "Efficiency gains may be run-to-run noise unless confirmed on a larger task set.",
+          "summary": "Keep the candidate config as an efficiency winner under equal task quality.",
+          "supported_by": [
+            "no_candidate_failures",
+            "quality_not_worse",
+            "efficiency_gain"
+          ],
+          "target_root_causes": []
+        },
+        "patch": {},
+        "rationale": "The candidate has no failures or regressions and improves at least one efficiency metric enough to justify keeping it.",
+        "risk": "Efficiency gains may be run-to-run noise unless confirmed on a larger task set.",
+        "summary": "Keep the candidate config as an efficiency winner under equal task quality."
+      },
+      "proposal_mode": "deterministic",
+      "safe_patch": true,
+      "schema_valid": true,
+      "score": 1.0,
+      "selected_source": "-",
+      "target_root_causes": [],
+      "used_fallback": false,
+      "uses_failure_evidence": true
+    },
+    {
+      "advisor": "llm-v2",
+      "boundary_awareness": true,
+      "case_id": "holdout_hard_repeat_efficiency_winner",
+      "critic_decision": "accepted",
+      "critic_ok": true,
+      "direction_match": true,
+      "expected_direction": "efficiency_winner",
+      "hypothesis_id": "hyp_keep_efficiency_winner",
+      "notes": [
+        "expected=efficiency_winner",
+        "mode=llm-v2",
+        "v2 final selector accepted evidence-mature intervention"
+      ],
+      "patch_keys": [],
+      "proposal": {
+        "advisor_mode": "llm-v2",
+        "advisor_stage_notes": {
+          "analyst": {
+            "dominant_root_causes": [],
+            "key_deltas": [
+              "No quality change: both baseline and candidate achieved 100% success_rate and 1.0 avg_normalized_score across 8/8 tasks.",
+              "Candidate was substantially more efficient: avg_latency_sec decreased by 17.27s (35.98 -> 18.71), about 48% faster.",
+              "Candidate used fewer model/resources: avg_llm_call_count decreased by 1.5 (6.25 -> 4.75), avg_step_count decreased by 1.5 (6.25 -> 4.75), avg_input_tokens decreased by 6564.63, and avg_output_tokens decreased by 124.63.",
+              "Candidate required fewer action policy interventions: 0.625 -> 0.375 (-0.25).",
+              "No failures, regressions, or improvements were recorded in either condition; failure_taxonomy is empty for both."
+            ],
+            "risk_flags": [
+              "Very small sample size (8 tasks) limits confidence in generalization.",
+              "Baseline and candidate config IDs are identical in the report, so this may reflect run-to-run variance or duplicated configuration rather than a true config comparison.",
+              "Because both runs are saturated at 100% success, only efficiency differences are observable; robustness differences may be hidden."
+            ],
+            "summary": "Across the 8-task miniwob_agentlab_hard comparison, baseline and candidate had identical perfect task outcomes, with no failures or regressions. The candidate run was markedly more efficient, cutting latency, token usage, LLM calls, and step count while also slightly reducing policy interventions. However, confidence is limited because the compared config IDs are the same and the sample is small."
+          },
+          "critic": {
+            "decision": "accepted",
+            "notes": [
+              "Accepted because the proposal is non-patch-bearing (patch is empty) and recommends a bounded hold/investigation action rather than an unsupported configuration change.",
+              "Quality is unchanged on the measured set: both baseline and candidate achieved 100% success_rate and 1.0 avg_normalized_score over 8/8 tasks, with no failures or regressions recorded.",
+              "Candidate shows materially better efficiency on the measured runs: latency -17.27s, llm_call_count -1.5, step_count -1.5, input_tokens -6564.625, output_tokens -124.625, and fewer action policy interventions (-0.25).",
+              "Risk remains high due to the very small sample size and because baseline_config_id and candidate_config_id are identical, so the observed efficiency gains may reflect run-to-run variance or duplicated configuration rather than a true config delta.",
+              "No patch keys are used, so there is nothing to validate against allowed_patch_keys; no unsupported or unbounded patch is present.",
+              "Recommended follow-up is confirmation on a larger task set or repeated seeded evaluations before treating the efficiency gain as durable."
+            ]
+          },
+          "deterministic_reference": {
+            "expected_effect": "Preserve solved-task quality while reducing latency or token cost on the measured task set.",
+            "id": "hyp_keep_efficiency_winner",
+            "kind": "hold",
+            "patch": {},
+            "rationale": "The candidate has no failures or regressions and improves at least one efficiency metric enough to justify keeping it.",
+            "risk": "Efficiency gains may be run-to-run noise unless confirmed on a larger task set.",
+            "summary": "Keep the candidate config as an efficiency winner under equal task quality.",
+            "supported_by": [
+              "no_candidate_failures",
+              "quality_not_worse",
+              "efficiency_gain"
+            ],
+            "target_root_causes": []
+          },
+          "llm_candidate": {
+            "expected_effect": "Avoid unnecessary config churn while preserving current perfect task quality; gather evidence to confirm whether the observed efficiency gain is real or run-to-run noise.",
+            "id": "hyp_validate_same_config_efficiency_delta",
+            "kind": "investigation",
+            "patch": {},
+            "rationale": "Both baseline and candidate achieved identical perfect quality with no failures or regressions, so there is no quality-driven reason to change behavior. Although the candidate appears materially more efficient, the reported baseline and candidate config IDs are identical, which makes this comparison ambiguous and suggests the difference could be measurement noise or duplicated configuration rather than a causal improvement. Given the very small sample size and saturated success, the safest intervention is to hold config changes and investigate with a larger confirmatory run.",
+            "risk": "Potentially delays adopting a genuine efficiency improvement; however, changing configuration based on same-ID, small-sample evidence risks overfitting to noise.",
+            "summary": "Investigate the apparent efficiency win because the compared configs are the same ID and the sample is too small to attribute causality confidently.",
+            "supported_by": [
+              "quality_not_worse",
+              "no_candidate_failures",
+              "efficiency_gain",
+              "same_config_id_ambiguity",
+              "small_sample_size"
+            ],
+            "target_root_causes": [
+              "evaluation_ambiguity",
+              "insufficient_evidence"
+            ]
+          },
+          "selector": {
+            "notes": [
+              "deterministic reference is already evidence-mature"
+            ],
+            "selected_source": "deterministic_reference"
+          }
+        },
+        "critic_decision": "accepted",
+        "critic_notes": [
+          "no patch emitted; recommendation is hold or investigation",
+          "no regressions detected",
+          "no candidate failure evidence records",
+          "llm critic advisory (accepted): Accepted because the proposal is non-patch-bearing (patch is empty) and recommends a bounded hold/investigation action rather than an unsupported configuration change.",
+          "llm critic advisory (accepted): Quality is unchanged on the measured set: both baseline and candidate achieved 100% success_rate and 1.0 avg_normalized_score over 8/8 tasks, with no failures or regressions recorded.",
+          "llm critic advisory (accepted): Candidate shows materially better efficiency on the measured runs: latency -17.27s, llm_call_count -1.5, step_count -1.5, input_tokens -6564.625, output_tokens -124.625, and fewer action policy interventions (-0.25).",
+          "llm critic advisory (accepted): Risk remains high due to the very small sample size and because baseline_config_id and candidate_config_id are identical, so the observed efficiency gains may reflect run-to-run variance or duplicated configuration rather than a true config delta.",
+          "llm critic advisory (accepted): No patch keys are used, so there is nothing to validate against allowed_patch_keys; no unsupported or unbounded patch is present.",
+          "llm critic advisory (accepted): Recommended follow-up is confirmation on a larger task set or repeated seeded evaluations before treating the efficiency gain as durable.",
+          "v2 final selector accepted evidence-mature intervention"
+        ],
+        "expected_effect": "Preserve solved-task quality while reducing latency or token cost on the measured task set.",
+        "hypothesis_id": "hyp_keep_efficiency_winner",
+        "intervention": {
+          "expected_effect": "Preserve solved-task quality while reducing latency or token cost on the measured task set.",
+          "id": "hyp_keep_efficiency_winner",
+          "kind": "hold",
+          "patch": {},
+          "rationale": "The candidate has no failures or regressions and improves at least one efficiency metric enough to justify keeping it.",
+          "risk": "Efficiency gains may be run-to-run noise unless confirmed on a larger task set.",
+          "summary": "Keep the candidate config as an efficiency winner under equal task quality.",
+          "supported_by": [
+            "no_candidate_failures",
+            "quality_not_worse",
+            "efficiency_gain"
+          ],
+          "target_root_causes": []
+        },
+        "patch": {},
+        "rationale": "The candidate has no failures or regressions and improves at least one efficiency metric enough to justify keeping it.",
+        "risk": "Efficiency gains may be run-to-run noise unless confirmed on a larger task set.",
+        "summary": "Keep the candidate config as an efficiency winner under equal task quality."
+      },
+      "proposal_mode": "llm-v2",
+      "safe_patch": true,
+      "schema_valid": true,
+      "score": 1.0,
+      "selected_source": "deterministic_reference",
+      "target_root_causes": [],
+      "used_fallback": false,
+      "uses_failure_evidence": true
+    },
+    {
+      "advisor": "deterministic",
+      "boundary_awareness": false,
+      "case_id": "holdout_combined_vs_terminal_remaining_coordinate",
+      "critic_decision": "accepted",
+      "critic_ok": true,
+      "direction_match": false,
+      "expected_direction": "investigate",
+      "hypothesis_id": "hyp_grid_coordinate_click",
+      "notes": [
+        "expected=investigate",
+        "mode=deterministic",
+        "failed_direction_match",
+        "failed_boundary_awareness",
+        "uses 1 candidate failure evidence records"
+      ],
+      "patch_keys": [
+        "action_policy"
+      ],
+      "proposal": {
+        "advisor_mode": "deterministic",
+        "advisor_stage_notes": {},
+        "critic_decision": "accepted",
+        "critic_notes": [
+          "bounded patch present",
+          "no regressions detected",
+          "uses 1 candidate failure evidence records"
+        ],
+        "expected_effect": "Convert SVG-root clicks into precise mouse clicks on the requested grid point without changing the prompt.",
+        "hypothesis_id": "hyp_grid_coordinate_click",
+        "intervention": {
+          "expected_effect": "Convert SVG-root clicks into precise mouse clicks on the requested grid point without changing the prompt.",
+          "id": "hyp_grid_coordinate_click",
+          "kind": "action_policy",
+          "patch": {
+            "action_policy": {
+              "enabled": true,
+              "max_interventions": 25,
+              "name": "composite",
+              "policies": [
+                "scroll_before_submit",
+                "terminal_keyboard_type",
+                "grid_coordinate_click"
+              ],
+              "policy_limits": {
+                "grid_coordinate_click": 1,
+                "scroll_before_submit": 1,
+                "terminal_keyboard_type": 20
+              },
+              "scroll_delta_y": 621
+            }
+          },
+          "rationale": "Candidate failure evidence shows the agent identified the target coordinate but clicked the SVG root because the target circle had no bid-addressable action.",
+          "risk": "Only applies when the grid target can be parsed from goal/html/bbox evidence; otherwise it should no-op rather than guess.",
+          "summary": "Enable a coordinate-aware click policy for SVG grid-coordinate targets.",
+          "supported_by": [
+            "root_cause=coordinate_click_miss"
+          ],
+          "target_root_causes": [
+            "coordinate_click_miss"
+          ]
+        },
+        "patch": {
+          "action_policy": {
+            "enabled": true,
+            "max_interventions": 25,
+            "name": "composite",
+            "policies": [
+              "scroll_before_submit",
+              "terminal_keyboard_type",
+              "grid_coordinate_click"
+            ],
+            "policy_limits": {
+              "grid_coordinate_click": 1,
+              "scroll_before_submit": 1,
+              "terminal_keyboard_type": 20
+            },
+            "scroll_delta_y": 621
+          }
+        },
+        "rationale": "Candidate failure evidence shows the agent identified the target coordinate but clicked the SVG root because the target circle had no bid-addressable action.",
+        "risk": "Only applies when the grid target can be parsed from goal/html/bbox evidence; otherwise it should no-op rather than guess.",
+        "summary": "Enable a coordinate-aware click policy for SVG grid-coordinate targets."
+      },
+      "proposal_mode": "deterministic",
+      "safe_patch": true,
+      "schema_valid": true,
+      "score": 0.6666666666666666,
+      "selected_source": "-",
+      "target_root_causes": [
+        "coordinate_click_miss"
+      ],
+      "used_fallback": false,
+      "uses_failure_evidence": true
+    },
+    {
+      "advisor": "llm-v2",
+      "boundary_awareness": true,
+      "case_id": "holdout_combined_vs_terminal_remaining_coordinate",
+      "critic_decision": "accepted",
+      "critic_ok": true,
+      "direction_match": true,
+      "expected_direction": "investigate",
+      "hypothesis_id": "hyp_probe_before_action_policy",
+      "notes": [
+        "expected=investigate",
+        "mode=llm-v2",
+        "v2 final selector accepted evidence-mature intervention"
+      ],
+      "patch_keys": [],
+      "proposal": {
+        "advisor_mode": "llm-v2",
+        "advisor_stage_notes": {
+          "analyst": {
+            "dominant_root_causes": [
+              "Residual coordinate_click_miss remains the only candidate failure and appears in both configs; baseline also showed a missed_scroll_target that the candidate resolved."
+            ],
+            "key_deltas": [
+              "Success rate improved from 0.75 to 0.875 (+0.125), with 1 improvement and 0 regressions across 8 tasks.",
+              "Average normalized score improved from 0.75 to 0.875 (+0.125).",
+              "Failures decreased from 2 zero-score failures to 1 zero-score failure.",
+              "The improved task was browsergym/miniwob.social-media-all#seed=26, moving from failed/0.0 to success/1.0.",
+              "Cost and runtime increased materially: avg latency +9.29s, avg input tokens +9631.75, avg output tokens +209.875, avg LLM calls +2.125, avg step count +2.125.",
+              "Action policy interventions increased from 0.25 to 0.375 (+0.125)."
+            ],
+            "risk_flags": [
+              "Observed gain is based on 1 additional task solved out of 8, so evidence is directionally positive but limited in sample size.",
+              "Efficiency worsened substantially relative to the quality gain, indicating a clear cost/latency tradeoff.",
+              "The unresolved coordinate_click_miss persists with the same one-step zero-score pattern, suggesting the combined changes did not address that failure mode."
+            ],
+            "summary": "The candidate outperformed the baseline on this 8-task slice, improving success rate and average score by 0.125 with one net task gain and no regressions. The only resolved failure was the baseline\u2019s missed_scroll_target on social-media-all, while the coordinate_click_miss failure remained unchanged. The main downside is substantially higher token usage, latency, step count, and LLM calls, so the improvement comes with a significant efficiency tradeoff."
+          },
+          "critic": {
+            "decision": "accepted",
+            "notes": [
+              "Accepted because the proposal is non-patch-bearing: patch is empty and therefore does not introduce unsupported keys or an unbounded modification.",
+              "This is an investigation-only recommendation, which is appropriate given the weak evidence base: only 1 persistent failure mode (coordinate_click_miss) remains and sample size is 8 tasks.",
+              "The candidate shows 1 improvement and 0 regressions, but with substantial efficiency cost; holding for more evidence is reasonable.",
+              "No allowed_patch_keys validation issues apply because no patch is emitted.",
+              "Recommended next step: collect trace/environment evidence around grid-coordinate click targeting before proposing any bounded action_policy change."
+            ]
+          },
+          "deterministic_reference": {
+            "expected_effect": "Convert SVG-root clicks into precise mouse clicks on the requested grid point without changing the prompt.",
+            "id": "hyp_grid_coordinate_click",
+            "kind": "action_policy",
+            "patch": {
+              "action_policy": {
+                "enabled": true,
+                "max_interventions": 25,
+                "name": "composite",
+                "policies": [
+                  "scroll_before_submit",
+                  "terminal_keyboard_type",
+                  "grid_coordinate_click"
+                ],
+                "policy_limits": {
+                  "grid_coordinate_click": 1,
+                  "scroll_before_submit": 1,
+                  "terminal_keyboard_type": 20
+                },
+                "scroll_delta_y": 621
+              }
+            },
+            "rationale": "Candidate failure evidence shows the agent identified the target coordinate but clicked the SVG root because the target circle had no bid-addressable action.",
+            "risk": "Only applies when the grid target can be parsed from goal/html/bbox evidence; otherwise it should no-op rather than guess.",
+            "summary": "Enable a coordinate-aware click policy for SVG grid-coordinate targets.",
+            "supported_by": [
+              "root_cause=coordinate_click_miss"
+            ],
+            "target_root_causes": [
+              "coordinate_click_miss"
+            ]
+          },
+          "llm_candidate": {
+            "expected_effect": "Target the remaining coordinate_click_miss failure by converting parsed grid-coordinate intents into precise point clicks, while leaving prompt/retry behavior unchanged.",
+            "id": "hyp_grid_coordinate_click",
+            "kind": "action_policy",
+            "patch": {
+              "action_policy": {
+                "enabled": true,
+                "max_interventions": 25,
+                "name": "composite",
+                "policies": [
+                  "scroll_before_submit",
+                  "terminal_keyboard_type",
+                  "grid_coordinate_click"
+                ],
+                "policy_limits": {
+                  "grid_coordinate_click": 1,
+                  "scroll_before_submit": 1,
+                  "terminal_keyboard_type": 20
+                },
+                "scroll_delta_y": 621
+              }
+            },
+            "rationale": "The only unresolved root cause in the comparison is coordinate_click_miss, and it appears in both baseline and candidate with the same one-step zero-score SVG/grid click pattern. The candidate already resolved missed_scroll_target, so the remaining opportunity is narrowly concentrated. A bounded coordinate-aware click policy is directly supported by the failure evidence and is more appropriate than broader retry or prompt changes given the limited sample and significant existing cost increase.",
+            "risk": "Evidence is limited to a single recurring task pattern, so benefit may be narrow. The policy should only fire when the target coordinate can be confidently parsed from goal/html/bbox evidence; otherwise it must no-op to avoid incorrect clicks. This adds another intervention to an already more expensive candidate, though bounded to one use.",
+            "summary": "Add a bounded grid_coordinate_click action policy to address the persistent SVG/grid coordinate miss.",
+            "supported_by": [
+              "root_cause=coordinate_click_miss",
+              "candidate_failure: browsergym/miniwob.grid-coordinate#seed=25 remained zero-score after SVG/grid click attempt",
+              "baseline_failure: browsergym/miniwob.grid-coordinate#seed=25 showed the same pattern",
+              "candidate already resolved root_cause=missed_scroll_target"
+            ],
+            "target_root_causes": [
+              "coordinate_click_miss"
+            ]
+          },
+          "selector": {
+            "notes": [
+              "patch-bearing action policy lacks probe-backed maturity"
+            ],
+            "selected_source": "investigation_fallback"
+          }
+        },
+        "critic_decision": "accepted",
+        "critic_notes": [
+          "no patch emitted; recommendation is hold or investigation",
+          "no regressions detected",
+          "uses 1 candidate failure evidence records",
+          "llm critic advisory (accepted): Accepted because the proposal is non-patch-bearing: patch is empty and therefore does not introduce unsupported keys or an unbounded modification.",
+          "llm critic advisory (accepted): This is an investigation-only recommendation, which is appropriate given the weak evidence base: only 1 persistent failure mode (coordinate_click_miss) remains and sample size is 8 tasks.",
+          "llm critic advisory (accepted): The candidate shows 1 improvement and 0 regressions, but with substantial efficiency cost; holding for more evidence is reasonable.",
+          "llm critic advisory (accepted): No allowed_patch_keys validation issues apply because no patch is emitted.",
+          "llm critic advisory (accepted): Recommended next step: collect trace/environment evidence around grid-coordinate click targeting before proposing any bounded action_policy change.",
+          "v2 final selector accepted evidence-mature intervention"
+        ],
+        "expected_effect": "Collect trace or environment evidence before deciding whether the next candidate should be a patch-bearing action policy.",
+        "hypothesis_id": "hyp_probe_before_action_policy",
+        "intervention": {
+          "expected_effect": "Collect trace or environment evidence before deciding whether the next candidate should be a patch-bearing action policy.",
+          "id": "hyp_probe_before_action_policy",
+          "kind": "investigation",
+          "patch": {},
+          "rationale": "Failure evidence points to action-surface root causes, but the report does not yet prove that a bounded rewrite primitive will solve them.",
+          "risk": "Does not immediately improve success rate, but avoids overfitting a patch to weak evidence.",
+          "summary": "Probe the action surface before adding another action-policy patch.",
+          "supported_by": [
+            "evidence_maturity=needs_probe",
+            "root_causes=coordinate_click_miss"
+          ],
+          "target_root_causes": [
+            "coordinate_click_miss"
+          ]
+        },
+        "patch": {},
+        "rationale": "Failure evidence points to action-surface root causes, but the report does not yet prove that a bounded rewrite primitive will solve them.",
+        "risk": "Does not immediately improve success rate, but avoids overfitting a patch to weak evidence.",
+        "summary": "Probe the action surface before adding another action-policy patch."
+      },
+      "proposal_mode": "llm-v2",
+      "safe_patch": true,
+      "schema_valid": true,
+      "score": 1.0,
+      "selected_source": "investigation_fallback",
+      "target_root_causes": [
+        "coordinate_click_miss"
+      ],
+      "used_fallback": false,
+      "uses_failure_evidence": true
+    },
+    {
+      "advisor": "deterministic",
+      "boundary_awareness": true,
+      "case_id": "holdout_mock_timeout_budget",
+      "critic_decision": "accepted",
+      "critic_ok": true,
+      "direction_match": true,
+      "expected_direction": "extend_step_budget",
+      "hypothesis_id": "hyp_extend_step_budget",
+      "notes": [
+        "expected=extend_step_budget",
+        "mode=deterministic",
+        "no candidate failure evidence records"
+      ],
+      "patch_keys": [
+        "max_steps"
+      ],
+      "proposal": {
+        "advisor_mode": "deterministic",
+        "advisor_stage_notes": {},
+        "critic_decision": "accepted",
+        "critic_notes": [
+          "bounded patch present",
+          "no regressions detected",
+          "no candidate failure evidence records"
+        ],
+        "expected_effect": "Improve completion rate on longer tasks.",
+        "hypothesis_id": "hyp_extend_step_budget",
+        "intervention": {
+          "expected_effect": "Improve completion rate on longer tasks.",
+          "id": "hyp_extend_step_budget",
+          "kind": "config_patch",
+          "patch": {
+            "max_steps": 30
+          },
+          "rationale": "Candidate failures are dominated by `timeout`, suggesting the agent may need more interaction budget.",
+          "risk": "May increase latency and can worsen looping behavior if failures are not actually budget-limited.",
+          "summary": "Increase the step budget for tasks that appear budget-limited.",
+          "supported_by": [
+            "dominant_failure=timeout"
+          ],
+          "target_root_causes": []
+        },
+        "patch": {
+          "max_steps": 30
+        },
+        "rationale": "Candidate failures are dominated by `timeout`, suggesting the agent may need more interaction budget.",
+        "risk": "May increase latency and can worsen looping behavior if failures are not actually budget-limited.",
+        "summary": "Increase the step budget for tasks that appear budget-limited."
+      },
+      "proposal_mode": "deterministic",
+      "safe_patch": true,
+      "schema_valid": true,
+      "score": 1.0,
+      "selected_source": "-",
+      "target_root_causes": [],
+      "used_fallback": false,
+      "uses_failure_evidence": true
+    },
+    {
+      "advisor": "llm-v2",
+      "boundary_awareness": true,
+      "case_id": "holdout_mock_timeout_budget",
+      "critic_decision": "accepted",
+      "critic_ok": true,
+      "direction_match": true,
+      "expected_direction": "extend_step_budget",
+      "hypothesis_id": "hyp_extend_step_budget",
+      "notes": [
+        "expected=extend_step_budget",
+        "mode=llm-v2",
+        "v2 final selector accepted evidence-mature intervention"
+      ],
+      "patch_keys": [
+        "max_steps"
+      ],
+      "proposal": {
+        "advisor_mode": "llm-v2",
+        "advisor_stage_notes": {
+          "analyst": {
+            "dominant_root_causes": [
+              "Baseline failures were driven by invalid_action and no_op_loop errors that are absent in the candidate.",
+              "The only remaining candidate failure mode is timeout, indicating improved action execution reliability but unchanged susceptibility to long-running tasks."
+            ],
+            "key_deltas": [
+              "Success rate improved from 0.4 to 0.8 (+0.4) across 5 tasks.",
+              "Average normalized score improved from 0.4 to 0.8 (+0.4).",
+              "Two tasks improved from failed to success: browsergym/miniwob.drag-box#seed=4 and browsergym/miniwob.enter-text#seed=2.",
+              "Failure taxonomy shrank from three baseline failures (invalid_action=1, no_op_loop=1, timeout=1) to one candidate failure (timeout=1).",
+              "Average step count decreased slightly from 9.0 to 8.8 (-0.2), while average latency increased slightly from 5.88s to 5.98s (+0.10s).",
+              "No regressions were observed."
+            ],
+            "risk_flags": [
+              "Small sample size: only 5 tasks compared.",
+              "Residual timeout risk remains in the candidate.",
+              "Latency increased slightly despite better success outcomes."
+            ],
+            "summary": "The candidate variant_retry outperformed the baseline on the miniwob_smoke task set, doubling success rate from 40% to 80% and eliminating baseline invalid_action and no_op_loop failures. Improvements were concentrated in drag-box and enter-text, with no regressions observed. The main remaining risk is timeout behavior, and conclusions are limited by the small 5-task sample."
+          },
+          "critic": {
+            "decision": "rejected",
+            "notes": [
+              "Patch key is allowed and bounded (`max_steps`: 30), but support is insufficient for a patch-bearing change.",
+              "Observed candidate failure evidence is unbounded/underspecified: `failure_evidence` is empty, so there is no task-level proof that the remaining timeout was caused by hitting the step budget.",
+              "Aggregate metrics do not support a budget-limit diagnosis: candidate avg_step_count decreased slightly from 9.0 to 8.8, which weakens the claim that more steps are needed.",
+              "Proposed expected effect targets 'longer tasks', but the evaluation covers only 5 miniwob_smoke tasks; this is too small to justify a rollout that may increase latency or looping.",
+              "Residual risk explicitly includes worsening looping/latency, while prior baseline failures included `no_op_loop`; increasing step budget without concrete max-step exhaustion evidence is not adequately bounded by evidence.",
+              "Recommend gathering task-level traces showing terminal `max_steps` exhaustion or repeated near-budget successes/failures before accepting a `max_steps` increase."
+            ]
+          },
+          "deterministic_reference": {
+            "expected_effect": "Improve completion rate on longer tasks.",
+            "id": "hyp_extend_step_budget",
+            "kind": "config_patch",
+            "patch": {
+              "max_steps": 30
+            },
+            "rationale": "Candidate failures are dominated by `timeout`, suggesting the agent may need more interaction budget.",
+            "risk": "May increase latency and can worsen looping behavior if failures are not actually budget-limited.",
+            "summary": "Increase the step budget for tasks that appear budget-limited.",
+            "supported_by": [
+              "dominant_failure=timeout"
+            ],
+            "target_root_causes": []
+          },
+          "llm_candidate": {
+            "expected_effect": "Validate whether the remaining timeout is genuinely step-budget-limited before changing a currently improved configuration.",
+            "id": "investigate_timeout_budget_variant_retry",
+            "kind": "investigation",
+            "patch": {},
+            "rationale": "The candidate already improves success rate substantially and removes invalid_action and no_op_loop failures, with only one timeout remaining across a very small 5-task sample. Because average step count decreased slightly rather than showing obvious budget exhaustion, the timeout may not be caused by too-low max_steps. A bounded investigation is safer than immediately increasing step budget, which could add latency or reintroduce looping risk.",
+            "risk": "Delays a potentially helpful fix; if the timeout is truly budget-limited, holding on config changes may defer an easy gain.",
+            "summary": "Investigate the lone timeout before applying a max_steps increase.",
+            "supported_by": [
+              "candidate success_rate improved from 0.4 to 0.8 with no regressions",
+              "candidate failure taxonomy contains only one timeout",
+              "small sample size of 5 tasks limits confidence",
+              "average step count decreased slightly from 9.0 to 8.8 while latency rose only slightly"
+            ],
+            "target_root_causes": [
+              "Residual timeout risk remains in the candidate."
+            ]
+          },
+          "selector": {
+            "notes": [
+              "first non-terminal max-step budget hypothesis is patch-mature"
+            ],
+            "selected_source": "deterministic_reference"
+          }
+        },
+        "critic_decision": "accepted",
+        "critic_notes": [
+          "bounded patch present",
+          "no regressions detected",
+          "no candidate failure evidence records",
+          "llm critic advisory (rejected): Patch key is allowed and bounded (`max_steps`: 30), but support is insufficient for a patch-bearing change.",
+          "llm critic advisory (rejected): Observed candidate failure evidence is unbounded/underspecified: `failure_evidence` is empty, so there is no task-level proof that the remaining timeout was caused by hitting the step budget.",
+          "llm critic advisory (rejected): Aggregate metrics do not support a budget-limit diagnosis: candidate avg_step_count decreased slightly from 9.0 to 8.8, which weakens the claim that more steps are needed.",
+          "llm critic advisory (rejected): Proposed expected effect targets 'longer tasks', but the evaluation covers only 5 miniwob_smoke tasks; this is too small to justify a rollout that may increase latency or looping.",
+          "llm critic advisory (rejected): Residual risk explicitly includes worsening looping/latency, while prior baseline failures included `no_op_loop`; increasing step budget without concrete max-step exhaustion evidence is not adequately bounded by evidence.",
+          "llm critic advisory (rejected): Recommend gathering task-level traces showing terminal `max_steps` exhaustion or repeated near-budget successes/failures before accepting a `max_steps` increase.",
+          "v2 final selector accepted evidence-mature intervention"
+        ],
+        "expected_effect": "Improve completion rate on longer tasks.",
+        "hypothesis_id": "hyp_extend_step_budget",
+        "intervention": {
+          "expected_effect": "Improve completion rate on longer tasks.",
+          "id": "hyp_extend_step_budget",
+          "kind": "config_patch",
+          "patch": {
+            "max_steps": 30
+          },
+          "rationale": "Candidate failures are dominated by `timeout`, suggesting the agent may need more interaction budget.",
+          "risk": "May increase latency and can worsen looping behavior if failures are not actually budget-limited.",
+          "summary": "Increase the step budget for tasks that appear budget-limited.",
+          "supported_by": [
+            "dominant_failure=timeout",
+            "evidence_maturity=non_terminal_max_steps"
+          ],
+          "target_root_causes": []
+        },
+        "patch": {
+          "max_steps": 30
+        },
+        "rationale": "Candidate failures are dominated by `timeout`, suggesting the agent may need more interaction budget.",
+        "risk": "May increase latency and can worsen looping behavior if failures are not actually budget-limited.",
+        "summary": "Increase the step budget for tasks that appear budget-limited."
+      },
+      "proposal_mode": "llm-v2",
+      "safe_patch": true,
+      "schema_valid": true,
+      "score": 1.0,
+      "selected_source": "deterministic_reference",
+      "target_root_causes": [],
+      "used_fallback": false,
+      "uses_failure_evidence": true
+    }
+  ],
+  "summary": {
+    "deterministic": {
+      "avg_score": 0.9333333333333333,
+      "boundary_awareness_rate": 0.8,
+      "direction_match_rate": 0.8,
+      "evidence_use_rate": 1.0,
+      "rows": 5,
+      "safe_patch_rate": 1.0
+    },
+    "llm-v2": {
+      "avg_score": 1.0,
+      "boundary_awareness_rate": 1.0,
+      "direction_match_rate": 1.0,
+      "evidence_use_rate": 1.0,
+      "rows": 5,
+      "safe_patch_rate": 1.0
+    }
+  }
+}

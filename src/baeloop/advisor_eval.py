@@ -74,15 +74,59 @@ DEFAULT_EVAL_CASES = [
     ),
 ]
 
+HOLDOUT_EVAL_CASES = [
+    AdvisorEvalCase(
+        id="holdout_core_saturated",
+        report_path=Path("reports/agentlab_core_compare.json"),
+        expected_direction="hold_expand_taskset",
+    ),
+    AdvisorEvalCase(
+        id="holdout_challenge_efficiency_winner",
+        report_path=Path("reports/agentlab_challenge_compare.json"),
+        expected_direction="efficiency_winner",
+    ),
+    AdvisorEvalCase(
+        id="holdout_hard_repeat_efficiency_winner",
+        report_path=Path("reports/agentlab_hard_full_policy_repeat_compare.json"),
+        expected_direction="efficiency_winner",
+    ),
+    AdvisorEvalCase(
+        id="holdout_combined_vs_terminal_remaining_coordinate",
+        report_path=Path("reports/agentlab_hard_combined_vs_terminal_policy_compare.json"),
+        expected_direction="investigate",
+        expected_root_causes=("coordinate_click_miss",),
+    ),
+    AdvisorEvalCase(
+        id="holdout_mock_timeout_budget",
+        report_path=Path("reports/mock_compare.json"),
+        expected_direction="extend_step_budget",
+    ),
+]
+
+EVAL_CASE_SUITES = {
+    "default": DEFAULT_EVAL_CASES,
+    "holdout": HOLDOUT_EVAL_CASES,
+}
+
+
+def get_advisor_eval_cases(case_suite: str) -> list[AdvisorEvalCase]:
+    try:
+        return EVAL_CASE_SUITES[case_suite]
+    except KeyError as exc:
+        allowed = ", ".join(sorted(EVAL_CASE_SUITES))
+        raise ValueError(f"Unknown advisor eval case suite `{case_suite}`. Use one of: {allowed}") from exc
+
 
 def run_advisor_eval(
     *,
     cases: list[AdvisorEvalCase] | None = None,
+    case_suite: str = "default",
     include_llm: bool = False,
     include_llm_v2: bool = False,
     llm_config: LLMAdvisorConfig | None = None,
 ) -> dict:
-    resolved_cases = cases or DEFAULT_EVAL_CASES
+    resolved_cases = cases if cases is not None else get_advisor_eval_cases(case_suite)
+    resolved_suite = "custom" if cases is not None else case_suite
     rows: list[dict] = []
     for case in resolved_cases:
         report = read_model_json(case.report_path, ComparisonReport)
@@ -105,6 +149,7 @@ def run_advisor_eval(
             )
 
     return {
+        "case_suite": resolved_suite,
         "case_count": len(resolved_cases),
         "include_llm": include_llm,
         "include_llm_v2": include_llm_v2,
@@ -117,6 +162,7 @@ def render_advisor_eval_markdown(report: dict) -> str:
     lines = [
         "# Advisor Evaluation",
         "",
+        f"- Case suite: `{report.get('case_suite', 'default')}`",
         f"- Cases: `{report['case_count']}`",
         f"- Include LLM: `{report['include_llm']}`",
         f"- Include LLM v2: `{report.get('include_llm_v2', False)}`",
@@ -138,14 +184,15 @@ def render_advisor_eval_markdown(report: dict) -> str:
             "",
             "## Cases",
             "",
-            "| Case | Advisor | Hypothesis | Score | Direction | Safe Patch | Evidence | Boundary | Notes |",
-            "|---|---|---|---:|---:|---:|---:|---:|---|",
+            "| Case | Advisor | Mode | Source | Hypothesis | Score | Direction | Safe Patch | Evidence | Boundary | Notes |",
+            "|---|---|---|---|---|---:|---:|---:|---:|---:|---|",
         ]
     )
     for row in report["rows"]:
         notes = "<br>".join(_escape_markdown_cell(note) for note in row["notes"][:4])
         lines.append(
-            f"| `{row['case_id']}` | `{row['advisor']}` | `{row['hypothesis_id']}` | "
+            f"| `{row['case_id']}` | `{row['advisor']}` | `{row['proposal_mode']}` | "
+            f"`{row.get('selected_source', '-')}` | `{row['hypothesis_id']}` | "
             f"{row['score']:.3f} | {_mark(row['direction_match'])} | "
             f"{_mark(row['safe_patch'])} | {_mark(row['uses_failure_evidence'])} | "
             f"{_mark(row['boundary_awareness'])} | {notes} |"
@@ -176,10 +223,14 @@ def _score_case(
     }
     score = sum(1 for value in components.values() if value) / len(components)
     notes = _notes(case, proposal, components)
+    selected_source = _selected_source(proposal)
     return {
         "case_id": case.id,
         "advisor": advisor,
         "proposal_mode": proposal.advisor_mode,
+        "selected_source": selected_source,
+        "used_fallback": proposal.advisor_mode.endswith("fallback")
+        or "fallback_error" in proposal.advisor_stage_notes,
         "hypothesis_id": proposal.hypothesis_id,
         "critic_decision": proposal.critic_decision,
         "expected_direction": case.expected_direction,
@@ -238,6 +289,9 @@ def _direction_matches(expected_direction: str, proposal: AdvisorProposal) -> bo
         "compose_policies": lambda item: item.hypothesis_id
         == "hyp_combine_scroll_and_terminal_policies",
         "quality_winner": lambda item: item.hypothesis_id == "hyp_keep_quality_winner",
+        "efficiency_winner": lambda item: item.hypothesis_id == "hyp_keep_efficiency_winner",
+        "hold_expand_taskset": lambda item: item.hypothesis_id
+        == "hyp_hold_config_expand_taskset",
         "probe_coordinate_control": lambda item: item.hypothesis_id
         == "hyp_probe_coordinate_control",
     }
@@ -286,6 +340,15 @@ def _notes(case: AdvisorEvalCase, proposal: AdvisorProposal, components: dict[st
     if proposal.critic_notes:
         notes.append(proposal.critic_notes[-1])
     return notes
+
+
+def _selected_source(proposal: AdvisorProposal) -> str:
+    selector = proposal.advisor_stage_notes.get("selector")
+    if isinstance(selector, dict) and selector.get("selected_source"):
+        return str(selector["selected_source"])
+    if proposal.advisor_mode.endswith("fallback"):
+        return "fallback"
+    return "-"
 
 
 def _mark(value: bool) -> str:

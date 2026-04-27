@@ -4,6 +4,7 @@ from pathlib import Path
 
 from baeloop.advisor_eval import (
     AdvisorEvalCase,
+    get_advisor_eval_cases,
     render_advisor_eval_markdown,
     run_advisor_eval,
 )
@@ -53,6 +54,17 @@ def test_advisor_eval_markdown_renders_summary(tmp_path: Path) -> None:
     assert "# Advisor Evaluation" in markdown
     assert "| `deterministic` | 1 |" in markdown
     assert "`control_boundary`" in markdown
+
+
+def test_advisor_eval_exposes_holdout_suite() -> None:
+    cases = get_advisor_eval_cases("holdout")
+
+    assert len(cases) >= 4
+    assert {case.id for case in cases} >= {
+        "holdout_core_saturated",
+        "holdout_challenge_efficiency_winner",
+        "holdout_combined_vs_terminal_remaining_coordinate",
+    }
 
 
 def _control_boundary_report():

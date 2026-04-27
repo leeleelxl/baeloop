@@ -124,6 +124,15 @@ Current advisor-eval result on 8 historical cases:
 
 The useful result is diagnostic: v1 showed that a plain LLM advisor is not automatically better than deterministic rules. The v2 agent beats the deterministic baseline by adding a deterministic-reference tool and an evidence-maturity selector that forces weak action-policy ideas into probe/investigation decisions before patching.
 
+Current holdout advisor-eval result on 5 additional cases not used to tune v2:
+
+| Advisor | Avg Score | Direction Match | Safe Patch | Evidence Use | Boundary Awareness |
+|---|---:|---:|---:|---:|---:|
+| `deterministic` | 0.933 | 0.800 | 1.000 | 1.000 | 0.800 |
+| `llm-v2` | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
+
+The holdout report also shows the final decision source for each case. Most mature cases select `deterministic_reference`; the weak coordinate-action case selects `investigation_fallback`, which is the behavior the v2 selector is designed to enforce.
+
 ## Current Hard-Slice Result
 
 The current committed MiniWoB++ hard-slice loop shows a full benchmark-driven optimization sequence:
