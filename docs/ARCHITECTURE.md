@@ -132,6 +132,28 @@ BAELOOP currently supports two advisor modes through the same CLI command:
 
 Both modes output the same `AdvisorProposal` schema. The LLM mode is not allowed to mutate arbitrary config: it must emit an `Intervention`, pass Pydantic validation, and keep patch keys inside the patcher allowlist. If the LLM stage returns invalid JSON, an unsupported patch, or an invalid critic decision, the system falls back to the deterministic advisor and records `advisor_mode=llm_fallback`.
 
+## Advisor Evaluation Harness
+
+The advisor layer is evaluated separately from browser execution through committed historical compare reports. This avoids claiming that a single generated patch is useful just because it sounds plausible.
+
+Current implementation:
+
+- `src/baeloop/advisor_eval.py`
+- CLI: `baeloop eval-advisor`
+- inputs: historical `ComparisonReport` JSON files
+- outputs: `reports/advisor_eval_deterministic.*` and `reports/advisor_eval_llm.*`
+
+Each case scores whether the advisor output is schema-valid, critic-accepted, patch-safe, directionally aligned with the expected next step, grounded in failure evidence, and aware of capability boundaries. This is a decision-quality evaluation, not an LLM-as-judge benchmark.
+
+Current 8-case result:
+
+| Advisor | Avg Score | Direction Match | Safe Patch | Evidence Use | Boundary Awareness |
+|---|---:|---:|---:|---:|---:|
+| `deterministic` | 0.896 | 0.750 | 1.000 | 0.875 | 0.750 |
+| `llm` | 0.875 | 0.625 | 0.875 | 1.000 | 0.875 |
+
+The result is deliberately mixed. The deterministic path is more stable and patch-safe, while the LLM path uses evidence and boundary reasoning more consistently. The remaining gap is to improve the critic so patch-bearing hypotheses are not accepted when the evidence only justifies a probe or investigation.
+
 ## Intervention Model
 
 `Intervention` is the structured unit of optimization. It records:

@@ -1,0 +1,1434 @@
+{
+  "case_count": 8,
+  "include_llm": true,
+  "rows": [
+    {
+      "advisor": "deterministic",
+      "boundary_awareness": true,
+      "case_id": "hard_retry_no_gain",
+      "critic_decision": "accepted",
+      "critic_ok": true,
+      "direction_match": true,
+      "expected_direction": "extend_step_budget",
+      "hypothesis_id": "hyp_extend_step_budget",
+      "notes": [
+        "expected=extend_step_budget",
+        "mode=deterministic",
+        "failed_uses_failure_evidence",
+        "uses 4 candidate failure evidence records"
+      ],
+      "patch_keys": [
+        "max_steps"
+      ],
+      "proposal": {
+        "advisor_mode": "deterministic",
+        "advisor_stage_notes": {},
+        "critic_decision": "accepted",
+        "critic_notes": [
+          "bounded patch present",
+          "no regressions detected",
+          "uses 4 candidate failure evidence records"
+        ],
+        "expected_effect": "Improve completion rate on longer tasks.",
+        "hypothesis_id": "hyp_extend_step_budget",
+        "intervention": {
+          "expected_effect": "Improve completion rate on longer tasks.",
+          "id": "hyp_extend_step_budget",
+          "kind": "config_patch",
+          "patch": {
+            "max_steps": 30
+          },
+          "rationale": "Candidate failures are dominated by `max_steps`, suggesting the agent may need more interaction budget.",
+          "risk": "May increase latency and can worsen looping behavior if failures are not actually budget-limited.",
+          "summary": "Increase the step budget for tasks that appear budget-limited.",
+          "supported_by": [
+            "dominant_failure=max_steps"
+          ],
+          "target_root_causes": []
+        },
+        "patch": {
+          "max_steps": 30
+        },
+        "rationale": "Candidate failures are dominated by `max_steps`, suggesting the agent may need more interaction budget.",
+        "risk": "May increase latency and can worsen looping behavior if failures are not actually budget-limited.",
+        "summary": "Increase the step budget for tasks that appear budget-limited."
+      },
+      "proposal_mode": "deterministic",
+      "safe_patch": true,
+      "schema_valid": true,
+      "score": 0.8333333333333334,
+      "target_root_causes": [],
+      "uses_failure_evidence": false
+    },
+    {
+      "advisor": "llm",
+      "boundary_awareness": true,
+      "case_id": "hard_retry_no_gain",
+      "critic_decision": "accepted",
+      "critic_ok": true,
+      "direction_match": false,
+      "expected_direction": "extend_step_budget",
+      "hypothesis_id": "investigate_unchanged_failure_modes_after_retry",
+      "notes": [
+        "expected=extend_step_budget",
+        "mode=llm",
+        "failed_direction_match",
+        "llm critic: Investigation-only intervention is appropriately bounded given current evidence."
+      ],
+      "patch_keys": [],
+      "proposal": {
+        "advisor_mode": "llm",
+        "advisor_stage_notes": {
+          "analyst": {
+            "dominant_root_causes": [
+              "autocomplete_validation_loop",
+              "coordinate_click_miss",
+              "missed_scroll_target",
+              "terminal_input_action_mismatch"
+            ],
+            "key_deltas": [
+              "No task-level improvements or regressions across 8 tasks.",
+              "Success rate unchanged at 0.50 and average normalized score unchanged at 0.50.",
+              "Failure mix unchanged: baseline and candidate both have 2 max_steps and 2 zero_score failures.",
+              "Candidate used slightly more interaction budget: avg_step_count +0.375 and avg_llm_call_count +0.375.",
+              "Candidate consumed more tokens: avg_input_tokens +1561.875 and avg_output_tokens +19.5.",
+              "Latency was effectively flat with a small decrease of 0.0227 sec."
+            ],
+            "risk_flags": [
+              "Retry-oriented candidate shows no measurable quality gain despite higher token and step usage.",
+              "Repeated failures are identical by task and root cause, suggesting the configuration change did not address underlying failure modes.",
+              "Social-media-all consumed more steps in candidate (6 to 9) without score improvement, indicating possible extra wandering.",
+              "Max-step failures in book-flight and terminal persist unchanged, so added retries/budget use may continue to be wasted on stuck loops."
+            ],
+            "summary": "The candidate configuration relay_gpt54_hard_retry is neutral-to-negative versus relay_gpt54_hard. It produced no improvements, no regressions, and identical aggregate quality outcomes, but required modestly more steps, LLM calls, and tokens. The persistent failures are unchanged and concentrated in four task-specific root causes rather than generic retry-recoverable issues."
+          },
+          "critic": {
+            "decision": "accepted",
+            "notes": [
+              "Proposal emits no patch, so it does not introduce unsupported or unbounded patch changes.",
+              "Recommendation to hold rollout is supported by unchanged success/score and unchanged failure mix across all 8 tasks.",
+              "Candidate increases cost/use (steps, LLM calls, input/output tokens) without measurable quality gain.",
+              "Persistent failures map to task-specific root causes, so rejecting further generic retry/budget expansion is justified.",
+              "Investigation-only intervention is appropriately bounded given current evidence."
+            ]
+          }
+        },
+        "critic_decision": "accepted",
+        "critic_notes": [
+          "no patch emitted; recommendation is hold or investigation",
+          "no regressions detected",
+          "uses 4 candidate failure evidence records",
+          "llm critic: Proposal emits no patch, so it does not introduce unsupported or unbounded patch changes.",
+          "llm critic: Recommendation to hold rollout is supported by unchanged success/score and unchanged failure mix across all 8 tasks.",
+          "llm critic: Candidate increases cost/use (steps, LLM calls, input/output tokens) without measurable quality gain.",
+          "llm critic: Persistent failures map to task-specific root causes, so rejecting further generic retry/budget expansion is justified.",
+          "llm critic: Investigation-only intervention is appropriately bounded given current evidence."
+        ],
+        "expected_effect": "Avoid shipping a retry-oriented configuration that increases cost without improving task success, while gathering evidence to design targeted fixes for the unchanged failure modes.",
+        "hypothesis_id": "investigate_unchanged_failure_modes_after_retry",
+        "intervention": {
+          "expected_effect": "Avoid shipping a retry-oriented configuration that increases cost without improving task success, while gathering evidence to design targeted fixes for the unchanged failure modes.",
+          "id": "investigate_unchanged_failure_modes_after_retry",
+          "kind": "investigation",
+          "patch": {},
+          "rationale": "The candidate produced no task-level improvements, no aggregate score gain, and no reduction in failure counts, while increasing steps, LLM calls, and token usage. The repeated failures are identical by task and root cause, which argues against broader retry or budget tuning as the next intervention. Evidence points to task-specific issues: autocomplete handling, coordinate click precision, missing scroll targets, and terminal input mismatch. Because the current evidence does not show near-completion on max-step tasks, increasing max_steps would risk extending loops rather than improving outcomes.",
+          "risk": "Delaying a config change may defer gains if some max-step cases are actually budget-limited, but this is lower risk than deploying another generic retry/budget increase that is unsupported by current evidence and likely to waste interaction budget.",
+          "summary": "Hold rollout of the retry variant and investigate task-specific traces for the four persistent root causes before making another bounded config change.",
+          "supported_by": [
+            "Success rate unchanged at 0.50 and average normalized score unchanged at 0.50.",
+            "Failure mix unchanged: baseline and candidate both have 2 max_steps and 2 zero_score failures.",
+            "Candidate used slightly more interaction budget: avg_step_count +0.375 and avg_llm_call_count +0.375.",
+            "Candidate consumed more tokens: avg_input_tokens +1561.875 and avg_output_tokens +19.5.",
+            "Repeated failures are identical by task and root cause, suggesting the configuration change did not address underlying failure modes.",
+            "Max-step failures in book-flight and terminal persist unchanged, so added retries/budget use may continue to be wasted on stuck loops."
+          ],
+          "target_root_causes": [
+            "autocomplete_validation_loop",
+            "coordinate_click_miss",
+            "missed_scroll_target",
+            "terminal_input_action_mismatch"
+          ]
+        },
+        "patch": {},
+        "rationale": "The candidate produced no task-level improvements, no aggregate score gain, and no reduction in failure counts, while increasing steps, LLM calls, and token usage. The repeated failures are identical by task and root cause, which argues against broader retry or budget tuning as the next intervention. Evidence points to task-specific issues: autocomplete handling, coordinate click precision, missing scroll targets, and terminal input mismatch. Because the current evidence does not show near-completion on max-step tasks, increasing max_steps would risk extending loops rather than improving outcomes.",
+        "risk": "Delaying a config change may defer gains if some max-step cases are actually budget-limited, but this is lower risk than deploying another generic retry/budget increase that is unsupported by current evidence and likely to waste interaction budget.",
+        "summary": "Hold rollout of the retry variant and investigate task-specific traces for the four persistent root causes before making another bounded config change."
+      },
+      "proposal_mode": "llm",
+      "safe_patch": true,
+      "schema_valid": true,
+      "score": 0.8333333333333334,
+      "target_root_causes": [
+        "autocomplete_validation_loop",
+        "coordinate_click_miss",
+        "missed_scroll_target",
+        "terminal_input_action_mismatch"
+      ],
+      "uses_failure_evidence": true
+    },
+    {
+      "advisor": "deterministic",
+      "boundary_awareness": false,
+      "case_id": "hard_budget_needs_evidence",
+      "critic_decision": "accepted",
+      "critic_ok": true,
+      "direction_match": false,
+      "expected_direction": "investigate",
+      "hypothesis_id": "hyp_scroll_before_submit",
+      "notes": [
+        "expected=investigate",
+        "mode=deterministic",
+        "failed_direction_match",
+        "failed_boundary_awareness",
+        "uses 3 candidate failure evidence records"
+      ],
+      "patch_keys": [
+        "action_policy"
+      ],
+      "proposal": {
+        "advisor_mode": "deterministic",
+        "advisor_stage_notes": {},
+        "critic_decision": "accepted",
+        "critic_notes": [
+          "bounded patch present",
+          "no regressions detected",
+          "uses 3 candidate failure evidence records"
+        ],
+        "expected_effect": "Improve tasks that require scrolling to reveal remaining targets without changing the LLM prompt.",
+        "hypothesis_id": "hyp_scroll_before_submit",
+        "intervention": {
+          "expected_effect": "Improve tasks that require scrolling to reveal remaining targets without changing the LLM prompt.",
+          "id": "hyp_scroll_before_submit",
+          "kind": "action_policy",
+          "patch": {
+            "action_policy": {
+              "enabled": true,
+              "max_interventions": 1,
+              "name": "scroll_before_submit",
+              "scroll_delta_y": 621
+            }
+          },
+          "rationale": "Candidate failure evidence includes `missed_scroll_target`, so the agent likely submitted before scanning all hidden actionable targets.",
+          "risk": "May add one extra step on matching tasks if the hidden-target heuristic is too broad.",
+          "summary": "Enable a bounded scroll-before-submit action policy for hidden target failures.",
+          "supported_by": [
+            "root_cause=missed_scroll_target"
+          ],
+          "target_root_causes": [
+            "missed_scroll_target"
+          ]
+        },
+        "patch": {
+          "action_policy": {
+            "enabled": true,
+            "max_interventions": 1,
+            "name": "scroll_before_submit",
+            "scroll_delta_y": 621
+          }
+        },
+        "rationale": "Candidate failure evidence includes `missed_scroll_target`, so the agent likely submitted before scanning all hidden actionable targets.",
+        "risk": "May add one extra step on matching tasks if the hidden-target heuristic is too broad.",
+        "summary": "Enable a bounded scroll-before-submit action policy for hidden target failures."
+      },
+      "proposal_mode": "deterministic",
+      "safe_patch": true,
+      "schema_valid": true,
+      "score": 0.6666666666666666,
+      "target_root_causes": [
+        "missed_scroll_target"
+      ],
+      "uses_failure_evidence": true
+    },
+    {
+      "advisor": "llm",
+      "boundary_awareness": false,
+      "case_id": "hard_budget_needs_evidence",
+      "critic_decision": "accepted",
+      "critic_ok": true,
+      "direction_match": false,
+      "expected_direction": "investigate",
+      "hypothesis_id": "hyp_scroll_before_submit",
+      "notes": [
+        "expected=investigate",
+        "mode=llm",
+        "failed_direction_match",
+        "failed_boundary_awareness",
+        "llm critic: Latency may increase slightly due to one extra intervention, but proposed cost is bounded."
+      ],
+      "patch_keys": [
+        "action_policy"
+      ],
+      "proposal": {
+        "advisor_mode": "llm",
+        "advisor_stage_notes": {
+          "analyst": {
+            "dominant_root_causes": [
+              "terminal_input_action_mismatch",
+              "coordinate_click_miss",
+              "missed_scroll_target"
+            ],
+            "key_deltas": [
+              "Success rate improved from 0.50 to 0.625 (+1/8 tasks).",
+              "Average normalized score increased from 0.50 to 0.625 (+0.125).",
+              "One prior max-steps failure was converted to success: browsergym/miniwob.book-flight#seed=21.",
+              "Failure taxonomy improved slightly: max_steps decreased from 2 to 1, while zero_score remained 2.",
+              "Latency increased from 28.96s to 33.72s (+4.76s) despite lower average input tokens (-1946) and only a small increase in step count (+0.125) and LLM calls (+0.125).",
+              "The remaining terminal failure consumed a larger budget in candidate (30 steps vs 20), indicating extra budget was spent without resolving the underlying interaction issue."
+            ],
+            "risk_flags": [
+              "Observed gain is based on a single recovered task out of 8, so robustness is uncertain.",
+              "Candidate still retains the same zero-score failures on grid-coordinate and social-media-all, suggesting no general improvement on those failure modes.",
+              "Terminal remains unresolved and now uses more steps before failing, indicating potential inefficiency from extended budget.",
+              "No regressions were observed in this sample, but the latency increase may matter if scaled to larger evaluations."
+            ],
+            "summary": "Candidate outperformed baseline on this 8-task comparison, improving success rate and average score by recovering book-flight from a max-steps failure to success. The main benefit appears task-specific rather than broad: coordinate_click_miss and missed_scroll_target failures persisted unchanged, and terminal_input_action_mismatch remained unresolved while consuming more steps. Overall evidence supports a modest net improvement with added latency and some risk that extended budget mainly increases cost on unresolved traces."
+          },
+          "critic": {
+            "decision": "accepted",
+            "notes": [
+              "Patch is bounded and only uses allowed key 'action_policy'.",
+              "Intervention is specific, single-shot, and targets a documented unresolved root cause: missed_scroll_target.",
+              "Proposal avoids unsupported broader budget expansion and does not introduce unbounded behavior.",
+              "Evidence is limited to a small 8-task sample, so robustness remains uncertain.",
+              "Latency may increase slightly due to one extra intervention, but proposed cost is bounded."
+            ]
+          }
+        },
+        "critic_decision": "accepted",
+        "critic_notes": [
+          "bounded patch present",
+          "no regressions detected",
+          "uses 3 candidate failure evidence records",
+          "llm critic: Patch is bounded and only uses allowed key 'action_policy'.",
+          "llm critic: Intervention is specific, single-shot, and targets a documented unresolved root cause: missed_scroll_target.",
+          "llm critic: Proposal avoids unsupported broader budget expansion and does not introduce unbounded behavior.",
+          "llm critic: Evidence is limited to a small 8-task sample, so robustness remains uncertain.",
+          "llm critic: Latency may increase slightly due to one extra intervention, but proposed cost is bounded."
+        ],
+        "expected_effect": "Improve remaining hidden-target failures by performing one bounded downward scroll before submit-like completion actions on pages where actionable items may be off-screen, without changing prompt or retry behavior.",
+        "hypothesis_id": "hyp_scroll_before_submit",
+        "intervention": {
+          "expected_effect": "Improve remaining hidden-target failures by performing one bounded downward scroll before submit-like completion actions on pages where actionable items may be off-screen, without changing prompt or retry behavior.",
+          "id": "hyp_scroll_before_submit",
+          "kind": "action_policy",
+          "patch": {
+            "action_policy": {
+              "enabled": true,
+              "max_interventions": 1,
+              "name": "scroll_before_submit",
+              "scroll_delta_y": 621
+            }
+          },
+          "rationale": "The strongest reusable unresolved failure mode in the candidate is missed_scroll_target on browsergym/miniwob.social-media-all#seed=26, while the current candidate already showed a net gain from the broader step-budget change. A bounded action-policy intervention directly targets the documented hidden-target issue and matches the deterministic reference. This is better supported than another max_steps increase, since terminal_input_action_mismatch remained unresolved despite spending 30 steps.",
+          "risk": "May add one extra step and some latency on tasks where scrolling is unnecessary, and the benefit is currently supported by limited evidence from a small 8-task sample.",
+          "summary": "Enable a single bounded scroll-before-submit intervention to address hidden off-screen targets.",
+          "supported_by": [
+            "root_cause=missed_scroll_target",
+            "candidate zero-score persisted on browsergym/miniwob.social-media-all#seed=26",
+            "deterministic_reference=hyp_scroll_before_submit",
+            "analyst dominant_root_causes includes missed_scroll_target"
+          ],
+          "target_root_causes": [
+            "missed_scroll_target"
+          ]
+        },
+        "patch": {
+          "action_policy": {
+            "enabled": true,
+            "max_interventions": 1,
+            "name": "scroll_before_submit",
+            "scroll_delta_y": 621
+          }
+        },
+        "rationale": "The strongest reusable unresolved failure mode in the candidate is missed_scroll_target on browsergym/miniwob.social-media-all#seed=26, while the current candidate already showed a net gain from the broader step-budget change. A bounded action-policy intervention directly targets the documented hidden-target issue and matches the deterministic reference. This is better supported than another max_steps increase, since terminal_input_action_mismatch remained unresolved despite spending 30 steps.",
+        "risk": "May add one extra step and some latency on tasks where scrolling is unnecessary, and the benefit is currently supported by limited evidence from a small 8-task sample.",
+        "summary": "Enable a single bounded scroll-before-submit intervention to address hidden off-screen targets."
+      },
+      "proposal_mode": "llm",
+      "safe_patch": true,
+      "schema_valid": true,
+      "score": 0.6666666666666666,
+      "target_root_causes": [
+        "missed_scroll_target"
+      ],
+      "uses_failure_evidence": true
+    },
+    {
+      "advisor": "deterministic",
+      "boundary_awareness": true,
+      "case_id": "hard_scroll_to_terminal",
+      "critic_decision": "accepted",
+      "critic_ok": true,
+      "direction_match": true,
+      "expected_direction": "terminal_policy",
+      "hypothesis_id": "hyp_terminal_keyboard_type",
+      "notes": [
+        "expected=terminal_policy",
+        "mode=deterministic",
+        "uses 2 candidate failure evidence records"
+      ],
+      "patch_keys": [
+        "action_policy"
+      ],
+      "proposal": {
+        "advisor_mode": "deterministic",
+        "advisor_stage_notes": {},
+        "critic_decision": "accepted",
+        "critic_notes": [
+          "bounded patch present",
+          "no regressions detected",
+          "uses 2 candidate failure evidence records"
+        ],
+        "expected_effect": "Let the agent's terminal commands actually reach the MiniWoB terminal without changing the prompt.",
+        "hypothesis_id": "hyp_terminal_keyboard_type",
+        "intervention": {
+          "expected_effect": "Let the agent's terminal commands actually reach the MiniWoB terminal without changing the prompt.",
+          "id": "hyp_terminal_keyboard_type",
+          "kind": "action_policy",
+          "patch": {
+            "action_policy": {
+              "enabled": true,
+              "max_interventions": 20,
+              "name": "terminal_keyboard_type"
+            }
+          },
+          "rationale": "Candidate failure evidence shows terminal commands were attempted with `fill`, but MiniWoB's custom terminal only updates command state from keyboard events.",
+          "risk": "May expose the agent's incorrect shell commands as visible terminal errors; it fixes input delivery, not command planning.",
+          "summary": "Enable a terminal keyboard-type action policy for custom terminal input.",
+          "supported_by": [
+            "root_cause=terminal_input_action_mismatch"
+          ],
+          "target_root_causes": [
+            "terminal_input_action_mismatch"
+          ]
+        },
+        "patch": {
+          "action_policy": {
+            "enabled": true,
+            "max_interventions": 20,
+            "name": "terminal_keyboard_type"
+          }
+        },
+        "rationale": "Candidate failure evidence shows terminal commands were attempted with `fill`, but MiniWoB's custom terminal only updates command state from keyboard events.",
+        "risk": "May expose the agent's incorrect shell commands as visible terminal errors; it fixes input delivery, not command planning.",
+        "summary": "Enable a terminal keyboard-type action policy for custom terminal input."
+      },
+      "proposal_mode": "deterministic",
+      "safe_patch": true,
+      "schema_valid": true,
+      "score": 1.0,
+      "target_root_causes": [
+        "terminal_input_action_mismatch"
+      ],
+      "uses_failure_evidence": true
+    },
+    {
+      "advisor": "llm",
+      "boundary_awareness": true,
+      "case_id": "hard_scroll_to_terminal",
+      "critic_decision": "accepted",
+      "critic_ok": true,
+      "direction_match": true,
+      "expected_direction": "terminal_policy",
+      "hypothesis_id": "hyp_terminal_keyboard_type",
+      "notes": [
+        "expected=terminal_policy",
+        "mode=llm",
+        "llm critic: Targeted terminal-specific action policy is appropriately narrow given limited evidence and avoids unsupported broad changes."
+      ],
+      "patch_keys": [
+        "action_policy"
+      ],
+      "proposal": {
+        "advisor_mode": "llm",
+        "advisor_stage_notes": {
+          "analyst": {
+            "dominant_root_causes": [
+              "One baseline failure was eliminated by the candidate, specifically the prior missed_scroll_target failure on browsergym/miniwob.social-media-all#seed=26.",
+              "Remaining shared failures are unchanged: coordinate_click_miss on browsergym/miniwob.grid-coordinate#seed=25 and terminal_input_action_mismatch on browsergym/miniwob.terminal#seed=27.",
+              "No new failure mode or regression appeared in the candidate evidence."
+            ],
+            "key_deltas": [
+              "Success rate improved from 0.625 to 0.75 (+0.125).",
+              "Average normalized score improved from 0.625 to 0.75 (+0.125).",
+              "Failure counts improved from 3 to 2 total, with zero_score dropping from 2 to 1 while max_steps stayed at 1.",
+              "The only task-level change was browsergym/miniwob.social-media-all#seed=26 improving from failed/0.0 to success/1.0.",
+              "Average latency decreased by 1.478s and average input tokens decreased by 270.25, while step count and LLM call count were unchanged."
+            ],
+            "risk_flags": [
+              "Evidence is based on only 8 compared tasks, so confidence in generalization is limited.",
+              "The improvement is concentrated in a single task, making it unclear whether the candidate change broadly helps beyond scroll-related hidden-target cases.",
+              "Persistent unchanged failures indicate the candidate does not address coordinate-targeting or terminal interaction issues."
+            ],
+            "summary": "The candidate configuration outperformed the baseline on this 8-task comparison, improving success rate and average normalized score by 0.125 with no regressions. The gain came entirely from fixing browsergym/miniwob.social-media-all#seed=26, consistent with the baseline hypothesis that a scroll-before-submit behavior could recover hidden remaining targets. Residual failures were unchanged and remain attributable to coordinate_click_miss and terminal_input_action_mismatch, so the observed benefit appears narrow rather than broad."
+          },
+          "critic": {
+            "decision": "accepted",
+            "notes": [
+              "Patch is bounded and uses only allowed key: action_policy.",
+              "Proposal is supported by unchanged residual failure root cause terminal_input_action_mismatch on browsergym/miniwob.terminal#seed=27.",
+              "No regressions were observed in the 8-task comparison; candidate improved one task and left terminal failure unchanged.",
+              "Targeted terminal-specific action policy is appropriately narrow given limited evidence and avoids unsupported broad changes."
+            ]
+          }
+        },
+        "critic_decision": "accepted",
+        "critic_notes": [
+          "bounded patch present",
+          "no regressions detected",
+          "uses 2 candidate failure evidence records",
+          "llm critic: Patch is bounded and uses only allowed key: action_policy.",
+          "llm critic: Proposal is supported by unchanged residual failure root cause terminal_input_action_mismatch on browsergym/miniwob.terminal#seed=27.",
+          "llm critic: No regressions were observed in the 8-task comparison; candidate improved one task and left terminal failure unchanged.",
+          "llm critic: Targeted terminal-specific action policy is appropriately narrow given limited evidence and avoids unsupported broad changes."
+        ],
+        "expected_effect": "Allow MiniWoB terminal tasks to receive command text via keyboard events instead of ineffective fill-style input, which may convert the unchanged terminal max_steps failure into progress or success without altering the prompt or broader policy.",
+        "hypothesis_id": "hyp_terminal_keyboard_type",
+        "intervention": {
+          "expected_effect": "Allow MiniWoB terminal tasks to receive command text via keyboard events instead of ineffective fill-style input, which may convert the unchanged terminal max_steps failure into progress or success without altering the prompt or broader policy.",
+          "id": "hyp_terminal_keyboard_type",
+          "kind": "action_policy",
+          "patch": {
+            "action_policy": {
+              "enabled": true,
+              "max_interventions": 20,
+              "name": "terminal_keyboard_type"
+            }
+          },
+          "rationale": "The compared run shows one narrow improvement from the candidate with no regressions, but the remaining terminal failure is unchanged and specifically attributed to terminal_input_action_mismatch. The deterministic reference directly matches this residual root cause and proposes a bounded action-policy fix that targets input delivery rather than expanding retries or changing prompts. Given limited evidence across only 8 tasks, a targeted policy is preferable to broader configuration changes.",
+          "risk": "This may surface the agent's incorrect terminal commands as visible shell errors and does not address command planning quality. It is targeted to terminal interaction only, so it is unlikely to help unrelated coordinate-click failures.",
+          "summary": "Enable a terminal-specific keyboard typing action policy to address the persistent MiniWoB terminal input mismatch.",
+          "supported_by": [
+            "root_cause=terminal_input_action_mismatch",
+            "candidate terminal failure unchanged after current scroll-related improvement",
+            "deterministic_reference"
+          ],
+          "target_root_causes": [
+            "terminal_input_action_mismatch"
+          ]
+        },
+        "patch": {
+          "action_policy": {
+            "enabled": true,
+            "max_interventions": 20,
+            "name": "terminal_keyboard_type"
+          }
+        },
+        "rationale": "The compared run shows one narrow improvement from the candidate with no regressions, but the remaining terminal failure is unchanged and specifically attributed to terminal_input_action_mismatch. The deterministic reference directly matches this residual root cause and proposes a bounded action-policy fix that targets input delivery rather than expanding retries or changing prompts. Given limited evidence across only 8 tasks, a targeted policy is preferable to broader configuration changes.",
+        "risk": "This may surface the agent's incorrect terminal commands as visible shell errors and does not address command planning quality. It is targeted to terminal interaction only, so it is unlikely to help unrelated coordinate-click failures.",
+        "summary": "Enable a terminal-specific keyboard typing action policy to address the persistent MiniWoB terminal input mismatch."
+      },
+      "proposal_mode": "llm",
+      "safe_patch": true,
+      "schema_valid": true,
+      "score": 1.0,
+      "target_root_causes": [
+        "terminal_input_action_mismatch"
+      ],
+      "uses_failure_evidence": true
+    },
+    {
+      "advisor": "deterministic",
+      "boundary_awareness": true,
+      "case_id": "hard_terminal_regresses_scroll",
+      "critic_decision": "accepted",
+      "critic_ok": true,
+      "direction_match": true,
+      "expected_direction": "compose_policies",
+      "hypothesis_id": "hyp_combine_scroll_and_terminal_policies",
+      "notes": [
+        "expected=compose_policies",
+        "mode=deterministic",
+        "uses 2 candidate failure evidence records"
+      ],
+      "patch_keys": [
+        "action_policy"
+      ],
+      "proposal": {
+        "advisor_mode": "deterministic",
+        "advisor_stage_notes": {},
+        "critic_decision": "accepted",
+        "critic_notes": [
+          "bounded patch present",
+          "candidate has 1 regressions",
+          "uses 2 candidate failure evidence records"
+        ],
+        "expected_effect": "Preserve the terminal input fix while restoring hidden-target scrolling behavior.",
+        "hypothesis_id": "hyp_combine_scroll_and_terminal_policies",
+        "intervention": {
+          "expected_effect": "Preserve the terminal input fix while restoring hidden-target scrolling behavior.",
+          "id": "hyp_combine_scroll_and_terminal_policies",
+          "kind": "action_policy",
+          "patch": {
+            "action_policy": {
+              "enabled": true,
+              "max_interventions": 20,
+              "name": "composite",
+              "policies": [
+                "scroll_before_submit",
+                "terminal_keyboard_type"
+              ],
+              "policy_limits": {
+                "scroll_before_submit": 1,
+                "terminal_keyboard_type": 20
+              },
+              "scroll_delta_y": 621
+            }
+          },
+          "rationale": "The report shows a candidate regression from `missed_scroll_target` while the baseline still had `terminal_input_action_mismatch`; a single replacement policy would likely fix one task family while breaking the other.",
+          "risk": "Combining task-scoped policies increases wrapper surface area, so each sub-policy must stay bounded and evidence-gated.",
+          "summary": "Compose scroll and terminal action policies instead of replacing one with the other.",
+          "supported_by": [
+            "candidate_root_cause=missed_scroll_target",
+            "baseline_root_cause=terminal_input_action_mismatch",
+            "regression_count>0"
+          ],
+          "target_root_causes": [
+            "missed_scroll_target",
+            "terminal_input_action_mismatch"
+          ]
+        },
+        "patch": {
+          "action_policy": {
+            "enabled": true,
+            "max_interventions": 20,
+            "name": "composite",
+            "policies": [
+              "scroll_before_submit",
+              "terminal_keyboard_type"
+            ],
+            "policy_limits": {
+              "scroll_before_submit": 1,
+              "terminal_keyboard_type": 20
+            },
+            "scroll_delta_y": 621
+          }
+        },
+        "rationale": "The report shows a candidate regression from `missed_scroll_target` while the baseline still had `terminal_input_action_mismatch`; a single replacement policy would likely fix one task family while breaking the other.",
+        "risk": "Combining task-scoped policies increases wrapper surface area, so each sub-policy must stay bounded and evidence-gated.",
+        "summary": "Compose scroll and terminal action policies instead of replacing one with the other."
+      },
+      "proposal_mode": "deterministic",
+      "safe_patch": true,
+      "schema_valid": true,
+      "score": 1.0,
+      "target_root_causes": [
+        "missed_scroll_target",
+        "terminal_input_action_mismatch"
+      ],
+      "uses_failure_evidence": true
+    },
+    {
+      "advisor": "llm",
+      "boundary_awareness": true,
+      "case_id": "hard_terminal_regresses_scroll",
+      "critic_decision": "accepted",
+      "critic_ok": true,
+      "direction_match": true,
+      "expected_direction": "compose_policies",
+      "hypothesis_id": "hyp_combine_scroll_and_terminal_policies",
+      "notes": [
+        "expected=compose_policies",
+        "mode=llm",
+        "llm critic: risk is moderate due to composite policy interaction and only 8 compared tasks, but rejection is not warranted because intervention scope is constrained and evidence-aligned"
+      ],
+      "patch_keys": [
+        "action_policy"
+      ],
+      "proposal": {
+        "advisor_mode": "llm",
+        "advisor_stage_notes": {
+          "analyst": {
+            "dominant_root_causes": [
+              "terminal_input_action_mismatch resolved on browsergym/miniwob.terminal#seed=27",
+              "coordinate_click_miss persists on browsergym/miniwob.grid-coordinate#seed=25",
+              "new missed_scroll_target regression on browsergym/miniwob.social-media-all#seed=26"
+            ],
+            "key_deltas": [
+              "No net quality change: success_rate 0.75 -> 0.75 and avg_normalized_score unchanged at 0.75",
+              "Candidate improved efficiency substantially: avg_latency_sec 32.24 -> 14.05, avg_step_count 7.88 -> 4.00, avg_llm_call_count 7.88 -> 4.00",
+              "Token usage dropped materially in candidate: avg_input_tokens -9083 and avg_output_tokens -334.375",
+              "Failure mix changed from baseline {max_steps:1, zero_score:1} to candidate {zero_score:2}",
+              "Single-task swap: terminal#seed=27 improved from max_steps/0.0 to success/1.0, while social-media-all#seed=26 regressed from success/1.0 to failed/0.0"
+            ],
+            "risk_flags": [
+              "Candidate introduces a new zero-score regression on social-media-all#seed=26 despite fixing terminal",
+              "Persistent coordinate_click_miss indicates unchanged weakness on point-target tasks",
+              "Observed gains may be task-specific because compared_task_count is only 8",
+              "Higher avg_action_policy_interventions in candidate (0.0 -> 0.25) suggests behavior changed in a way that may affect stability"
+            ],
+            "summary": "The candidate configuration is performance-neutral overall but much more efficient. It fixes the baseline terminal failure completely, reducing steps, latency, LLM calls, and token consumption, but gives back that gain via a regression on social-media-all. The coordinate-click failure remains unchanged. Net result: same aggregate score and success rate, with evidence of a tradeoff rather than a clear win."
+          },
+          "critic": {
+            "decision": "accepted",
+            "notes": [
+              "bounded patch uses only allowed key: action_policy",
+              "proposal is patch-bearing and scoped: max_interventions=20, scroll_before_submit limited to 1, terminal_keyboard_type limited to 20",
+              "supported by direct tradeoff evidence: terminal#seed=27 improved from 0.0/max_steps to 1.0/success while social-media-all#seed=26 regressed from 1.0/success to 0.0/failed",
+              "aggregate quality is neutral (success_rate and avg_normalized_score unchanged), so a bounded attempt to recover the regression while preserving the terminal fix is reasonable",
+              "persistent coordinate_click_miss remains unaddressed, but proposal does not claim to solve it",
+              "risk is moderate due to composite policy interaction and only 8 compared tasks, but rejection is not warranted because intervention scope is constrained and evidence-aligned"
+            ]
+          }
+        },
+        "critic_decision": "accepted",
+        "critic_notes": [
+          "bounded patch present",
+          "candidate has 1 regressions",
+          "uses 2 candidate failure evidence records",
+          "llm critic: bounded patch uses only allowed key: action_policy",
+          "llm critic: proposal is patch-bearing and scoped: max_interventions=20, scroll_before_submit limited to 1, terminal_keyboard_type limited to 20",
+          "llm critic: supported by direct tradeoff evidence: terminal#seed=27 improved from 0.0/max_steps to 1.0/success while social-media-all#seed=26 regressed from 1.0/success to 0.0/failed",
+          "llm critic: aggregate quality is neutral (success_rate and avg_normalized_score unchanged), so a bounded attempt to recover the regression while preserving the terminal fix is reasonable",
+          "llm critic: persistent coordinate_click_miss remains unaddressed, but proposal does not claim to solve it",
+          "llm critic: risk is moderate due to composite policy interaction and only 8 compared tasks, but rejection is not warranted because intervention scope is constrained and evidence-aligned"
+        ],
+        "expected_effect": "Preserve the terminal input fix while restoring hidden-target scrolling behavior on the regressed social-media task, with bounded intervention scope.",
+        "hypothesis_id": "hyp_combine_scroll_and_terminal_policies",
+        "intervention": {
+          "expected_effect": "Preserve the terminal input fix while restoring hidden-target scrolling behavior on the regressed social-media task, with bounded intervention scope.",
+          "id": "hyp_combine_scroll_and_terminal_policies",
+          "kind": "action_policy",
+          "patch": {
+            "action_policy": {
+              "enabled": true,
+              "max_interventions": 20,
+              "name": "composite",
+              "policies": [
+                "scroll_before_submit",
+                "terminal_keyboard_type"
+              ],
+              "policy_limits": {
+                "scroll_before_submit": 1,
+                "terminal_keyboard_type": 20
+              },
+              "scroll_delta_y": 621
+            }
+          },
+          "rationale": "The candidate fixed the terminal-specific input mismatch but introduced a new missed-scroll-target regression, while aggregate score did not improve. The evidence supports composing the two task-scoped action policies rather than replacing one with the other, so the terminal gain can be retained and the social-media regression can be addressed. This remains bounded via a single scroll intervention and capped terminal interventions.",
+          "risk": "Moderate: combining policies increases wrapper complexity and may create unintended interactions outside the observed tasks, though per-policy limits reduce blast radius. Evidence is from only 8 tasks, so generalization is uncertain.",
+          "summary": "Compose scroll-before-submit with terminal keyboard typing to address the observed tradeoff between terminal repair and social-media scrolling regression.",
+          "supported_by": [
+            "baseline_root_cause=terminal_input_action_mismatch",
+            "candidate_root_cause=missed_scroll_target",
+            "improvement_task=browsergym/miniwob.terminal#seed=27",
+            "regression_task=browsergym/miniwob.social-media-all#seed=26",
+            "regression_count=1",
+            "avg_normalized_score_delta=0.0",
+            "candidate_efficiency_improved_substantially"
+          ],
+          "target_root_causes": [
+            "missed_scroll_target",
+            "terminal_input_action_mismatch"
+          ]
+        },
+        "patch": {
+          "action_policy": {
+            "enabled": true,
+            "max_interventions": 20,
+            "name": "composite",
+            "policies": [
+              "scroll_before_submit",
+              "terminal_keyboard_type"
+            ],
+            "policy_limits": {
+              "scroll_before_submit": 1,
+              "terminal_keyboard_type": 20
+            },
+            "scroll_delta_y": 621
+          }
+        },
+        "rationale": "The candidate fixed the terminal-specific input mismatch but introduced a new missed-scroll-target regression, while aggregate score did not improve. The evidence supports composing the two task-scoped action policies rather than replacing one with the other, so the terminal gain can be retained and the social-media regression can be addressed. This remains bounded via a single scroll intervention and capped terminal interventions.",
+        "risk": "Moderate: combining policies increases wrapper complexity and may create unintended interactions outside the observed tasks, though per-policy limits reduce blast radius. Evidence is from only 8 tasks, so generalization is uncertain.",
+        "summary": "Compose scroll-before-submit with terminal keyboard typing to address the observed tradeoff between terminal repair and social-media scrolling regression."
+      },
+      "proposal_mode": "llm",
+      "safe_patch": true,
+      "schema_valid": true,
+      "score": 1.0,
+      "target_root_causes": [
+        "missed_scroll_target",
+        "terminal_input_action_mismatch"
+      ],
+      "uses_failure_evidence": true
+    },
+    {
+      "advisor": "deterministic",
+      "boundary_awareness": false,
+      "case_id": "hard_combined_remaining_coordinate",
+      "critic_decision": "accepted",
+      "critic_ok": true,
+      "direction_match": false,
+      "expected_direction": "investigate",
+      "hypothesis_id": "hyp_grid_coordinate_click",
+      "notes": [
+        "expected=investigate",
+        "mode=deterministic",
+        "failed_direction_match",
+        "failed_boundary_awareness",
+        "uses 1 candidate failure evidence records"
+      ],
+      "patch_keys": [
+        "action_policy"
+      ],
+      "proposal": {
+        "advisor_mode": "deterministic",
+        "advisor_stage_notes": {},
+        "critic_decision": "accepted",
+        "critic_notes": [
+          "bounded patch present",
+          "no regressions detected",
+          "uses 1 candidate failure evidence records"
+        ],
+        "expected_effect": "Convert SVG-root clicks into precise mouse clicks on the requested grid point without changing the prompt.",
+        "hypothesis_id": "hyp_grid_coordinate_click",
+        "intervention": {
+          "expected_effect": "Convert SVG-root clicks into precise mouse clicks on the requested grid point without changing the prompt.",
+          "id": "hyp_grid_coordinate_click",
+          "kind": "action_policy",
+          "patch": {
+            "action_policy": {
+              "enabled": true,
+              "max_interventions": 25,
+              "name": "composite",
+              "policies": [
+                "scroll_before_submit",
+                "terminal_keyboard_type",
+                "grid_coordinate_click"
+              ],
+              "policy_limits": {
+                "grid_coordinate_click": 1,
+                "scroll_before_submit": 1,
+                "terminal_keyboard_type": 20
+              },
+              "scroll_delta_y": 621
+            }
+          },
+          "rationale": "Candidate failure evidence shows the agent identified the target coordinate but clicked the SVG root because the target circle had no bid-addressable action.",
+          "risk": "Only applies when the grid target can be parsed from goal/html/bbox evidence; otherwise it should no-op rather than guess.",
+          "summary": "Enable a coordinate-aware click policy for SVG grid-coordinate targets.",
+          "supported_by": [
+            "root_cause=coordinate_click_miss"
+          ],
+          "target_root_causes": [
+            "coordinate_click_miss"
+          ]
+        },
+        "patch": {
+          "action_policy": {
+            "enabled": true,
+            "max_interventions": 25,
+            "name": "composite",
+            "policies": [
+              "scroll_before_submit",
+              "terminal_keyboard_type",
+              "grid_coordinate_click"
+            ],
+            "policy_limits": {
+              "grid_coordinate_click": 1,
+              "scroll_before_submit": 1,
+              "terminal_keyboard_type": 20
+            },
+            "scroll_delta_y": 621
+          }
+        },
+        "rationale": "Candidate failure evidence shows the agent identified the target coordinate but clicked the SVG root because the target circle had no bid-addressable action.",
+        "risk": "Only applies when the grid target can be parsed from goal/html/bbox evidence; otherwise it should no-op rather than guess.",
+        "summary": "Enable a coordinate-aware click policy for SVG grid-coordinate targets."
+      },
+      "proposal_mode": "deterministic",
+      "safe_patch": true,
+      "schema_valid": true,
+      "score": 0.6666666666666666,
+      "target_root_causes": [
+        "coordinate_click_miss"
+      ],
+      "uses_failure_evidence": true
+    },
+    {
+      "advisor": "llm",
+      "boundary_awareness": true,
+      "case_id": "hard_combined_remaining_coordinate",
+      "critic_decision": "rejected",
+      "critic_ok": false,
+      "direction_match": false,
+      "expected_direction": "investigate",
+      "hypothesis_id": "hyp_grid_coordinate_click",
+      "notes": [
+        "expected=investigate",
+        "mode=llm",
+        "failed_critic_ok",
+        "failed_safe_patch",
+        "failed_direction_match",
+        "llm critic: Recommend only accepting patch-bearing proposals that adjust existing supported configuration fields/values without introducing undeclared policy primitives."
+      ],
+      "patch_keys": [],
+      "proposal": {
+        "advisor_mode": "llm",
+        "advisor_stage_notes": {
+          "analyst": {
+            "dominant_root_causes": [
+              "Terminal input action mismatch was resolved in the candidate; remaining observed failure is coordinate_click_miss on the SVG/grid coordinate task.",
+              "Residual failure profile is now concentrated in a single zero-score coordinate targeting issue rather than step-budget exhaustion."
+            ],
+            "key_deltas": [
+              "Success rate improved from 0.75 to 0.875 (+0.125), with 1/8 tasks improved and 0 regressions.",
+              "Average normalized score improved from 0.75 to 0.875 (+0.125).",
+              "The terminal task (browsergym/miniwob.terminal#seed=27) improved from max_steps with score 0.00 to success with score 1.00.",
+              "Failure taxonomy improved from {max_steps: 1, zero_score: 1} to {zero_score: 1}, eliminating the max_steps failure.",
+              "Efficiency improved: avg step count 7.875 -> 6.125 (-1.75), avg LLM calls 7.875 -> 6.125 (-1.75), latency 32.24s -> 23.34s (-8.90s).",
+              "Token usage shifted slightly: avg input tokens increased 20514.25 -> 21063.0 (+548.75), while avg output tokens decreased 635.75 -> 511.25 (-124.5).",
+              "Candidate introduced avg_action_policy_interventions of 0.375 from a baseline of 0.0."
+            ],
+            "risk_flags": [
+              "Evidence is based on only 8 tasks, so gains may be sensitive to small-sample variance.",
+              "The remaining failure is unchanged across baseline and candidate, indicating the new config does not address coordinate/SVG point-targeting weaknesses.",
+              "Action policy interventions increased from 0.0 to 0.375; this may indicate greater dependence on policy-layer handling even though overall performance improved."
+            ],
+            "summary": "The candidate configuration outperformed the baseline on this 8-task MiniWoB hard subset, improving success rate and normalized score from 0.75 to 0.875 with no regressions. The main win came from fixing the terminal task failure that previously exhausted the step budget without producing visible terminal state changes; in the candidate, that task succeeded with a perfect score. Efficiency also improved materially, with fewer steps, fewer LLM calls, and lower latency, despite a modest rise in input tokens. The only remaining observed failure is the same coordinate-click miss on the SVG/grid task seen in the baseline, so the residual weakness appears narrowly concentrated rather than broadly systemic."
+          },
+          "critic": {
+            "decision": "rejected",
+            "notes": [
+              "Patch-bearing proposal is unsupported under allowed_patch_keys validation: action_policy payload introduces new policy component 'grid_coordinate_click' with unspecified implementation/semantics, so it is not a safely bounded configuration-only change.",
+              "Proposal relies on single-task failure evidence from an 8-task sample; while bounded numerically, the patch is not sufficiently supported for adding new intervention behavior.",
+              "Recommend only accepting patch-bearing proposals that adjust existing supported configuration fields/values without introducing undeclared policy primitives."
+            ]
+          }
+        },
+        "critic_decision": "rejected",
+        "critic_notes": [
+          "bounded patch present",
+          "no regressions detected",
+          "uses 1 candidate failure evidence records",
+          "llm critic: Patch-bearing proposal is unsupported under allowed_patch_keys validation: action_policy payload introduces new policy component 'grid_coordinate_click' with unspecified implementation/semantics, so it is not a safely bounded configuration-only change.",
+          "llm critic: Proposal relies on single-task failure evidence from an 8-task sample; while bounded numerically, the patch is not sufficiently supported for adding new intervention behavior.",
+          "llm critic: Recommend only accepting patch-bearing proposals that adjust existing supported configuration fields/values without introducing undeclared policy primitives."
+        ],
+        "expected_effect": "Convert SVG-root clicks into precise mouse clicks on the requested grid point without changing the prompt, while preserving the terminal-task gains already observed in the candidate.",
+        "hypothesis_id": "hyp_grid_coordinate_click",
+        "intervention": {
+          "expected_effect": "Convert SVG-root clicks into precise mouse clicks on the requested grid point without changing the prompt, while preserving the terminal-task gains already observed in the candidate.",
+          "id": "hyp_grid_coordinate_click",
+          "kind": "action_policy",
+          "patch": {
+            "action_policy": {
+              "enabled": true,
+              "max_interventions": 25,
+              "name": "composite",
+              "policies": [
+                "scroll_before_submit",
+                "terminal_keyboard_type",
+                "grid_coordinate_click"
+              ],
+              "policy_limits": {
+                "grid_coordinate_click": 1,
+                "scroll_before_submit": 1,
+                "terminal_keyboard_type": 20
+              },
+              "scroll_delta_y": 621
+            }
+          },
+          "rationale": "The candidate resolved the terminal input action mismatch and concentrated remaining failure into a single unchanged zero-score grid-coordinate task. Failure evidence specifically indicates the agent recognized the coordinate task but clicked the SVG root, matching a coordinate_click_miss pattern that is better addressed with a bounded action-policy fix than with prompt or retry changes. This patch extends the already successful composite action-policy approach with one tightly limited coordinate-click intervention.",
+          "risk": "Evidence is from only one observed failing task in an 8-task sample, so generalization is uncertain. Additional action-policy intervention logic can introduce policy-layer dependence, but the risk is bounded because grid_coordinate_click is limited to one intervention and should no-op when coordinate evidence is insufficient rather than guess.",
+          "summary": "Enable a bounded coordinate-aware click policy for SVG grid-coordinate targets.",
+          "supported_by": [
+            "root_cause=coordinate_click_miss",
+            "candidate_only_failure=browsergym/miniwob.grid-coordinate#seed=25",
+            "no_regressions_in_candidate",
+            "terminal_input_action_mismatch_already_resolved"
+          ],
+          "target_root_causes": [
+            "coordinate_click_miss"
+          ]
+        },
+        "patch": {},
+        "rationale": "The candidate resolved the terminal input action mismatch and concentrated remaining failure into a single unchanged zero-score grid-coordinate task. Failure evidence specifically indicates the agent recognized the coordinate task but clicked the SVG root, matching a coordinate_click_miss pattern that is better addressed with a bounded action-policy fix than with prompt or retry changes. This patch extends the already successful composite action-policy approach with one tightly limited coordinate-click intervention.",
+        "risk": "Evidence is from only one observed failing task in an 8-task sample, so generalization is uncertain. Additional action-policy intervention logic can introduce policy-layer dependence, but the risk is bounded because grid_coordinate_click is limited to one intervention and should no-op when coordinate evidence is insufficient rather than guess.",
+        "summary": "Enable a bounded coordinate-aware click policy for SVG grid-coordinate targets."
+      },
+      "proposal_mode": "llm",
+      "safe_patch": false,
+      "schema_valid": true,
+      "score": 0.5,
+      "target_root_causes": [
+        "coordinate_click_miss"
+      ],
+      "uses_failure_evidence": true
+    },
+    {
+      "advisor": "deterministic",
+      "boundary_awareness": true,
+      "case_id": "hard_full_quality_winner",
+      "critic_decision": "accepted",
+      "critic_ok": true,
+      "direction_match": true,
+      "expected_direction": "quality_winner",
+      "hypothesis_id": "hyp_keep_quality_winner",
+      "notes": [
+        "expected=quality_winner",
+        "mode=deterministic",
+        "no candidate failure evidence records"
+      ],
+      "patch_keys": [],
+      "proposal": {
+        "advisor_mode": "deterministic",
+        "advisor_stage_notes": {},
+        "critic_decision": "accepted",
+        "critic_notes": [
+          "no patch emitted; recommendation is hold or investigation",
+          "no regressions detected",
+          "no candidate failure evidence records"
+        ],
+        "expected_effect": "Preserve the improved solved-task quality before expanding the benchmark slice.",
+        "hypothesis_id": "hyp_keep_quality_winner",
+        "intervention": {
+          "expected_effect": "Preserve the improved solved-task quality before expanding the benchmark slice.",
+          "id": "hyp_keep_quality_winner",
+          "kind": "hold",
+          "patch": {},
+          "rationale": "The candidate has no failures or regressions and improves success or normalized score.",
+          "risk": "Quality gains may be seed-specific unless confirmed with repeated or broader runs.",
+          "summary": "Keep the candidate config as a quality winner on the measured task set.",
+          "supported_by": [
+            "no_candidate_failures",
+            "quality_not_worse",
+            "quality_gain"
+          ],
+          "target_root_causes": []
+        },
+        "patch": {},
+        "rationale": "The candidate has no failures or regressions and improves success or normalized score.",
+        "risk": "Quality gains may be seed-specific unless confirmed with repeated or broader runs.",
+        "summary": "Keep the candidate config as a quality winner on the measured task set."
+      },
+      "proposal_mode": "deterministic",
+      "safe_patch": true,
+      "schema_valid": true,
+      "score": 1.0,
+      "target_root_causes": [],
+      "uses_failure_evidence": true
+    },
+    {
+      "advisor": "llm",
+      "boundary_awareness": true,
+      "case_id": "hard_full_quality_winner",
+      "critic_decision": "accepted",
+      "critic_ok": true,
+      "direction_match": true,
+      "expected_direction": "quality_winner",
+      "hypothesis_id": "hyp_keep_quality_winner",
+      "notes": [
+        "expected=quality_winner",
+        "mode=llm",
+        "llm critic: No rejection condition triggered because there is no patch-bearing proposal to validate against allowed_patch_keys."
+      ],
+      "patch_keys": [],
+      "proposal": {
+        "advisor_mode": "llm",
+        "advisor_stage_notes": {
+          "analyst": {
+            "dominant_root_causes": [
+              "Baseline had a coordinate_click_miss on browsergym/miniwob.grid-coordinate#seed=25 after an SVG/grid click attempt; candidate shows no observed failures in the 8-task sample."
+            ],
+            "key_deltas": [
+              "Success rate improved from 0.875 to 1.0 (+0.125).",
+              "Average normalized score improved from 0.875 to 1.0 (+0.125).",
+              "One task improved with no regressions: browsergym/miniwob.grid-coordinate#seed=25 moved from failed/0.0 to success/1.0.",
+              "Candidate eliminated the baseline's only zero_score failure in this sample.",
+              "Latency increased from 23.34s to 35.98s (+12.63s).",
+              "Average action policy interventions increased from 0.375 to 0.625 (+0.25).",
+              "Average step count increased slightly from 6.125 to 6.25 (+0.125), and average LLM call count from 6.125 to 6.25 (+0.125).",
+              "Average input tokens decreased by 598.875 and output tokens decreased by 8.0."
+            ],
+            "risk_flags": [
+              "Small evaluation size: only 8 tasks compared.",
+              "Observed gain is concentrated in a single previously failing coordinate task; generalization beyond coordinate-click scenarios is unproven.",
+              "Candidate incurs a substantial latency increase despite perfect score on this sample.",
+              "Higher action policy intervention rate may indicate increased reliance on external handling or task-specific behavior."
+            ],
+            "summary": "The candidate outperformed the baseline on the 8-task miniwob_agentlab_hard sample, improving one previously failed grid-coordinate task and producing no regressions, raising success rate and average normalized score to 1.0. The baseline\u2019s only observed root cause was a coordinate_click_miss on the grid-coordinate task, which the candidate appears to resolve in this sample. However, the improvement comes with materially higher latency and more action policy interventions, and the evidence is limited by the small task count and concentration of gains in a single task."
+          },
+          "critic": {
+            "decision": "accepted",
+            "notes": [
+              "Proposal emits no patch and therefore does not modify any unsupported keys.",
+              "Hold/investigation recommendation is bounded and supported by the report: +0.125 success/score, 0 regressions, single resolved coordinate_click_miss, but only 8 tasks and +12.63s latency.",
+              "No rejection condition triggered because there is no patch-bearing proposal to validate against allowed_patch_keys."
+            ]
+          }
+        },
+        "critic_decision": "accepted",
+        "critic_notes": [
+          "no patch emitted; recommendation is hold or investigation",
+          "no regressions detected",
+          "no candidate failure evidence records",
+          "llm critic: Proposal emits no patch and therefore does not modify any unsupported keys.",
+          "llm critic: Hold/investigation recommendation is bounded and supported by the report: +0.125 success/score, 0 regressions, single resolved coordinate_click_miss, but only 8 tasks and +12.63s latency.",
+          "llm critic: No rejection condition triggered because there is no patch-bearing proposal to validate against allowed_patch_keys."
+        ],
+        "expected_effect": "Preserve the observed quality improvement while avoiding premature config changes until broader validation confirms the coordinate-click gain generalizes.",
+        "hypothesis_id": "hyp_keep_quality_winner",
+        "intervention": {
+          "expected_effect": "Preserve the observed quality improvement while avoiding premature config changes until broader validation confirms the coordinate-click gain generalizes.",
+          "id": "hyp_keep_quality_winner",
+          "kind": "hold",
+          "patch": {},
+          "rationale": "The candidate eliminates the baseline's only observed failure, improves success rate and normalized score from 0.875 to 1.0 on the 8-task sample, and shows no regressions. Evidence for further patching is insufficient because the gain is concentrated in a single grid-coordinate task and latency/intervention costs increased materially. A hold is preferred over additional changes until expanded evaluation clarifies whether the improvement is robust.",
+          "risk": "The observed win may be seed- or task-specific, and the latency/intervention increase could matter on broader benchmarks.",
+          "summary": "Keep the candidate as the current quality winner and validate on a broader slice before making more changes.",
+          "supported_by": [
+            "no_candidate_failures",
+            "quality_not_worse",
+            "quality_gain",
+            "single_root_cause_resolved",
+            "small_eval_size",
+            "latency_increase"
+          ],
+          "target_root_causes": [
+            "coordinate_click_miss"
+          ]
+        },
+        "patch": {},
+        "rationale": "The candidate eliminates the baseline's only observed failure, improves success rate and normalized score from 0.875 to 1.0 on the 8-task sample, and shows no regressions. Evidence for further patching is insufficient because the gain is concentrated in a single grid-coordinate task and latency/intervention costs increased materially. A hold is preferred over additional changes until expanded evaluation clarifies whether the improvement is robust.",
+        "risk": "The observed win may be seed- or task-specific, and the latency/intervention increase could matter on broader benchmarks.",
+        "summary": "Keep the candidate as the current quality winner and validate on a broader slice before making more changes."
+      },
+      "proposal_mode": "llm",
+      "safe_patch": true,
+      "schema_valid": true,
+      "score": 1.0,
+      "target_root_causes": [
+        "coordinate_click_miss"
+      ],
+      "uses_failure_evidence": true
+    },
+    {
+      "advisor": "deterministic",
+      "boundary_awareness": true,
+      "case_id": "broad_full_quality_winner",
+      "critic_decision": "accepted",
+      "critic_ok": true,
+      "direction_match": true,
+      "expected_direction": "quality_winner",
+      "hypothesis_id": "hyp_keep_quality_winner",
+      "notes": [
+        "expected=quality_winner",
+        "mode=deterministic",
+        "no candidate failure evidence records"
+      ],
+      "patch_keys": [],
+      "proposal": {
+        "advisor_mode": "deterministic",
+        "advisor_stage_notes": {},
+        "critic_decision": "accepted",
+        "critic_notes": [
+          "no patch emitted; recommendation is hold or investigation",
+          "no regressions detected",
+          "no candidate failure evidence records"
+        ],
+        "expected_effect": "Preserve the improved solved-task quality before expanding the benchmark slice.",
+        "hypothesis_id": "hyp_keep_quality_winner",
+        "intervention": {
+          "expected_effect": "Preserve the improved solved-task quality before expanding the benchmark slice.",
+          "id": "hyp_keep_quality_winner",
+          "kind": "hold",
+          "patch": {},
+          "rationale": "The candidate has no failures or regressions and improves success or normalized score.",
+          "risk": "Quality gains may be seed-specific unless confirmed with repeated or broader runs.",
+          "summary": "Keep the candidate config as a quality winner on the measured task set.",
+          "supported_by": [
+            "no_candidate_failures",
+            "quality_not_worse",
+            "quality_gain"
+          ],
+          "target_root_causes": []
+        },
+        "patch": {},
+        "rationale": "The candidate has no failures or regressions and improves success or normalized score.",
+        "risk": "Quality gains may be seed-specific unless confirmed with repeated or broader runs.",
+        "summary": "Keep the candidate config as a quality winner on the measured task set."
+      },
+      "proposal_mode": "deterministic",
+      "safe_patch": true,
+      "schema_valid": true,
+      "score": 1.0,
+      "target_root_causes": [],
+      "uses_failure_evidence": true
+    },
+    {
+      "advisor": "llm",
+      "boundary_awareness": true,
+      "case_id": "broad_full_quality_winner",
+      "critic_decision": "accepted",
+      "critic_ok": true,
+      "direction_match": true,
+      "expected_direction": "quality_winner",
+      "hypothesis_id": "hyp_keep_quality_winner",
+      "notes": [
+        "expected=quality_winner",
+        "mode=llm",
+        "llm critic: No candidate-side failure evidence is present, so rejecting further patch-bearing changes is appropriate at this stage."
+      ],
+      "patch_keys": [],
+      "proposal": {
+        "advisor_mode": "llm",
+        "advisor_stage_notes": {
+          "analyst": {
+            "dominant_root_causes": [
+              "Baseline failures were concentrated in four task-specific interaction mismatches: autocomplete validation loops, coordinate click misses, hidden/scroll-dependent targets, and terminal input action mismatches.",
+              "Candidate eliminated all observed baseline failure modes across the 20-task comparison, indicating the added policies aligned with those interaction-specific weaknesses rather than generic retry behavior."
+            ],
+            "key_deltas": [
+              "Success rate improved from 0.80 to 1.00 (+0.20), with 4/4 baseline failures converted to success and no regressions.",
+              "Average normalized score improved from 0.80 to 1.00 (+0.20).",
+              "Failure taxonomy went from 2 max_steps and 2 zero_score failures to zero observed failures.",
+              "Average latency decreased from 22.11s to 18.22s (-3.89s).",
+              "Average input tokens decreased by 887.2, output tokens by 13.5, LLM calls by 0.10, and step count by 0.10 despite the stronger task completion rate.",
+              "Average action policy interventions increased from 0.0 to 0.2, consistent with targeted policy help contributing to the recovered tasks."
+            ],
+            "risk_flags": [
+              "Attribution is ambiguous because the candidate bundles multiple hypotheses; the evidence supports the package but does not isolate which individual change drove each recovery.",
+              "Comparison covers only 20 tasks, so robustness of the new behaviors outside this taskset remains unproven.",
+              "The rise in action policy interventions, while beneficial here, may indicate more policy-specific behavior that should be monitored for overfitting or unintended side effects on broader workloads."
+            ],
+            "summary": "The candidate configuration clearly outperformed the baseline on this 20-task MiniWoB comparison. It resolved all four baseline failures\u2014book-flight, grid-coordinate, social-media-all, and terminal\u2014raising success rate and normalized score from 0.80 to 1.00 with no regressions. Performance also improved operationally, with lower latency, fewer tokens, and slightly fewer calls/steps on average. The recovered tasks align closely with the baseline\u2019s diagnosed root causes, suggesting the bundled interaction-focused changes addressed real execution gaps. Main caveats are bundled-change attribution and limited sample size, not any observed regression signal."
+          },
+          "critic": {
+            "decision": "accepted",
+            "notes": [
+              "Proposal is bounded and emits no patch, so it does not introduce unsupported or unbounded changes.",
+              "Recommendation to hold is consistent with evidence: +0.20 success rate and normalized score, 4/4 recovered failures, zero regressions, and better latency/tokens/calls/steps on the 20-task slice.",
+              "Risk flags are appropriately acknowledged: bundled attribution is unresolved, sample size is limited, and increased action-policy intervention rate should be monitored in broader validation.",
+              "No candidate-side failure evidence is present, so rejecting further patch-bearing changes is appropriate at this stage."
+            ]
+          }
+        },
+        "critic_decision": "accepted",
+        "critic_notes": [
+          "no patch emitted; recommendation is hold or investigation",
+          "no regressions detected",
+          "no candidate failure evidence records",
+          "llm critic: Proposal is bounded and emits no patch, so it does not introduce unsupported or unbounded changes.",
+          "llm critic: Recommendation to hold is consistent with evidence: +0.20 success rate and normalized score, 4/4 recovered failures, zero regressions, and better latency/tokens/calls/steps on the 20-task slice.",
+          "llm critic: Risk flags are appropriately acknowledged: bundled attribution is unresolved, sample size is limited, and increased action-policy intervention rate should be monitored in broader validation.",
+          "llm critic: No candidate-side failure evidence is present, so rejecting further patch-bearing changes is appropriate at this stage."
+        ],
+        "expected_effect": "Preserve the observed 1.00 success rate and normalized score on the measured 20-task slice while avoiding unnecessary additional changes before broader validation.",
+        "hypothesis_id": "hyp_keep_quality_winner",
+        "intervention": {
+          "expected_effect": "Preserve the observed 1.00 success rate and normalized score on the measured 20-task slice while avoiding unnecessary additional changes before broader validation.",
+          "id": "hyp_keep_quality_winner",
+          "kind": "hold",
+          "patch": {},
+          "rationale": "The candidate configuration converted all 4 baseline failures to success, introduced no regressions, and also improved operational metrics including latency, token usage, and average calls/steps. Because the candidate is a bundled set of interaction-focused changes and there is no candidate failure evidence, the safest bounded decision is to hold this winner rather than introduce further edits without isolation or broader confirmation.",
+          "risk": "The gain may be partly taskset- or seed-specific, and bundled attribution remains unresolved; broader evaluation is still needed to confirm robustness and detect any overfitting from increased action-policy intervention behavior.",
+          "summary": "Keep the candidate config as the current quality winner on this benchmark slice.",
+          "supported_by": [
+            "quality_gain",
+            "no_candidate_failures",
+            "no_regressions",
+            "all_4_baseline_failures_recovered",
+            "lower_latency_and_token_usage"
+          ],
+          "target_root_causes": []
+        },
+        "patch": {},
+        "rationale": "The candidate configuration converted all 4 baseline failures to success, introduced no regressions, and also improved operational metrics including latency, token usage, and average calls/steps. Because the candidate is a bundled set of interaction-focused changes and there is no candidate failure evidence, the safest bounded decision is to hold this winner rather than introduce further edits without isolation or broader confirmation.",
+        "risk": "The gain may be partly taskset- or seed-specific, and bundled attribution remains unresolved; broader evaluation is still needed to confirm robustness and detect any overfitting from increased action-policy intervention behavior.",
+        "summary": "Keep the candidate config as the current quality winner on this benchmark slice."
+      },
+      "proposal_mode": "llm",
+      "safe_patch": true,
+      "schema_valid": true,
+      "score": 1.0,
+      "target_root_causes": [],
+      "uses_failure_evidence": true
+    },
+    {
+      "advisor": "deterministic",
+      "boundary_awareness": true,
+      "case_id": "control_boundary",
+      "critic_decision": "accepted",
+      "critic_ok": true,
+      "direction_match": true,
+      "expected_direction": "probe_coordinate_control",
+      "hypothesis_id": "hyp_probe_coordinate_control",
+      "notes": [
+        "expected=probe_coordinate_control",
+        "mode=deterministic",
+        "uses 8 candidate failure evidence records"
+      ],
+      "patch_keys": [],
+      "proposal": {
+        "advisor_mode": "deterministic",
+        "advisor_stage_notes": {},
+        "critic_decision": "accepted",
+        "critic_notes": [
+          "no patch emitted; recommendation is hold or investigation",
+          "no regressions detected",
+          "uses 8 candidate failure evidence records"
+        ],
+        "expected_effect": "Identify which coordinate click, drag, or action-compression primitive can become a bounded action policy.",
+        "hypothesis_id": "hyp_probe_coordinate_control",
+        "intervention": {
+          "expected_effect": "Identify which coordinate click, drag, or action-compression primitive can become a bounded action policy.",
+          "id": "hyp_probe_coordinate_control",
+          "kind": "investigation",
+          "patch": {},
+          "rationale": "Candidate failures point to slider, drag, drawing, or SVG click surfaces where bid-level actions are too coarse; another step-budget patch would likely repeat the same ineffective actions.",
+          "risk": "Does not immediately improve success rate until a probe-backed coordinate-control policy is implemented.",
+          "summary": "Probe coordinate-level control actions before changing the config again.",
+          "supported_by": [
+            "control_root_causes=coordinate_click_surface_mismatch,coordinate_drag_surface_mismatch,coordinate_draw_surface_mismatch,directional_drag_control_mismatch,list_drag_semantics_mismatch"
+          ],
+          "target_root_causes": [
+            "coordinate_click_surface_mismatch",
+            "coordinate_drag_surface_mismatch",
+            "coordinate_draw_surface_mismatch",
+            "directional_drag_control_mismatch",
+            "list_drag_semantics_mismatch"
+          ]
+        },
+        "patch": {},
+        "rationale": "Candidate failures point to slider, drag, drawing, or SVG click surfaces where bid-level actions are too coarse; another step-budget patch would likely repeat the same ineffective actions.",
+        "risk": "Does not immediately improve success rate until a probe-backed coordinate-control policy is implemented.",
+        "summary": "Probe coordinate-level control actions before changing the config again."
+      },
+      "proposal_mode": "deterministic",
+      "safe_patch": true,
+      "schema_valid": true,
+      "score": 1.0,
+      "target_root_causes": [
+        "coordinate_click_surface_mismatch",
+        "coordinate_drag_surface_mismatch",
+        "coordinate_draw_surface_mismatch",
+        "directional_drag_control_mismatch",
+        "list_drag_semantics_mismatch"
+      ],
+      "uses_failure_evidence": true
+    },
+    {
+      "advisor": "llm",
+      "boundary_awareness": true,
+      "case_id": "control_boundary",
+      "critic_decision": "accepted",
+      "critic_ok": true,
+      "direction_match": true,
+      "expected_direction": "probe_coordinate_control",
+      "hypothesis_id": "hyp_probe_coordinate_control",
+      "notes": [
+        "expected=probe_coordinate_control",
+        "mode=llm",
+        "llm critic: No regressions were observed on the evaluated slice, so holding current config while probing bounded coordinate-control hypotheses is reasonable."
+      ],
+      "patch_keys": [],
+      "proposal": {
+        "advisor_mode": "llm",
+        "advisor_stage_notes": {
+          "analyst": {
+            "dominant_root_causes": [
+              "coordinate_drag_surface_mismatch",
+              "list_drag_semantics_mismatch",
+              "coordinate_click_surface_mismatch",
+              "coordinate_draw_surface_mismatch",
+              "directional_drag_control_mismatch"
+            ],
+            "key_deltas": [
+              "Candidate improved overall success_rate from 0.4375 to 0.5 and avg_normalized_score by 0.0625 (+1 task out of 16).",
+              "Only concrete improvement was browsergym/miniwob.use-slider-2#seed=35, changing from max_steps/0.0 to success/1.0.",
+              "Failure mix shifted from baseline {max_steps:3, zero_score:6} to candidate {max_steps:1, zero_score:7}, indicating fewer loops but no broad capability gain on unresolved tasks.",
+              "Candidate reduced avg_step_count from 6.9375 to 5.125, avg_llm_call_count from 6.9375 to 5.125, avg_latency_sec by 8.53s, and token usage substantially, so efficiency improved alongside the small score gain.",
+              "Persistent failures are largely unchanged across both configs and remain concentrated in coordinate-sensitive drag/click/draw tasks and drag semantic mismatches."
+            ],
+            "risk_flags": [
+              "Improvement appears narrow and possibly patch-specific, with 1/16 tasks improved and no evidence of generalized recovery across the dominant failure cluster.",
+              "Seven candidate failures are still zero_score, showing the config often terminates faster without solving underlying interaction mismatches.",
+              "Most remaining failures require coordinate-level or directional control primitives not demonstrated as fixed by this config, so apparent gains may not transfer to similar SVG/canvas/drag tasks.",
+              "No regressions were observed on this taskset, but unchanged root causes across nearly all failures suggest a ceiling on further gains from prompt/budget-style adjustments alone."
+            ],
+            "summary": "The candidate configuration is a modest net positive on this 16-task MiniWoB slice: it improves success rate and normalized score slightly, delivers a single meaningful win on use-slider-2, and is materially more efficient in steps, calls, latency, and tokens. However, the failure evidence shows little change in the underlying capability profile. The dominant unsolved issues remain coordinate-sensitive drags, SVG/canvas clicks and drawing, directional drag control, and ambiguous list-drag semantics. In short, the candidate is better operationally and slightly better outcome-wise, but its gains are narrow and do not resolve the main failure modes exposed by the baseline."
+          },
+          "critic": {
+            "decision": "accepted",
+            "notes": [
+              "Proposal emits no patch, so it does not violate allowed_patch_keys or introduce an unsupported/unbounded configuration change.",
+              "Recommendation is appropriately conservative: observed gain is narrow (1/16 tasks) and dominant failure modes remain unchanged across coordinate-sensitive drag/click/draw tasks and list-drag semantics.",
+              "Investigation-first stance is supported by evidence: efficiency improved, but current results do not justify another prompt/retry/max_steps style patch as a general fix.",
+              "No regressions were observed on the evaluated slice, so holding current config while probing bounded coordinate-control hypotheses is reasonable."
+            ]
+          }
+        },
+        "critic_decision": "accepted",
+        "critic_notes": [
+          "no patch emitted; recommendation is hold or investigation",
+          "no regressions detected",
+          "uses 8 candidate failure evidence records",
+          "llm critic: Proposal emits no patch, so it does not violate allowed_patch_keys or introduce an unsupported/unbounded configuration change.",
+          "llm critic: Recommendation is appropriately conservative: observed gain is narrow (1/16 tasks) and dominant failure modes remain unchanged across coordinate-sensitive drag/click/draw tasks and list-drag semantics.",
+          "llm critic: Investigation-first stance is supported by evidence: efficiency improved, but current results do not justify another prompt/retry/max_steps style patch as a general fix.",
+          "llm critic: No regressions were observed on the evaluated slice, so holding current config while probing bounded coordinate-control hypotheses is reasonable."
+        ],
+        "expected_effect": "Clarify whether a bounded coordinate-control or drag-semantics action policy is warranted before making another config change; avoids overfitting to the single slider win.",
+        "hypothesis_id": "hyp_probe_coordinate_control",
+        "intervention": {
+          "expected_effect": "Clarify whether a bounded coordinate-control or drag-semantics action policy is warranted before making another config change; avoids overfitting to the single slider win.",
+          "id": "hyp_probe_coordinate_control",
+          "kind": "investigation",
+          "patch": {},
+          "rationale": "The candidate produced only a narrow gain (1 of 16 tasks) while the dominant unresolved failures are unchanged and concentrated in coordinate-sensitive click/drag/draw tasks plus list-drag semantic ambiguity. Efficiency improved, but outcome evidence does not support another prompt, retry, or step-budget tweak as a likely general fix. A probe-focused investigation is the most supported next step to determine whether any bounded action_policy can reliably address coordinate clicks, directional drags, drawing strokes, or list reorder semantics.",
+          "risk": "No immediate success-rate improvement until probe results justify a bounded policy; investigation may confirm that current action primitives are insufficient without lower-level control support.",
+          "summary": "Hold on further config patching and probe coordinate/control primitives first.",
+          "supported_by": [
+            "Candidate improved success_rate from 0.4375 to 0.5 but only via browsergym/miniwob.use-slider-2#seed=35.",
+            "Persistent failures remain concentrated in coordinate_click_surface_mismatch, coordinate_drag_surface_mismatch, coordinate_draw_surface_mismatch, directional_drag_control_mismatch, and list_drag_semantics_mismatch.",
+            "Failure mix shifted from {max_steps:3, zero_score:6} to {max_steps:1, zero_score:7}, suggesting faster termination without broader capability recovery.",
+            "No regressions were observed, but there is no evidence that additional prompt/budget adjustments would solve the dominant failure cluster.",
+            "Deterministic reference recommends probing coordinate-level control before another config change."
+          ],
+          "target_root_causes": [
+            "coordinate_click_surface_mismatch",
+            "coordinate_drag_surface_mismatch",
+            "coordinate_draw_surface_mismatch",
+            "directional_drag_control_mismatch",
+            "list_drag_semantics_mismatch"
+          ]
+        },
+        "patch": {},
+        "rationale": "The candidate produced only a narrow gain (1 of 16 tasks) while the dominant unresolved failures are unchanged and concentrated in coordinate-sensitive click/drag/draw tasks plus list-drag semantic ambiguity. Efficiency improved, but outcome evidence does not support another prompt, retry, or step-budget tweak as a likely general fix. A probe-focused investigation is the most supported next step to determine whether any bounded action_policy can reliably address coordinate clicks, directional drags, drawing strokes, or list reorder semantics.",
+        "risk": "No immediate success-rate improvement until probe results justify a bounded policy; investigation may confirm that current action primitives are insufficient without lower-level control support.",
+        "summary": "Hold on further config patching and probe coordinate/control primitives first."
+      },
+      "proposal_mode": "llm",
+      "safe_patch": true,
+      "schema_valid": true,
+      "score": 1.0,
+      "target_root_causes": [
+        "coordinate_click_surface_mismatch",
+        "coordinate_drag_surface_mismatch",
+        "coordinate_draw_surface_mismatch",
+        "directional_drag_control_mismatch",
+        "list_drag_semantics_mismatch"
+      ],
+      "uses_failure_evidence": true
+    }
+  ],
+  "summary": {
+    "deterministic": {
+      "avg_score": 0.8958333333333334,
+      "boundary_awareness_rate": 0.75,
+      "direction_match_rate": 0.75,
+      "evidence_use_rate": 0.875,
+      "rows": 8,
+      "safe_patch_rate": 1.0
+    },
+    "llm": {
+      "avg_score": 0.875,
+      "boundary_awareness_rate": 0.875,
+      "direction_match_rate": 0.625,
+      "evidence_use_rate": 1.0,
+      "rows": 8,
+      "safe_patch_rate": 0.875
+    }
+  }
+}

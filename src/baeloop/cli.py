@@ -6,6 +6,7 @@ import typer
 
 from baeloop.adapters.agentlab import AgentLabAdapterUnavailable
 from baeloop.advisor import propose_patch
+from baeloop.advisor_eval import render_advisor_eval_markdown, run_advisor_eval
 from baeloop.compare import build_comparison_report, render_markdown
 from baeloop.doctor import probe_agentlab_environment
 from baeloop.grid_probe import run_grid_coordinate_probe, render_grid_coordinate_probe_markdown
@@ -172,6 +173,50 @@ def advise(
         raise typer.BadParameter("Unsupported advisor mode. Use deterministic or llm.")
     write_json(out, proposal)
     typer.echo(f"Wrote advisor proposal {proposal.hypothesis_id} to {out}")
+
+
+@app.command(name="eval-advisor")
+def eval_advisor(
+    json_out: Path = typer.Option(..., help="Path for machine-readable advisor eval report."),
+    markdown_out: Path | None = typer.Option(None, help="Path for markdown advisor eval report."),
+    include_llm: bool = typer.Option(
+        False,
+        "--include-llm/--deterministic-only",
+        help="Also evaluate the LLM advisor on each case.",
+    ),
+    model: str = typer.Option("gpt-5.4", help="LLM advisor model when --include-llm is set."),
+    base_url: str = typer.Option(
+        "https://api.ai.ohfi.com.cn/v1",
+        help="OpenAI-compatible base URL for the LLM advisor.",
+    ),
+    api_key_env: str = typer.Option(
+        "OHFI_API_KEY",
+        help="Environment variable containing the LLM advisor API key.",
+    ),
+    stream: bool = typer.Option(
+        True,
+        "--stream/--no-stream",
+        help="Use streaming chat completions for the LLM advisor.",
+    ),
+) -> None:
+    """Evaluate advisor proposals over committed historical compare reports."""
+    report = run_advisor_eval(
+        include_llm=include_llm,
+        llm_config=LLMAdvisorConfig(
+            model=model,
+            base_url=base_url,
+            api_key_env=api_key_env,
+            stream=stream,
+        ),
+    )
+    write_json(json_out, report)
+    if markdown_out:
+        markdown_out.parent.mkdir(parents=True, exist_ok=True)
+        markdown_out.write_text(render_advisor_eval_markdown(report), encoding="utf-8")
+    typer.echo(
+        f"Evaluated advisor cases={report['case_count']}, "
+        f"include_llm={include_llm}, out={json_out}"
+    )
 
 
 @app.command(name="patch")

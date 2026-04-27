@@ -82,6 +82,29 @@ uv run baeloop advise \
 
 The LLM advisor uses streaming OpenAI-compatible chat completions by default and falls back to the deterministic advisor if JSON parsing, schema validation, or patch-boundary checks fail.
 
+Evaluate the advisor layer over committed historical compare reports:
+
+```bash
+uv run baeloop eval-advisor \
+  --json-out reports/advisor_eval_deterministic.json \
+  --markdown-out reports/advisor_eval_deterministic.md
+
+uv run baeloop eval-advisor \
+  --include-llm \
+  --model gpt-5.4 \
+  --json-out reports/advisor_eval_llm.json \
+  --markdown-out reports/advisor_eval_llm.md
+```
+
+Current advisor-eval result on 8 historical cases:
+
+| Advisor | Avg Score | Direction Match | Safe Patch | Evidence Use | Boundary Awareness |
+|---|---:|---:|---:|---:|---:|
+| `deterministic` | 0.896 | 0.750 | 1.000 | 0.875 | 0.750 |
+| `llm` | 0.875 | 0.625 | 0.875 | 1.000 | 0.875 |
+
+This is intentionally not reported as "LLM wins". The useful result is diagnostic: the deterministic advisor is more predictable and always emits safe top-level patches, while the LLM advisor cites evidence more consistently and is better at capability-boundary warnings. The evaluation also exposes weak spots where either advisor can over-patch instead of recommending another investigation.
+
 ## Current Hard-Slice Result
 
 The current committed MiniWoB++ hard-slice loop shows a full benchmark-driven optimization sequence:
