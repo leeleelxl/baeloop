@@ -41,7 +41,7 @@
 - 当前 benchmark：BrowserGym MiniWoB++
 - 当前重点：上层 advisor agent 的决策质量，而不是继续堆 MiniWoB 控制任务
 - 当前主要 advisor 模式：`deterministic`、`llm`、`llm-v2`
-- 初始化本文件时的最新 pushed commit：`fd17b0c add llm v2 advisor selector`
+- 当前最新 pushed commit：`d2c4e6e add project progress ledger`
 
 关键证据：
 
@@ -181,7 +181,7 @@ AdvisorProposal
 
 - `reports/advisor_eval_llm_v2.md` 显示 `llm-v2` 在 8 个历史 case 上平均分 `1.000`。
 - `uv run pytest` 通过，`77 passed`。
-- `git push` 已推送到 GitHub main，最新代码包含 `fd17b0c`。
+- `git push` 已推送到 GitHub main，最新代码包含 `d2c4e6e`。
 
 #### 今日 Review
 
