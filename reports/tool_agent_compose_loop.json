@@ -1,6 +1,6 @@
 {
   "decision_changed_by_tools": true,
-  "final_hypothesis_id": "hyp_terminal_keyboard_type",
+  "final_hypothesis_id": "hyp_combine_scroll_and_terminal_policies",
   "pre_tool_hypothesis_id": "hyp_tool_investigate_before_patch",
   "pre_tool_proposal": {
     "advisor_mode": "tool-agent-pretool",
@@ -15,7 +15,7 @@
     "critic_decision": "accepted",
     "critic_notes": [
       "no patch emitted; recommendation is hold or investigation",
-      "no regressions detected",
+      "candidate has 1 regressions",
       "uses 2 candidate failure evidence records"
     ],
     "expected_effect": "Avoid unsupported patches while collecting tool observations.",
@@ -29,11 +29,11 @@
       "risk": "Adds an intermediate diagnostic step before success rate can improve.",
       "summary": "Use diagnostic tools before emitting the next optimization patch.",
       "supported_by": [
-        "candidate_root_causes=coordinate_click_miss, terminal_input_action_mismatch"
+        "candidate_root_causes=coordinate_click_miss, missed_scroll_target"
       ],
       "target_root_causes": [
         "coordinate_click_miss",
-        "terminal_input_action_mismatch"
+        "missed_scroll_target"
       ]
     },
     "patch": {},
@@ -47,11 +47,12 @@
       "tool_agent": {
         "decision_changed_by_tools": true,
         "pre_tool_hypothesis_id": "hyp_tool_investigate_before_patch",
-        "selected_root_cause": "terminal_input_action_mismatch",
-        "tool_call_count": 3,
+        "selected_root_cause": "compose_scroll_and_terminal",
+        "tool_call_count": 4,
         "tool_names": [
           "inspect_compare_report",
           "inspect_terminal_probe",
+          "inspect_policy_replay",
           "inspect_grid_probe"
         ]
       }
@@ -59,31 +60,42 @@
     "critic_decision": "accepted",
     "critic_notes": [
       "bounded patch present",
-      "no regressions detected",
+      "candidate has 1 regressions",
       "uses 2 candidate failure evidence records"
     ],
-    "expected_effect": "Let terminal commands reach MiniWoB's custom terminal input surface.",
-    "hypothesis_id": "hyp_terminal_keyboard_type",
+    "expected_effect": "Restore hidden-target scrolling while keeping terminal keyboard input behavior.",
+    "hypothesis_id": "hyp_combine_scroll_and_terminal_policies",
     "intervention": {
-      "expected_effect": "Let terminal commands reach MiniWoB's custom terminal input surface.",
-      "id": "hyp_terminal_keyboard_type",
+      "expected_effect": "Restore hidden-target scrolling while keeping terminal keyboard input behavior.",
+      "id": "hyp_combine_scroll_and_terminal_policies",
       "kind": "action_policy",
       "patch": {
         "action_policy": {
           "enabled": true,
           "max_interventions": 20,
-          "name": "terminal_keyboard_type"
+          "name": "composite",
+          "policies": [
+            "scroll_before_submit",
+            "terminal_keyboard_type"
+          ],
+          "policy_limits": {
+            "scroll_before_submit": 1,
+            "terminal_keyboard_type": 20
+          },
+          "scroll_delta_y": 621
         }
       },
-      "rationale": "The terminal probe shows fill/press does not make commands visible, while keyboard typing does.",
-      "risk": "Fixes input delivery only; incorrect command planning can still fail.",
-      "summary": "Enable a terminal keyboard-type action policy after probe-backed evidence.",
+      "rationale": "The candidate regressed on hidden social targets while the baseline still had terminal input mismatch; replay and probe artifacts support preserving both policies.",
+      "risk": "Combining policies expands wrapper surface area, so each sub-policy stays bounded.",
+      "summary": "Compose scroll and terminal policies after both tools show mature evidence.",
       "supported_by": [
-        "root_cause=terminal_input_action_mismatch",
-        "tool=inspect_terminal_probe artifact=reports/agentlab_terminal_action_probe.json",
-        "oracle_reward=1.0"
+        "candidate_root_cause=missed_scroll_target",
+        "baseline_root_cause=terminal_input_action_mismatch",
+        "tool=inspect_policy_replay artifact=reports/agentlab_social_scroll_policy_replay.json",
+        "tool=inspect_terminal_probe artifact=reports/agentlab_terminal_action_probe.json"
       ],
       "target_root_causes": [
+        "missed_scroll_target",
         "terminal_input_action_mismatch"
       ]
     },
@@ -91,35 +103,43 @@
       "action_policy": {
         "enabled": true,
         "max_interventions": 20,
-        "name": "terminal_keyboard_type"
+        "name": "composite",
+        "policies": [
+          "scroll_before_submit",
+          "terminal_keyboard_type"
+        ],
+        "policy_limits": {
+          "scroll_before_submit": 1,
+          "terminal_keyboard_type": 20
+        },
+        "scroll_delta_y": 621
       }
     },
-    "rationale": "The terminal probe shows fill/press does not make commands visible, while keyboard typing does.",
-    "risk": "Fixes input delivery only; incorrect command planning can still fail.",
-    "summary": "Enable a terminal keyboard-type action policy after probe-backed evidence."
+    "rationale": "The candidate regressed on hidden social targets while the baseline still had terminal input mismatch; replay and probe artifacts support preserving both policies.",
+    "risk": "Combining policies expands wrapper surface area, so each sub-policy stays bounded.",
+    "summary": "Compose scroll and terminal policies after both tools show mature evidence."
   },
-  "report_path": "reports/agentlab_hard_scroll_policy_compare.json",
-  "selected_root_cause": "terminal_input_action_mismatch",
+  "report_path": "reports/agentlab_hard_terminal_policy_compare.json",
+  "selected_root_cause": "compose_scroll_and_terminal",
   "tool_calls": [
     {
       "args": {
-        "report_path": "reports/agentlab_hard_scroll_policy_compare.json"
+        "report_path": "reports/agentlab_hard_terminal_policy_compare.json"
       },
       "observation": {
-        "baseline_config_id": "relay_gpt54_hard_retry_hyp_extend_step_budget",
+        "baseline_config_id": "relay_gpt54_hard_retry_hyp_extend_step_budget_hyp_scroll_before_submit",
         "baseline_root_causes": [
           "coordinate_click_miss",
-          "missed_scroll_target",
           "terminal_input_action_mismatch"
         ],
-        "candidate_config_id": "relay_gpt54_hard_retry_hyp_extend_step_budget_hyp_scroll_before_submit",
+        "candidate_config_id": "relay_gpt54_hard_retry_hyp_extend_step_budget_hyp_scroll_before_submit_hyp_terminal_keyboard_type",
         "candidate_root_causes": [
           "coordinate_click_miss",
-          "terminal_input_action_mismatch"
+          "missed_scroll_target"
         ],
         "improvement_count": 1,
-        "regression_count": 0,
-        "success_rate_delta": 0.125
+        "regression_count": 1,
+        "success_rate_delta": 0.0
       },
       "tool_name": "inspect_compare_report"
     },
@@ -140,6 +160,21 @@
         "patch_mature": true
       },
       "tool_name": "inspect_terminal_probe"
+    },
+    {
+      "args": {
+        "artifact": "reports/agentlab_social_scroll_policy_replay.json"
+      },
+      "observation": {
+        "applied_count": 1,
+        "artifact": "reports/agentlab_social_scroll_policy_replay.json",
+        "fired": true,
+        "first_step": 7,
+        "patch_mature": true,
+        "policy_name": "scroll_before_submit",
+        "rewritten_action": "scroll(0, 621)"
+      },
+      "tool_name": "inspect_policy_replay"
     },
     {
       "args": {

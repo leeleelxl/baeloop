@@ -134,6 +134,27 @@ uv run baeloop tool-agent \
 
 This command does not rerun the browser and does not call an API. It demonstrates the upper-layer agent loop: `inspect_compare_report -> inspect_grid_probe -> AdvisorProposal`.
 
+Evaluate the tool-using advisor loop against a pre-tool investigation baseline:
+
+```bash
+uv run baeloop eval-advisor \
+  --case-suite tool \
+  --include-tool-pretool \
+  --include-tool-agent \
+  --json-out reports/advisor_eval_tool_agent.json \
+  --markdown-out reports/advisor_eval_tool_agent.md
+```
+
+Current tool-agent eval result on 3 probe-backed cases:
+
+| Advisor | Avg Score | Direction Match | Safe Patch | Evidence Use | Boundary Awareness |
+|---|---:|---:|---:|---:|---:|
+| `deterministic` | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
+| `tool-agent-pretool` | 0.833 | 0.000 | 1.000 | 1.000 | 1.000 |
+| `tool-agent` | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
+
+The useful claim is not that `tool-agent` beats deterministic on these mature cases. The useful claim is that tool observations convert a safe but non-actionable investigation into the correct bounded patch.
+
 Evaluate the advisor layer over committed historical compare reports:
 
 ```bash

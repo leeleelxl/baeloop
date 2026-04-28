@@ -1,0 +1,791 @@
+{
+  "case_count": 3,
+  "case_suite": "tool",
+  "include_llm": false,
+  "include_llm_v2": false,
+  "include_tool_agent": true,
+  "include_tool_pretool": true,
+  "rows": [
+    {
+      "advisor": "deterministic",
+      "boundary_awareness": true,
+      "case_id": "tool_terminal_probe_to_policy",
+      "critic_decision": "accepted",
+      "critic_ok": true,
+      "direction_match": true,
+      "expected_direction": "terminal_policy",
+      "hypothesis_id": "hyp_terminal_keyboard_type",
+      "notes": [
+        "expected=terminal_policy",
+        "mode=deterministic",
+        "uses 2 candidate failure evidence records"
+      ],
+      "patch_keys": [
+        "action_policy"
+      ],
+      "proposal": {
+        "advisor_mode": "deterministic",
+        "advisor_stage_notes": {},
+        "critic_decision": "accepted",
+        "critic_notes": [
+          "bounded patch present",
+          "no regressions detected",
+          "uses 2 candidate failure evidence records"
+        ],
+        "expected_effect": "Let the agent's terminal commands actually reach the MiniWoB terminal without changing the prompt.",
+        "hypothesis_id": "hyp_terminal_keyboard_type",
+        "intervention": {
+          "expected_effect": "Let the agent's terminal commands actually reach the MiniWoB terminal without changing the prompt.",
+          "id": "hyp_terminal_keyboard_type",
+          "kind": "action_policy",
+          "patch": {
+            "action_policy": {
+              "enabled": true,
+              "max_interventions": 20,
+              "name": "terminal_keyboard_type"
+            }
+          },
+          "rationale": "Candidate failure evidence shows terminal commands were attempted with `fill`, but MiniWoB's custom terminal only updates command state from keyboard events.",
+          "risk": "May expose the agent's incorrect shell commands as visible terminal errors; it fixes input delivery, not command planning.",
+          "summary": "Enable a terminal keyboard-type action policy for custom terminal input.",
+          "supported_by": [
+            "root_cause=terminal_input_action_mismatch"
+          ],
+          "target_root_causes": [
+            "terminal_input_action_mismatch"
+          ]
+        },
+        "patch": {
+          "action_policy": {
+            "enabled": true,
+            "max_interventions": 20,
+            "name": "terminal_keyboard_type"
+          }
+        },
+        "rationale": "Candidate failure evidence shows terminal commands were attempted with `fill`, but MiniWoB's custom terminal only updates command state from keyboard events.",
+        "risk": "May expose the agent's incorrect shell commands as visible terminal errors; it fixes input delivery, not command planning.",
+        "summary": "Enable a terminal keyboard-type action policy for custom terminal input."
+      },
+      "proposal_mode": "deterministic",
+      "safe_patch": true,
+      "schema_valid": true,
+      "score": 1.0,
+      "selected_source": "-",
+      "target_root_causes": [
+        "terminal_input_action_mismatch"
+      ],
+      "used_fallback": false,
+      "uses_failure_evidence": true
+    },
+    {
+      "advisor": "tool-agent-pretool",
+      "boundary_awareness": true,
+      "case_id": "tool_terminal_probe_to_policy",
+      "critic_decision": "accepted",
+      "critic_ok": true,
+      "direction_match": false,
+      "expected_direction": "terminal_policy",
+      "hypothesis_id": "hyp_tool_investigate_before_patch",
+      "notes": [
+        "expected=terminal_policy",
+        "mode=tool-agent-pretool",
+        "failed_direction_match",
+        "uses 2 candidate failure evidence records"
+      ],
+      "patch_keys": [],
+      "proposal": {
+        "advisor_mode": "tool-agent-pretool",
+        "advisor_stage_notes": {
+          "tool_agent": {
+            "decision_changed_by_tools": false,
+            "selected_source": "pretool_investigation",
+            "tool_call_count": 0,
+            "tool_names": []
+          }
+        },
+        "critic_decision": "accepted",
+        "critic_notes": [
+          "no patch emitted; recommendation is hold or investigation",
+          "no regressions detected",
+          "uses 2 candidate failure evidence records"
+        ],
+        "expected_effect": "Avoid unsupported patches while collecting tool observations.",
+        "hypothesis_id": "hyp_tool_investigate_before_patch",
+        "intervention": {
+          "expected_effect": "Avoid unsupported patches while collecting tool observations.",
+          "id": "hyp_tool_investigate_before_patch",
+          "kind": "investigation",
+          "patch": {},
+          "rationale": "The compare report points to actionable root causes, but the optimization agent should first inspect probe or replay evidence before changing config.",
+          "risk": "Adds an intermediate diagnostic step before success rate can improve.",
+          "summary": "Use diagnostic tools before emitting the next optimization patch.",
+          "supported_by": [
+            "candidate_root_causes=coordinate_click_miss, terminal_input_action_mismatch"
+          ],
+          "target_root_causes": [
+            "coordinate_click_miss",
+            "terminal_input_action_mismatch"
+          ]
+        },
+        "patch": {},
+        "rationale": "The compare report points to actionable root causes, but the optimization agent should first inspect probe or replay evidence before changing config.",
+        "risk": "Adds an intermediate diagnostic step before success rate can improve.",
+        "summary": "Use diagnostic tools before emitting the next optimization patch."
+      },
+      "proposal_mode": "tool-agent-pretool",
+      "safe_patch": true,
+      "schema_valid": true,
+      "score": 0.8333333333333334,
+      "selected_source": "pretool_investigation",
+      "target_root_causes": [
+        "coordinate_click_miss",
+        "terminal_input_action_mismatch"
+      ],
+      "used_fallback": false,
+      "uses_failure_evidence": true
+    },
+    {
+      "advisor": "tool-agent",
+      "boundary_awareness": true,
+      "case_id": "tool_terminal_probe_to_policy",
+      "critic_decision": "accepted",
+      "critic_ok": true,
+      "direction_match": true,
+      "expected_direction": "terminal_policy",
+      "hypothesis_id": "hyp_terminal_keyboard_type",
+      "notes": [
+        "expected=terminal_policy",
+        "mode=tool-agent",
+        "uses 2 candidate failure evidence records"
+      ],
+      "patch_keys": [
+        "action_policy"
+      ],
+      "proposal": {
+        "advisor_mode": "tool-agent",
+        "advisor_stage_notes": {
+          "tool_agent": {
+            "decision_changed_by_tools": true,
+            "pre_tool_hypothesis_id": "hyp_tool_investigate_before_patch",
+            "selected_root_cause": "terminal_input_action_mismatch",
+            "tool_call_count": 3,
+            "tool_names": [
+              "inspect_compare_report",
+              "inspect_terminal_probe",
+              "inspect_grid_probe"
+            ]
+          }
+        },
+        "critic_decision": "accepted",
+        "critic_notes": [
+          "bounded patch present",
+          "no regressions detected",
+          "uses 2 candidate failure evidence records"
+        ],
+        "expected_effect": "Let terminal commands reach MiniWoB's custom terminal input surface.",
+        "hypothesis_id": "hyp_terminal_keyboard_type",
+        "intervention": {
+          "expected_effect": "Let terminal commands reach MiniWoB's custom terminal input surface.",
+          "id": "hyp_terminal_keyboard_type",
+          "kind": "action_policy",
+          "patch": {
+            "action_policy": {
+              "enabled": true,
+              "max_interventions": 20,
+              "name": "terminal_keyboard_type"
+            }
+          },
+          "rationale": "The terminal probe shows fill/press does not make commands visible, while keyboard typing does.",
+          "risk": "Fixes input delivery only; incorrect command planning can still fail.",
+          "summary": "Enable a terminal keyboard-type action policy after probe-backed evidence.",
+          "supported_by": [
+            "root_cause=terminal_input_action_mismatch",
+            "tool=inspect_terminal_probe artifact=reports/agentlab_terminal_action_probe.json",
+            "oracle_reward=1.0"
+          ],
+          "target_root_causes": [
+            "terminal_input_action_mismatch"
+          ]
+        },
+        "patch": {
+          "action_policy": {
+            "enabled": true,
+            "max_interventions": 20,
+            "name": "terminal_keyboard_type"
+          }
+        },
+        "rationale": "The terminal probe shows fill/press does not make commands visible, while keyboard typing does.",
+        "risk": "Fixes input delivery only; incorrect command planning can still fail.",
+        "summary": "Enable a terminal keyboard-type action policy after probe-backed evidence."
+      },
+      "proposal_mode": "tool-agent",
+      "safe_patch": true,
+      "schema_valid": true,
+      "score": 1.0,
+      "selected_source": "tool_agent",
+      "target_root_causes": [
+        "terminal_input_action_mismatch"
+      ],
+      "used_fallback": false,
+      "uses_failure_evidence": true
+    },
+    {
+      "advisor": "deterministic",
+      "boundary_awareness": true,
+      "case_id": "tool_compose_scroll_terminal",
+      "critic_decision": "accepted",
+      "critic_ok": true,
+      "direction_match": true,
+      "expected_direction": "compose_policies",
+      "hypothesis_id": "hyp_combine_scroll_and_terminal_policies",
+      "notes": [
+        "expected=compose_policies",
+        "mode=deterministic",
+        "uses 2 candidate failure evidence records"
+      ],
+      "patch_keys": [
+        "action_policy"
+      ],
+      "proposal": {
+        "advisor_mode": "deterministic",
+        "advisor_stage_notes": {},
+        "critic_decision": "accepted",
+        "critic_notes": [
+          "bounded patch present",
+          "candidate has 1 regressions",
+          "uses 2 candidate failure evidence records"
+        ],
+        "expected_effect": "Preserve the terminal input fix while restoring hidden-target scrolling behavior.",
+        "hypothesis_id": "hyp_combine_scroll_and_terminal_policies",
+        "intervention": {
+          "expected_effect": "Preserve the terminal input fix while restoring hidden-target scrolling behavior.",
+          "id": "hyp_combine_scroll_and_terminal_policies",
+          "kind": "action_policy",
+          "patch": {
+            "action_policy": {
+              "enabled": true,
+              "max_interventions": 20,
+              "name": "composite",
+              "policies": [
+                "scroll_before_submit",
+                "terminal_keyboard_type"
+              ],
+              "policy_limits": {
+                "scroll_before_submit": 1,
+                "terminal_keyboard_type": 20
+              },
+              "scroll_delta_y": 621
+            }
+          },
+          "rationale": "The report shows a candidate regression from `missed_scroll_target` while the baseline still had `terminal_input_action_mismatch`; a single replacement policy would likely fix one task family while breaking the other.",
+          "risk": "Combining task-scoped policies increases wrapper surface area, so each sub-policy must stay bounded and evidence-gated.",
+          "summary": "Compose scroll and terminal action policies instead of replacing one with the other.",
+          "supported_by": [
+            "candidate_root_cause=missed_scroll_target",
+            "baseline_root_cause=terminal_input_action_mismatch",
+            "regression_count>0"
+          ],
+          "target_root_causes": [
+            "missed_scroll_target",
+            "terminal_input_action_mismatch"
+          ]
+        },
+        "patch": {
+          "action_policy": {
+            "enabled": true,
+            "max_interventions": 20,
+            "name": "composite",
+            "policies": [
+              "scroll_before_submit",
+              "terminal_keyboard_type"
+            ],
+            "policy_limits": {
+              "scroll_before_submit": 1,
+              "terminal_keyboard_type": 20
+            },
+            "scroll_delta_y": 621
+          }
+        },
+        "rationale": "The report shows a candidate regression from `missed_scroll_target` while the baseline still had `terminal_input_action_mismatch`; a single replacement policy would likely fix one task family while breaking the other.",
+        "risk": "Combining task-scoped policies increases wrapper surface area, so each sub-policy must stay bounded and evidence-gated.",
+        "summary": "Compose scroll and terminal action policies instead of replacing one with the other."
+      },
+      "proposal_mode": "deterministic",
+      "safe_patch": true,
+      "schema_valid": true,
+      "score": 1.0,
+      "selected_source": "-",
+      "target_root_causes": [
+        "missed_scroll_target",
+        "terminal_input_action_mismatch"
+      ],
+      "used_fallback": false,
+      "uses_failure_evidence": true
+    },
+    {
+      "advisor": "tool-agent-pretool",
+      "boundary_awareness": true,
+      "case_id": "tool_compose_scroll_terminal",
+      "critic_decision": "accepted",
+      "critic_ok": true,
+      "direction_match": false,
+      "expected_direction": "compose_policies",
+      "hypothesis_id": "hyp_tool_investigate_before_patch",
+      "notes": [
+        "expected=compose_policies",
+        "mode=tool-agent-pretool",
+        "failed_direction_match",
+        "uses 2 candidate failure evidence records"
+      ],
+      "patch_keys": [],
+      "proposal": {
+        "advisor_mode": "tool-agent-pretool",
+        "advisor_stage_notes": {
+          "tool_agent": {
+            "decision_changed_by_tools": false,
+            "selected_source": "pretool_investigation",
+            "tool_call_count": 0,
+            "tool_names": []
+          }
+        },
+        "critic_decision": "accepted",
+        "critic_notes": [
+          "no patch emitted; recommendation is hold or investigation",
+          "candidate has 1 regressions",
+          "uses 2 candidate failure evidence records"
+        ],
+        "expected_effect": "Avoid unsupported patches while collecting tool observations.",
+        "hypothesis_id": "hyp_tool_investigate_before_patch",
+        "intervention": {
+          "expected_effect": "Avoid unsupported patches while collecting tool observations.",
+          "id": "hyp_tool_investigate_before_patch",
+          "kind": "investigation",
+          "patch": {},
+          "rationale": "The compare report points to actionable root causes, but the optimization agent should first inspect probe or replay evidence before changing config.",
+          "risk": "Adds an intermediate diagnostic step before success rate can improve.",
+          "summary": "Use diagnostic tools before emitting the next optimization patch.",
+          "supported_by": [
+            "candidate_root_causes=coordinate_click_miss, missed_scroll_target"
+          ],
+          "target_root_causes": [
+            "coordinate_click_miss",
+            "missed_scroll_target"
+          ]
+        },
+        "patch": {},
+        "rationale": "The compare report points to actionable root causes, but the optimization agent should first inspect probe or replay evidence before changing config.",
+        "risk": "Adds an intermediate diagnostic step before success rate can improve.",
+        "summary": "Use diagnostic tools before emitting the next optimization patch."
+      },
+      "proposal_mode": "tool-agent-pretool",
+      "safe_patch": true,
+      "schema_valid": true,
+      "score": 0.8333333333333334,
+      "selected_source": "pretool_investigation",
+      "target_root_causes": [
+        "coordinate_click_miss",
+        "missed_scroll_target"
+      ],
+      "used_fallback": false,
+      "uses_failure_evidence": true
+    },
+    {
+      "advisor": "tool-agent",
+      "boundary_awareness": true,
+      "case_id": "tool_compose_scroll_terminal",
+      "critic_decision": "accepted",
+      "critic_ok": true,
+      "direction_match": true,
+      "expected_direction": "compose_policies",
+      "hypothesis_id": "hyp_combine_scroll_and_terminal_policies",
+      "notes": [
+        "expected=compose_policies",
+        "mode=tool-agent",
+        "uses 2 candidate failure evidence records"
+      ],
+      "patch_keys": [
+        "action_policy"
+      ],
+      "proposal": {
+        "advisor_mode": "tool-agent",
+        "advisor_stage_notes": {
+          "tool_agent": {
+            "decision_changed_by_tools": true,
+            "pre_tool_hypothesis_id": "hyp_tool_investigate_before_patch",
+            "selected_root_cause": "compose_scroll_and_terminal",
+            "tool_call_count": 4,
+            "tool_names": [
+              "inspect_compare_report",
+              "inspect_terminal_probe",
+              "inspect_policy_replay",
+              "inspect_grid_probe"
+            ]
+          }
+        },
+        "critic_decision": "accepted",
+        "critic_notes": [
+          "bounded patch present",
+          "candidate has 1 regressions",
+          "uses 2 candidate failure evidence records"
+        ],
+        "expected_effect": "Restore hidden-target scrolling while keeping terminal keyboard input behavior.",
+        "hypothesis_id": "hyp_combine_scroll_and_terminal_policies",
+        "intervention": {
+          "expected_effect": "Restore hidden-target scrolling while keeping terminal keyboard input behavior.",
+          "id": "hyp_combine_scroll_and_terminal_policies",
+          "kind": "action_policy",
+          "patch": {
+            "action_policy": {
+              "enabled": true,
+              "max_interventions": 20,
+              "name": "composite",
+              "policies": [
+                "scroll_before_submit",
+                "terminal_keyboard_type"
+              ],
+              "policy_limits": {
+                "scroll_before_submit": 1,
+                "terminal_keyboard_type": 20
+              },
+              "scroll_delta_y": 621
+            }
+          },
+          "rationale": "The candidate regressed on hidden social targets while the baseline still had terminal input mismatch; replay and probe artifacts support preserving both policies.",
+          "risk": "Combining policies expands wrapper surface area, so each sub-policy stays bounded.",
+          "summary": "Compose scroll and terminal policies after both tools show mature evidence.",
+          "supported_by": [
+            "candidate_root_cause=missed_scroll_target",
+            "baseline_root_cause=terminal_input_action_mismatch",
+            "tool=inspect_policy_replay artifact=reports/agentlab_social_scroll_policy_replay.json",
+            "tool=inspect_terminal_probe artifact=reports/agentlab_terminal_action_probe.json"
+          ],
+          "target_root_causes": [
+            "missed_scroll_target",
+            "terminal_input_action_mismatch"
+          ]
+        },
+        "patch": {
+          "action_policy": {
+            "enabled": true,
+            "max_interventions": 20,
+            "name": "composite",
+            "policies": [
+              "scroll_before_submit",
+              "terminal_keyboard_type"
+            ],
+            "policy_limits": {
+              "scroll_before_submit": 1,
+              "terminal_keyboard_type": 20
+            },
+            "scroll_delta_y": 621
+          }
+        },
+        "rationale": "The candidate regressed on hidden social targets while the baseline still had terminal input mismatch; replay and probe artifacts support preserving both policies.",
+        "risk": "Combining policies expands wrapper surface area, so each sub-policy stays bounded.",
+        "summary": "Compose scroll and terminal policies after both tools show mature evidence."
+      },
+      "proposal_mode": "tool-agent",
+      "safe_patch": true,
+      "schema_valid": true,
+      "score": 1.0,
+      "selected_source": "tool_agent",
+      "target_root_causes": [
+        "missed_scroll_target",
+        "terminal_input_action_mismatch"
+      ],
+      "used_fallback": false,
+      "uses_failure_evidence": true
+    },
+    {
+      "advisor": "deterministic",
+      "boundary_awareness": true,
+      "case_id": "tool_grid_probe_to_policy",
+      "critic_decision": "accepted",
+      "critic_ok": true,
+      "direction_match": true,
+      "expected_direction": "grid_policy",
+      "hypothesis_id": "hyp_grid_coordinate_click",
+      "notes": [
+        "expected=grid_policy",
+        "mode=deterministic",
+        "uses 1 candidate failure evidence records"
+      ],
+      "patch_keys": [
+        "action_policy"
+      ],
+      "proposal": {
+        "advisor_mode": "deterministic",
+        "advisor_stage_notes": {},
+        "critic_decision": "accepted",
+        "critic_notes": [
+          "bounded patch present",
+          "no regressions detected",
+          "uses 1 candidate failure evidence records"
+        ],
+        "expected_effect": "Convert SVG-root clicks into precise mouse clicks on the requested grid point without changing the prompt.",
+        "hypothesis_id": "hyp_grid_coordinate_click",
+        "intervention": {
+          "expected_effect": "Convert SVG-root clicks into precise mouse clicks on the requested grid point without changing the prompt.",
+          "id": "hyp_grid_coordinate_click",
+          "kind": "action_policy",
+          "patch": {
+            "action_policy": {
+              "enabled": true,
+              "max_interventions": 25,
+              "name": "composite",
+              "policies": [
+                "scroll_before_submit",
+                "terminal_keyboard_type",
+                "grid_coordinate_click"
+              ],
+              "policy_limits": {
+                "grid_coordinate_click": 1,
+                "scroll_before_submit": 1,
+                "terminal_keyboard_type": 20
+              },
+              "scroll_delta_y": 621
+            }
+          },
+          "rationale": "Candidate failure evidence shows the agent identified the target coordinate but clicked the SVG root because the target circle had no bid-addressable action.",
+          "risk": "Only applies when the grid target can be parsed from goal/html/bbox evidence; otherwise it should no-op rather than guess.",
+          "summary": "Enable a coordinate-aware click policy for SVG grid-coordinate targets.",
+          "supported_by": [
+            "root_cause=coordinate_click_miss"
+          ],
+          "target_root_causes": [
+            "coordinate_click_miss"
+          ]
+        },
+        "patch": {
+          "action_policy": {
+            "enabled": true,
+            "max_interventions": 25,
+            "name": "composite",
+            "policies": [
+              "scroll_before_submit",
+              "terminal_keyboard_type",
+              "grid_coordinate_click"
+            ],
+            "policy_limits": {
+              "grid_coordinate_click": 1,
+              "scroll_before_submit": 1,
+              "terminal_keyboard_type": 20
+            },
+            "scroll_delta_y": 621
+          }
+        },
+        "rationale": "Candidate failure evidence shows the agent identified the target coordinate but clicked the SVG root because the target circle had no bid-addressable action.",
+        "risk": "Only applies when the grid target can be parsed from goal/html/bbox evidence; otherwise it should no-op rather than guess.",
+        "summary": "Enable a coordinate-aware click policy for SVG grid-coordinate targets."
+      },
+      "proposal_mode": "deterministic",
+      "safe_patch": true,
+      "schema_valid": true,
+      "score": 1.0,
+      "selected_source": "-",
+      "target_root_causes": [
+        "coordinate_click_miss"
+      ],
+      "used_fallback": false,
+      "uses_failure_evidence": true
+    },
+    {
+      "advisor": "tool-agent-pretool",
+      "boundary_awareness": true,
+      "case_id": "tool_grid_probe_to_policy",
+      "critic_decision": "accepted",
+      "critic_ok": true,
+      "direction_match": false,
+      "expected_direction": "grid_policy",
+      "hypothesis_id": "hyp_tool_investigate_before_patch",
+      "notes": [
+        "expected=grid_policy",
+        "mode=tool-agent-pretool",
+        "failed_direction_match",
+        "uses 1 candidate failure evidence records"
+      ],
+      "patch_keys": [],
+      "proposal": {
+        "advisor_mode": "tool-agent-pretool",
+        "advisor_stage_notes": {
+          "tool_agent": {
+            "decision_changed_by_tools": false,
+            "selected_source": "pretool_investigation",
+            "tool_call_count": 0,
+            "tool_names": []
+          }
+        },
+        "critic_decision": "accepted",
+        "critic_notes": [
+          "no patch emitted; recommendation is hold or investigation",
+          "no regressions detected",
+          "uses 1 candidate failure evidence records"
+        ],
+        "expected_effect": "Avoid unsupported patches while collecting tool observations.",
+        "hypothesis_id": "hyp_tool_investigate_before_patch",
+        "intervention": {
+          "expected_effect": "Avoid unsupported patches while collecting tool observations.",
+          "id": "hyp_tool_investigate_before_patch",
+          "kind": "investigation",
+          "patch": {},
+          "rationale": "The compare report points to actionable root causes, but the optimization agent should first inspect probe or replay evidence before changing config.",
+          "risk": "Adds an intermediate diagnostic step before success rate can improve.",
+          "summary": "Use diagnostic tools before emitting the next optimization patch.",
+          "supported_by": [
+            "candidate_root_causes=coordinate_click_miss"
+          ],
+          "target_root_causes": [
+            "coordinate_click_miss"
+          ]
+        },
+        "patch": {},
+        "rationale": "The compare report points to actionable root causes, but the optimization agent should first inspect probe or replay evidence before changing config.",
+        "risk": "Adds an intermediate diagnostic step before success rate can improve.",
+        "summary": "Use diagnostic tools before emitting the next optimization patch."
+      },
+      "proposal_mode": "tool-agent-pretool",
+      "safe_patch": true,
+      "schema_valid": true,
+      "score": 0.8333333333333334,
+      "selected_source": "pretool_investigation",
+      "target_root_causes": [
+        "coordinate_click_miss"
+      ],
+      "used_fallback": false,
+      "uses_failure_evidence": true
+    },
+    {
+      "advisor": "tool-agent",
+      "boundary_awareness": true,
+      "case_id": "tool_grid_probe_to_policy",
+      "critic_decision": "accepted",
+      "critic_ok": true,
+      "direction_match": true,
+      "expected_direction": "grid_policy",
+      "hypothesis_id": "hyp_grid_coordinate_click",
+      "notes": [
+        "expected=grid_policy",
+        "mode=tool-agent",
+        "uses 1 candidate failure evidence records"
+      ],
+      "patch_keys": [
+        "action_policy"
+      ],
+      "proposal": {
+        "advisor_mode": "tool-agent",
+        "advisor_stage_notes": {
+          "tool_agent": {
+            "decision_changed_by_tools": true,
+            "pre_tool_hypothesis_id": "hyp_tool_investigate_before_patch",
+            "selected_root_cause": "coordinate_click_miss",
+            "tool_call_count": 2,
+            "tool_names": [
+              "inspect_compare_report",
+              "inspect_grid_probe"
+            ]
+          }
+        },
+        "critic_decision": "accepted",
+        "critic_notes": [
+          "bounded patch present",
+          "no regressions detected",
+          "uses 1 candidate failure evidence records"
+        ],
+        "expected_effect": "Convert SVG-root grid clicks into precise mouse clicks when target geometry is available.",
+        "hypothesis_id": "hyp_grid_coordinate_click",
+        "intervention": {
+          "expected_effect": "Convert SVG-root grid clicks into precise mouse clicks when target geometry is available.",
+          "id": "hyp_grid_coordinate_click",
+          "kind": "action_policy",
+          "patch": {
+            "action_policy": {
+              "enabled": true,
+              "max_interventions": 25,
+              "name": "composite",
+              "policies": [
+                "scroll_before_submit",
+                "terminal_keyboard_type",
+                "grid_coordinate_click"
+              ],
+              "policy_limits": {
+                "grid_coordinate_click": 1,
+                "scroll_before_submit": 1,
+                "terminal_keyboard_type": 20
+              },
+              "scroll_delta_y": 621
+            }
+          },
+          "rationale": "The grid probe shows SVG-root bid click fails while mapped mouse_click solves the target.",
+          "risk": "Should only fire when coordinate and SVG geometry are confidently parsed.",
+          "summary": "Enable a coordinate-aware click policy after grid probe evidence.",
+          "supported_by": [
+            "root_cause=coordinate_click_miss",
+            "tool=inspect_grid_probe artifact=reports/agentlab_grid_coordinate_probe.json",
+            "mapped_mouse_click_reward=1.0",
+            "target_click_point=[164, 104]"
+          ],
+          "target_root_causes": [
+            "coordinate_click_miss"
+          ]
+        },
+        "patch": {
+          "action_policy": {
+            "enabled": true,
+            "max_interventions": 25,
+            "name": "composite",
+            "policies": [
+              "scroll_before_submit",
+              "terminal_keyboard_type",
+              "grid_coordinate_click"
+            ],
+            "policy_limits": {
+              "grid_coordinate_click": 1,
+              "scroll_before_submit": 1,
+              "terminal_keyboard_type": 20
+            },
+            "scroll_delta_y": 621
+          }
+        },
+        "rationale": "The grid probe shows SVG-root bid click fails while mapped mouse_click solves the target.",
+        "risk": "Should only fire when coordinate and SVG geometry are confidently parsed.",
+        "summary": "Enable a coordinate-aware click policy after grid probe evidence."
+      },
+      "proposal_mode": "tool-agent",
+      "safe_patch": true,
+      "schema_valid": true,
+      "score": 1.0,
+      "selected_source": "tool_agent",
+      "target_root_causes": [
+        "coordinate_click_miss"
+      ],
+      "used_fallback": false,
+      "uses_failure_evidence": true
+    }
+  ],
+  "summary": {
+    "deterministic": {
+      "avg_score": 1.0,
+      "boundary_awareness_rate": 1.0,
+      "direction_match_rate": 1.0,
+      "evidence_use_rate": 1.0,
+      "rows": 3,
+      "safe_patch_rate": 1.0
+    },
+    "tool-agent": {
+      "avg_score": 1.0,
+      "boundary_awareness_rate": 1.0,
+      "direction_match_rate": 1.0,
+      "evidence_use_rate": 1.0,
+      "rows": 3,
+      "safe_patch_rate": 1.0
+    },
+    "tool-agent-pretool": {
+      "avg_score": 0.8333333333333334,
+      "boundary_awareness_rate": 1.0,
+      "direction_match_rate": 0.0,
+      "evidence_use_rate": 1.0,
+      "rows": 3,
+      "safe_patch_rate": 1.0
+    }
+  }
+}

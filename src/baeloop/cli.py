@@ -207,7 +207,7 @@ def eval_advisor(
     case_suite: str = typer.Option(
         "default",
         "--case-suite",
-        help="Advisor eval case suite. Available: default, holdout.",
+        help="Advisor eval case suite. Available: default, holdout, tool.",
     ),
     include_llm: bool = typer.Option(
         False,
@@ -218,6 +218,23 @@ def eval_advisor(
         False,
         "--include-llm-v2/--no-llm-v2",
         help="Also evaluate the LLM v2 advisor on each case.",
+    ),
+    include_tool_agent: bool = typer.Option(
+        False,
+        "--include-tool-agent/--no-tool-agent",
+        help="Also evaluate the tool-using optimization agent on each case.",
+    ),
+    include_tool_pretool: bool = typer.Option(
+        False,
+        "--include-tool-pretool/--no-tool-pretool",
+        help="Also evaluate the pre-tool investigation baseline for tool-agent runs.",
+    ),
+    reports_dir: Path = typer.Option(
+        Path("reports"),
+        exists=True,
+        file_okay=False,
+        readable=True,
+        help="Directory containing probe/replay artifacts for tool-agent eval.",
     ),
     model: str = typer.Option("gpt-5.4", help="LLM advisor model when --include-llm is set."),
     base_url: str = typer.Option(
@@ -243,6 +260,9 @@ def eval_advisor(
         case_suite=case_suite,
         include_llm=include_llm,
         include_llm_v2=include_llm_v2,
+        include_tool_agent=include_tool_agent,
+        include_tool_pretool=include_tool_pretool,
+        reports_dir=reports_dir,
         llm_config=LLMAdvisorConfig(
             model=model,
             base_url=base_url,
@@ -256,7 +276,8 @@ def eval_advisor(
         markdown_out.write_text(render_advisor_eval_markdown(report), encoding="utf-8")
     typer.echo(
         f"Evaluated advisor suite={case_suite}, cases={report['case_count']}, "
-        f"include_llm={include_llm}, include_llm_v2={include_llm_v2}, out={json_out}"
+        f"include_llm={include_llm}, include_llm_v2={include_llm_v2}, "
+        f"include_tool_agent={include_tool_agent}, out={json_out}"
     )
 
 

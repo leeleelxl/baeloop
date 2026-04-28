@@ -59,6 +59,14 @@ Advisor eval 当前结果：
 | `llm` | 0.875 | 0.625 | 0.875 | 1.000 | 0.875 |
 | `llm-v2` | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
 
+Tool-agent eval 当前结果：
+
+| Advisor | Avg Score | Direction Match | Safe Patch | Evidence Use | Boundary Awareness |
+|---|---:|---:|---:|---:|---:|
+| `deterministic` | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
+| `tool-agent-pretool` | 0.833 | 0.000 | 1.000 | 1.000 | 1.000 |
+| `tool-agent` | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
+
 Holdout advisor eval 当前结果：
 
 | Advisor | Avg Score | Direction Match | Safe Patch | Evidence Use | Boundary Awareness |
@@ -191,9 +199,11 @@ Advisor Input/Output Examples
 - [x] 给核心框架图补中文注释。
   证据：`project.md` 的当前总体架构图，以及 `docs/ARCHITECTURE.md` 的 Closed Loop 图，都已逐层标注中文说明。
 - [x] 增加上层 optimization agent 的 tool-use 闭环实验。
-  证据：新增 `src/baeloop/tool_agent.py` 和 CLI `baeloop tool-agent`；报告 `reports/tool_agent_terminal_loop.md`、`reports/tool_agent_coordinate_loop.md`。
+  证据：新增 `src/baeloop/tool_agent.py` 和 CLI `baeloop tool-agent`；报告 `reports/tool_agent_terminal_loop.md`、`reports/tool_agent_compose_loop.md`、`reports/tool_agent_coordinate_loop.md`。
+- [x] 把 tool-agent 接入 advisor eval。
+  证据：新增 `case_suite=tool`、`--include-tool-agent`、`--include-tool-pretool`；报告 `reports/advisor_eval_tool_agent.md`。
 - [x] 验证当前代码库。
-  证据：`uv run pytest` 通过，结果为 `83 passed`。
+  证据：`uv run pytest` 通过，结果为 `86 passed`。
 
 #### 今日验证证据
 
@@ -206,8 +216,10 @@ Advisor Input/Output Examples
 - `README.md` 顶部新增 `60-Second Demo`，把项目主线、关键结果和样例文档入口前置。
 - `project.md` 和 `docs/ARCHITECTURE.md` 的框架图已补中文注释，便于面试时逐层讲解。
 - `reports/tool_agent_terminal_loop.md` 展示 agent 调用 `inspect_compare_report -> inspect_terminal_probe -> inspect_grid_probe` 后输出 `hyp_terminal_keyboard_type`。
+- `reports/tool_agent_compose_loop.md` 展示 agent 调用 `inspect_compare_report -> inspect_terminal_probe -> inspect_policy_replay -> inspect_grid_probe` 后输出 `hyp_combine_scroll_and_terminal_policies`。
 - `reports/tool_agent_coordinate_loop.md` 展示 agent 调用 `inspect_compare_report -> inspect_grid_probe` 后从 `hyp_tool_investigate_before_patch` 转成 `hyp_grid_coordinate_click`。
-- `uv run pytest` 通过，`83 passed`。
+- `reports/advisor_eval_tool_agent.md` 显示 `tool-agent-pretool` 平均分 `0.833`、direction match `0.000`，`tool-agent` 平均分 `1.000`、direction match `1.000`。
+- `uv run pytest` 通过，`86 passed`。
 
 #### 今日 Review
 
@@ -217,6 +229,7 @@ Advisor Input/Output Examples
 - demo summary 已经能讲清项目主线，README 顶部也已经补了更短的 “60 秒 Demo”。
 - advisor 样例补上后，可以更直接回答“agent 到底起了什么作用”：它把结构化失败证据转成 bounded patch，或在证据不足时拒绝 patch。
 - tool-agent 实验补上后，可以回答“tool use 闭环在哪里”：工具属于上层 optimization agent，它先调用诊断工具观察，再决定是否 patch。
+- tool-agent eval 说明工具调用的价值不是打败 deterministic，而是把安全但不可执行的 pre-tool investigation 推进成正确 bounded patch。
 - readiness review 结论仍然克制：当前可以认真投递 agent 日常实习，但还需要 fresh benchmark / fresh holdout 来证明外部泛化。
 
 #### 下一阶段计划
@@ -231,8 +244,10 @@ Advisor Input/Output Examples
   完成标准：明确下一批不从现有 run 重新组合的任务来源，并跑出至少一组新 holdout evidence。
 - [ ] 处理 expanded holdout 中的 ambiguous mock retry case。
   完成标准：决定它是评测标签问题、需要 regression-aware expected direction，还是 selector 应该增加 regression-aware 分支。
-- [ ] 把 tool-agent 接入 advisor eval 或新增 tool-agent eval suite。
-  完成标准：不只展示两个 transcript，还能量化 tool-agent 相比 pre-tool investigation 或 deterministic advisor 的决策改进。
+- [x] 把 tool-agent 接入 advisor eval 或新增 tool-agent eval suite。
+  完成证据：`reports/advisor_eval_tool_agent.md` 量化了 deterministic、tool-agent-pretool、tool-agent 三组对照。
+- [ ] 扩展 tool-agent eval 到 fresh diagnostic cases。
+  完成标准：新增至少 2 个不是从 hard-slice 历史链路直接来的 tool-use case，验证工具 loop 不只是复现已知样例。
 
 ### 2026-04-27
 

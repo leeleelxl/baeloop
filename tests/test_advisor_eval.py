@@ -82,6 +82,32 @@ def test_holdout_eval_scores_all_deterministic_cases() -> None:
     }
 
 
+def test_advisor_eval_exposes_tool_suite() -> None:
+    cases = get_advisor_eval_cases("tool")
+
+    assert [case.id for case in cases] == [
+        "tool_terminal_probe_to_policy",
+        "tool_compose_scroll_terminal",
+        "tool_grid_probe_to_policy",
+    ]
+
+
+def test_tool_agent_eval_scores_tool_use_against_pretool_baseline() -> None:
+    report = run_advisor_eval(
+        case_suite="tool",
+        include_tool_agent=True,
+        include_tool_pretool=True,
+    )
+
+    assert report["case_count"] == 3
+    assert report["summary"]["tool-agent"]["rows"] == 3
+    assert report["summary"]["tool-agent"]["direction_match_rate"] == 1.0
+    assert report["summary"]["tool-agent-pretool"]["direction_match_rate"] == 0.0
+    assert report["summary"]["tool-agent"]["avg_score"] > report["summary"]["tool-agent-pretool"][
+        "avg_score"
+    ]
+
+
 def _control_boundary_report():
     baseline = [
         RunRecord(

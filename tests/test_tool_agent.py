@@ -31,6 +31,19 @@ def test_tool_agent_uses_terminal_probe_for_terminal_root_cause() -> None:
     assert run.proposal.patch["action_policy"]["name"] == "terminal_keyboard_type"
 
 
+def test_tool_agent_composes_policies_when_terminal_fix_regresses_scroll() -> None:
+    run = run_tool_optimization_agent(Path("reports/agentlab_hard_terminal_policy_compare.json"))
+
+    assert run.final_hypothesis_id == "hyp_combine_scroll_and_terminal_policies"
+    assert run.selected_root_cause == "compose_scroll_and_terminal"
+    assert "inspect_terminal_probe" in [call.tool_name for call in run.tool_calls]
+    assert "inspect_policy_replay" in [call.tool_name for call in run.tool_calls]
+    assert run.proposal.patch["action_policy"]["policies"] == [
+        "scroll_before_submit",
+        "terminal_keyboard_type",
+    ]
+
+
 def test_tool_agent_markdown_renders_tool_transcript() -> None:
     run = run_tool_optimization_agent(
         Path("reports/agentlab_hard_combined_vs_terminal_policy_compare.json")

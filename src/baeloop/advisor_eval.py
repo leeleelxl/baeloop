@@ -9,6 +9,7 @@ from baeloop.io import read_model_json
 from baeloop.llm_advisor import LLMAdvisorConfig, propose_patch_with_llm, propose_patch_with_llm_v2
 from baeloop.models import AdvisorProposal, ComparisonReport
 from baeloop.patcher import ALLOWED_PATCH_KEYS
+from baeloop.tool_agent import run_tool_optimization_agent
 
 
 @dataclass(frozen=True)
@@ -129,9 +130,31 @@ HOLDOUT_EVAL_CASES = [
     ),
 ]
 
+TOOL_EVAL_CASES = [
+    AdvisorEvalCase(
+        id="tool_terminal_probe_to_policy",
+        report_path=Path("reports/agentlab_hard_scroll_policy_compare.json"),
+        expected_direction="terminal_policy",
+        expected_root_causes=("terminal_input_action_mismatch",),
+    ),
+    AdvisorEvalCase(
+        id="tool_compose_scroll_terminal",
+        report_path=Path("reports/agentlab_hard_terminal_policy_compare.json"),
+        expected_direction="compose_policies",
+        expected_root_causes=("missed_scroll_target", "terminal_input_action_mismatch"),
+    ),
+    AdvisorEvalCase(
+        id="tool_grid_probe_to_policy",
+        report_path=Path("reports/agentlab_hard_combined_vs_terminal_policy_compare.json"),
+        expected_direction="grid_policy",
+        expected_root_causes=("coordinate_click_miss",),
+    ),
+]
+
 EVAL_CASE_SUITES = {
     "default": DEFAULT_EVAL_CASES,
     "holdout": HOLDOUT_EVAL_CASES,
+    "tool": TOOL_EVAL_CASES,
 }
 
 
@@ -149,6 +172,9 @@ def run_advisor_eval(
     case_suite: str = "default",
     include_llm: bool = False,
     include_llm_v2: bool = False,
+    include_tool_agent: bool = False,
+    include_tool_pretool: bool = False,
+    reports_dir: Path = Path("reports"),
     llm_config: LLMAdvisorConfig | None = None,
 ) -> dict:
     resolved_cases = cases if cases is not None else get_advisor_eval_cases(case_suite)
@@ -173,12 +199,26 @@ def run_advisor_eval(
                     propose_patch_with_llm_v2(report, config=llm_config),
                 )
             )
+        if include_tool_agent or include_tool_pretool:
+            tool_run = run_tool_optimization_agent(case.report_path, reports_dir=reports_dir)
+            if include_tool_pretool:
+                rows.append(
+                    _score_case(
+                        case,
+                        "tool-agent-pretool",
+                        tool_run.pre_tool_proposal,
+                    )
+                )
+            if include_tool_agent:
+                rows.append(_score_case(case, "tool-agent", tool_run.proposal))
 
     return {
         "case_suite": resolved_suite,
         "case_count": len(resolved_cases),
         "include_llm": include_llm,
         "include_llm_v2": include_llm_v2,
+        "include_tool_agent": include_tool_agent,
+        "include_tool_pretool": include_tool_pretool,
         "summary": _summarize(rows),
         "rows": rows,
     }
@@ -192,6 +232,8 @@ def render_advisor_eval_markdown(report: dict) -> str:
         f"- Cases: `{report['case_count']}`",
         f"- Include LLM: `{report['include_llm']}`",
         f"- Include LLM v2: `{report.get('include_llm_v2', False)}`",
+        f"- Include Tool Agent: `{report.get('include_tool_agent', False)}`",
+        f"- Include Tool Pretool: `{report.get('include_tool_pretool', False)}`",
         "",
         "## Summary",
         "",
@@ -322,6 +364,7 @@ def _direction_matches(expected_direction: str, proposal: AdvisorProposal) -> bo
         == "hyp_probe_coordinate_control",
         "retry_invalid_or_noop": lambda item: item.hypothesis_id
         == "hyp_retry_invalid_or_noop",
+        "grid_policy": lambda item: item.hypothesis_id == "hyp_grid_coordinate_click",
     }
     return predicates[expected_direction](proposal)
 
@@ -376,6 +419,13 @@ def _selected_source(proposal: AdvisorProposal) -> str:
         return str(selector["selected_source"])
     if proposal.advisor_mode.endswith("fallback"):
         return "fallback"
+    tool_agent = proposal.advisor_stage_notes.get("tool_agent")
+    if isinstance(tool_agent, dict):
+        if tool_agent.get("selected_source"):
+            return str(tool_agent["selected_source"])
+        if proposal.advisor_mode == "tool-agent-pretool":
+            return "pretool"
+        return "tool_agent"
     return "-"
 
 

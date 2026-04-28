@@ -2,6 +2,44 @@
   "decision_changed_by_tools": true,
   "final_hypothesis_id": "hyp_grid_coordinate_click",
   "pre_tool_hypothesis_id": "hyp_tool_investigate_before_patch",
+  "pre_tool_proposal": {
+    "advisor_mode": "tool-agent-pretool",
+    "advisor_stage_notes": {
+      "tool_agent": {
+        "decision_changed_by_tools": false,
+        "selected_source": "pretool_investigation",
+        "tool_call_count": 0,
+        "tool_names": []
+      }
+    },
+    "critic_decision": "accepted",
+    "critic_notes": [
+      "no patch emitted; recommendation is hold or investigation",
+      "no regressions detected",
+      "uses 1 candidate failure evidence records"
+    ],
+    "expected_effect": "Avoid unsupported patches while collecting tool observations.",
+    "hypothesis_id": "hyp_tool_investigate_before_patch",
+    "intervention": {
+      "expected_effect": "Avoid unsupported patches while collecting tool observations.",
+      "id": "hyp_tool_investigate_before_patch",
+      "kind": "investigation",
+      "patch": {},
+      "rationale": "The compare report points to actionable root causes, but the optimization agent should first inspect probe or replay evidence before changing config.",
+      "risk": "Adds an intermediate diagnostic step before success rate can improve.",
+      "summary": "Use diagnostic tools before emitting the next optimization patch.",
+      "supported_by": [
+        "candidate_root_causes=coordinate_click_miss"
+      ],
+      "target_root_causes": [
+        "coordinate_click_miss"
+      ]
+    },
+    "patch": {},
+    "rationale": "The compare report points to actionable root causes, but the optimization agent should first inspect probe or replay evidence before changing config.",
+    "risk": "Adds an intermediate diagnostic step before success rate can improve.",
+    "summary": "Use diagnostic tools before emitting the next optimization patch."
+  },
   "proposal": {
     "advisor_mode": "tool-agent",
     "advisor_stage_notes": {
@@ -90,6 +128,10 @@
       },
       "observation": {
         "baseline_config_id": "relay_gpt54_hard_retry_hyp_extend_step_budget_hyp_scroll_before_submit_hyp_terminal_keyboard_type",
+        "baseline_root_causes": [
+          "coordinate_click_miss",
+          "missed_scroll_target"
+        ],
         "candidate_config_id": "relay_gpt54_hard_retry_hyp_extend_step_budget_hyp_scroll_before_submit_hyp_terminal_keyboard_type_combined",
         "candidate_root_causes": [
           "coordinate_click_miss"

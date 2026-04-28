@@ -25,6 +25,7 @@ class ToolAgentRun(BaseModel):
     decision_changed_by_tools: bool
     selected_root_cause: str | None = None
     tool_calls: list[ToolCallRecord]
+    pre_tool_proposal: AdvisorProposal
     proposal: AdvisorProposal
 
 
@@ -41,11 +42,24 @@ def run_tool_optimization_agent(
     report, inspect_call = _inspect_compare_report(report_path)
     analysis = analyze_report(report)
     candidate_roots = _candidate_root_causes(report)
+    baseline_roots = _baseline_root_causes(report)
     pre_tool = _investigate_before_tools(candidate_roots)
+    pre_tool_proposal = critique_intervention(analysis, pre_tool)
+    pre_tool_proposal.advisor_mode = "tool-agent-pretool"
+    pre_tool_proposal.advisor_stage_notes["tool_agent"] = {
+        "selected_source": "pretool_investigation",
+        "tool_call_count": 0,
+        "tool_names": [],
+        "decision_changed_by_tools": False,
+    }
 
     tool_calls = [inspect_call]
     tool_observations: dict[str, dict[str, Any]] = {}
-    for root_cause in _tool_relevant_roots(candidate_roots):
+    for root_cause in _tool_relevant_roots(
+        candidate_roots,
+        baseline_roots,
+        regression_count=report.regression_count,
+    ):
         if root_cause == "terminal_input_action_mismatch":
             call = _inspect_terminal_probe(reports_dir)
         elif root_cause == "missed_scroll_target":
@@ -57,7 +71,12 @@ def run_tool_optimization_agent(
         tool_calls.append(call)
         tool_observations[root_cause] = call.observation
 
-    selected_root = _select_root_cause(tool_observations)
+    selected_root = _select_root_cause(
+        tool_observations,
+        regression_count=report.regression_count,
+        candidate_roots=candidate_roots,
+        baseline_roots=baseline_roots,
+    )
     intervention = _intervention_from_tool_evidence(selected_root, tool_observations)
     if intervention is None:
         intervention = pre_tool
@@ -79,6 +98,7 @@ def run_tool_optimization_agent(
         decision_changed_by_tools=proposal.hypothesis_id != pre_tool.id,
         selected_root_cause=selected_root,
         tool_calls=tool_calls,
+        pre_tool_proposal=pre_tool_proposal,
         proposal=proposal,
     )
 
@@ -123,12 +143,14 @@ def render_tool_agent_markdown(run: ToolAgentRun) -> str:
 def _inspect_compare_report(report_path: Path) -> tuple[ComparisonReport, ToolCallRecord]:
     report = read_model_json(report_path, ComparisonReport)
     candidate_roots = _candidate_root_causes(report)
+    baseline_roots = _baseline_root_causes(report)
     observation = {
         "baseline_config_id": report.baseline_config_id,
         "candidate_config_id": report.candidate_config_id,
         "success_rate_delta": report.metrics["delta"]["success_rate"],
         "regression_count": report.regression_count,
         "improvement_count": len(report.improvements),
+        "baseline_root_causes": baseline_roots,
         "candidate_root_causes": candidate_roots,
     }
     return report, ToolCallRecord(
@@ -212,16 +234,47 @@ def _candidate_root_causes(report: ComparisonReport) -> list[str]:
     return sorted({item.root_cause for item in report.failure_evidence.get("candidate", [])})
 
 
-def _tool_relevant_roots(root_causes: list[str]) -> list[str]:
+def _baseline_root_causes(report: ComparisonReport) -> list[str]:
+    return sorted({item.root_cause for item in report.failure_evidence.get("baseline", [])})
+
+
+def _tool_relevant_roots(
+    candidate_roots: list[str],
+    baseline_roots: list[str],
+    *,
+    regression_count: int,
+) -> list[str]:
     priority = [
         "terminal_input_action_mismatch",
         "missed_scroll_target",
         "coordinate_click_miss",
     ]
-    return [root for root in priority if root in root_causes]
+    roots = set(candidate_roots)
+    if (
+        regression_count > 0
+        and "missed_scroll_target" in candidate_roots
+        and "terminal_input_action_mismatch" in baseline_roots
+    ):
+        roots.add("terminal_input_action_mismatch")
+    return [root for root in priority if root in roots]
 
 
-def _select_root_cause(tool_observations: dict[str, dict[str, Any]]) -> str | None:
+def _select_root_cause(
+    tool_observations: dict[str, dict[str, Any]],
+    *,
+    regression_count: int,
+    candidate_roots: list[str],
+    baseline_roots: list[str],
+) -> str | None:
+    if (
+        regression_count > 0
+        and "missed_scroll_target" in candidate_roots
+        and "terminal_input_action_mismatch" in baseline_roots
+        and tool_observations.get("missed_scroll_target", {}).get("patch_mature")
+        and tool_observations.get("terminal_input_action_mismatch", {}).get("patch_mature")
+    ):
+        return "compose_scroll_and_terminal"
+
     for root in [
         "terminal_input_action_mismatch",
         "missed_scroll_target",
@@ -242,6 +295,8 @@ def _intervention_from_tool_evidence(
         return _scroll_before_submit_intervention(tool_observations[selected_root])
     if selected_root == "coordinate_click_miss":
         return _grid_coordinate_intervention(tool_observations[selected_root])
+    if selected_root == "compose_scroll_and_terminal":
+        return _compose_scroll_terminal_intervention(tool_observations)
     return None
 
 
@@ -343,6 +398,50 @@ def _grid_coordinate_intervention(observation: dict[str, Any]) -> Intervention:
             f"tool=inspect_grid_probe artifact={observation.get('artifact')}",
             f"mapped_mouse_click_reward={observation.get('mapped_mouse_click_reward')}",
             f"target_click_point={observation.get('target_click_point')}",
+        ],
+    )
+
+
+def _compose_scroll_terminal_intervention(
+    tool_observations: dict[str, dict[str, Any]]
+) -> Intervention:
+    scroll_observation = tool_observations["missed_scroll_target"]
+    terminal_observation = tool_observations["terminal_input_action_mismatch"]
+    return Intervention(
+        id="hyp_combine_scroll_and_terminal_policies",
+        kind="action_policy",
+        summary="Compose scroll and terminal policies after both tools show mature evidence.",
+        rationale=(
+            "The candidate regressed on hidden social targets while the baseline still had "
+            "terminal input mismatch; replay and probe artifacts support preserving both policies."
+        ),
+        expected_effect="Restore hidden-target scrolling while keeping terminal keyboard input behavior.",
+        risk="Combining policies expands wrapper surface area, so each sub-policy stays bounded.",
+        patch={
+            "action_policy": {
+                "enabled": True,
+                "name": "composite",
+                "policies": [
+                    "scroll_before_submit",
+                    "terminal_keyboard_type",
+                ],
+                "max_interventions": 20,
+                "policy_limits": {
+                    "scroll_before_submit": 1,
+                    "terminal_keyboard_type": 20,
+                },
+                "scroll_delta_y": 621,
+            }
+        },
+        target_root_causes=[
+            "missed_scroll_target",
+            "terminal_input_action_mismatch",
+        ],
+        supported_by=[
+            "candidate_root_cause=missed_scroll_target",
+            "baseline_root_cause=terminal_input_action_mismatch",
+            f"tool=inspect_policy_replay artifact={scroll_observation.get('artifact')}",
+            f"tool=inspect_terminal_probe artifact={terminal_observation.get('artifact')}",
         ],
     )
 

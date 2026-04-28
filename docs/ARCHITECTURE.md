@@ -160,9 +160,20 @@ The first implementation is deliberately local and reproducible. It reads commit
 Current tool-agent experiments:
 
 - `reports/tool_agent_terminal_loop.*`: `inspect_compare_report -> inspect_terminal_probe -> inspect_grid_probe -> hyp_terminal_keyboard_type`
+- `reports/tool_agent_compose_loop.*`: `inspect_compare_report -> inspect_terminal_probe -> inspect_policy_replay -> inspect_grid_probe -> hyp_combine_scroll_and_terminal_policies`
 - `reports/tool_agent_coordinate_loop.*`: `inspect_compare_report -> inspect_grid_probe -> hyp_grid_coordinate_click`
 
-In both runs, the pre-tool decision is `hyp_tool_investigate_before_patch`. The final patch is emitted only after the agent observes mature probe evidence.
+In these runs, the pre-tool decision is `hyp_tool_investigate_before_patch`. The final patch is emitted only after the agent observes mature probe or replay evidence.
+
+Current 3-case tool-agent eval:
+
+| Advisor | Avg Score | Direction Match | Safe Patch | Evidence Use | Boundary Awareness |
+|---|---:|---:|---:|---:|---:|
+| `deterministic` | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
+| `tool-agent-pretool` | 0.833 | 0.000 | 1.000 | 1.000 | 1.000 |
+| `tool-agent` | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
+
+This eval does not claim the tool-agent beats the deterministic advisor on mature historical cases. It measures the value of tool use over the pre-tool investigation baseline: observation turns a safe but non-actionable investigation into a bounded patch.
 
 ## Advisor Evaluation Harness
 
