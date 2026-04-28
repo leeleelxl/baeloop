@@ -1,7 +1,7 @@
 # Advisor Evaluation
 
 - Case suite: `tool`
-- Cases: `4`
+- Cases: `5`
 - Include LLM: `False`
 - Include LLM v2: `False`
 - Include Tool Agent: `True`
@@ -11,9 +11,9 @@
 
 | Advisor | Rows | Avg Score | Direction Match | Safe Patch | Evidence Use | Boundary Awareness |
 |---|---:|---:|---:|---:|---:|---:|
-| `deterministic` | 4 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
-| `tool-agent` | 4 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
-| `tool-agent-pretool` | 4 | 0.833 | 0.000 | 1.000 | 1.000 | 1.000 |
+| `deterministic` | 5 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
+| `tool-agent` | 5 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
+| `tool-agent-pretool` | 5 | 0.833 | 0.000 | 1.000 | 1.000 | 1.000 |
 
 ## Cases
 
@@ -31,3 +31,6 @@
 | `tool_control_boundary_probe` | `deterministic` | `deterministic` | `-` | `hyp_probe_coordinate_control` | 1.000 | yes | yes | yes | yes | expected=probe_coordinate_control<br>mode=deterministic<br>uses 8 candidate failure evidence records |
 | `tool_control_boundary_probe` | `tool-agent-pretool` | `tool-agent-pretool` | `pretool_investigation` | `hyp_tool_investigate_before_patch` | 0.833 | no | yes | yes | yes | expected=probe_coordinate_control<br>mode=tool-agent-pretool<br>failed_direction_match<br>uses 8 candidate failure evidence records |
 | `tool_control_boundary_probe` | `tool-agent` | `tool-agent` | `tool_agent` | `hyp_probe_coordinate_control` | 1.000 | yes | yes | yes | yes | expected=probe_coordinate_control<br>mode=tool-agent<br>uses 8 candidate failure evidence records |
+| `tool_broad_quality_hold` | `deterministic` | `deterministic` | `-` | `hyp_keep_quality_winner` | 1.000 | yes | yes | yes | yes | expected=quality_winner<br>mode=deterministic<br>no candidate failure evidence records |
+| `tool_broad_quality_hold` | `tool-agent-pretool` | `tool-agent-pretool` | `pretool_investigation` | `hyp_tool_investigate_before_patch` | 0.833 | no | yes | yes | yes | expected=quality_winner<br>mode=tool-agent-pretool<br>failed_direction_match<br>no candidate failure evidence records |
+| `tool_broad_quality_hold` | `tool-agent` | `tool-agent` | `tool_agent` | `hyp_keep_quality_winner` | 1.000 | yes | yes | yes | yes | expected=quality_winner<br>mode=tool-agent<br>no candidate failure evidence records |

@@ -90,6 +90,7 @@ def test_advisor_eval_exposes_tool_suite() -> None:
         "tool_compose_scroll_terminal",
         "tool_grid_probe_to_policy",
         "tool_control_boundary_probe",
+        "tool_broad_quality_hold",
     ]
 
 
@@ -100,8 +101,8 @@ def test_tool_agent_eval_scores_tool_use_against_pretool_baseline() -> None:
         include_tool_pretool=True,
     )
 
-    assert report["case_count"] == 4
-    assert report["summary"]["tool-agent"]["rows"] == 4
+    assert report["case_count"] == 5
+    assert report["summary"]["tool-agent"]["rows"] == 5
     assert report["summary"]["tool-agent"]["direction_match_rate"] == 1.0
     assert report["summary"]["tool-agent-pretool"]["direction_match_rate"] == 0.0
     assert report["summary"]["tool-agent"]["avg_score"] > report["summary"]["tool-agent-pretool"][

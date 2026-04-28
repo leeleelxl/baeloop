@@ -1,5 +1,5 @@
 {
-  "case_count": 4,
+  "case_count": 5,
   "case_suite": "tool",
   "include_llm": false,
   "include_llm_v2": false,
@@ -976,6 +976,189 @@
       ],
       "used_fallback": false,
       "uses_failure_evidence": true
+    },
+    {
+      "advisor": "deterministic",
+      "boundary_awareness": true,
+      "case_id": "tool_broad_quality_hold",
+      "critic_decision": "accepted",
+      "critic_ok": true,
+      "direction_match": true,
+      "expected_direction": "quality_winner",
+      "hypothesis_id": "hyp_keep_quality_winner",
+      "notes": [
+        "expected=quality_winner",
+        "mode=deterministic",
+        "no candidate failure evidence records"
+      ],
+      "patch_keys": [],
+      "proposal": {
+        "advisor_mode": "deterministic",
+        "advisor_stage_notes": {},
+        "critic_decision": "accepted",
+        "critic_notes": [
+          "no patch emitted; recommendation is hold or investigation",
+          "no regressions detected",
+          "no candidate failure evidence records"
+        ],
+        "expected_effect": "Preserve the improved solved-task quality before expanding the benchmark slice.",
+        "hypothesis_id": "hyp_keep_quality_winner",
+        "intervention": {
+          "expected_effect": "Preserve the improved solved-task quality before expanding the benchmark slice.",
+          "id": "hyp_keep_quality_winner",
+          "kind": "hold",
+          "patch": {},
+          "rationale": "The candidate has no failures or regressions and improves success or normalized score.",
+          "risk": "Quality gains may be seed-specific unless confirmed with repeated or broader runs.",
+          "summary": "Keep the candidate config as a quality winner on the measured task set.",
+          "supported_by": [
+            "no_candidate_failures",
+            "quality_not_worse",
+            "quality_gain"
+          ],
+          "target_root_causes": []
+        },
+        "patch": {},
+        "rationale": "The candidate has no failures or regressions and improves success or normalized score.",
+        "risk": "Quality gains may be seed-specific unless confirmed with repeated or broader runs.",
+        "summary": "Keep the candidate config as a quality winner on the measured task set."
+      },
+      "proposal_mode": "deterministic",
+      "safe_patch": true,
+      "schema_valid": true,
+      "score": 1.0,
+      "selected_source": "-",
+      "target_root_causes": [],
+      "used_fallback": false,
+      "uses_failure_evidence": true
+    },
+    {
+      "advisor": "tool-agent-pretool",
+      "boundary_awareness": true,
+      "case_id": "tool_broad_quality_hold",
+      "critic_decision": "accepted",
+      "critic_ok": true,
+      "direction_match": false,
+      "expected_direction": "quality_winner",
+      "hypothesis_id": "hyp_tool_investigate_before_patch",
+      "notes": [
+        "expected=quality_winner",
+        "mode=tool-agent-pretool",
+        "failed_direction_match",
+        "no candidate failure evidence records"
+      ],
+      "patch_keys": [],
+      "proposal": {
+        "advisor_mode": "tool-agent-pretool",
+        "advisor_stage_notes": {
+          "tool_agent": {
+            "decision_changed_by_tools": false,
+            "selected_source": "pretool_investigation",
+            "tool_call_count": 0,
+            "tool_names": []
+          }
+        },
+        "critic_decision": "accepted",
+        "critic_notes": [
+          "no patch emitted; recommendation is hold or investigation",
+          "no regressions detected",
+          "no candidate failure evidence records"
+        ],
+        "expected_effect": "Avoid unsupported patches while collecting tool observations.",
+        "hypothesis_id": "hyp_tool_investigate_before_patch",
+        "intervention": {
+          "expected_effect": "Avoid unsupported patches while collecting tool observations.",
+          "id": "hyp_tool_investigate_before_patch",
+          "kind": "investigation",
+          "patch": {},
+          "rationale": "The compare report points to actionable root causes, but the optimization agent should first inspect probe or replay evidence before changing config.",
+          "risk": "Adds an intermediate diagnostic step before success rate can improve.",
+          "summary": "Use diagnostic tools before emitting the next optimization patch.",
+          "supported_by": [
+            "candidate_root_causes=no candidate root causes"
+          ],
+          "target_root_causes": []
+        },
+        "patch": {},
+        "rationale": "The compare report points to actionable root causes, but the optimization agent should first inspect probe or replay evidence before changing config.",
+        "risk": "Adds an intermediate diagnostic step before success rate can improve.",
+        "summary": "Use diagnostic tools before emitting the next optimization patch."
+      },
+      "proposal_mode": "tool-agent-pretool",
+      "safe_patch": true,
+      "schema_valid": true,
+      "score": 0.8333333333333334,
+      "selected_source": "pretool_investigation",
+      "target_root_causes": [],
+      "used_fallback": false,
+      "uses_failure_evidence": true
+    },
+    {
+      "advisor": "tool-agent",
+      "boundary_awareness": true,
+      "case_id": "tool_broad_quality_hold",
+      "critic_decision": "accepted",
+      "critic_ok": true,
+      "direction_match": true,
+      "expected_direction": "quality_winner",
+      "hypothesis_id": "hyp_keep_quality_winner",
+      "notes": [
+        "expected=quality_winner",
+        "mode=tool-agent",
+        "no candidate failure evidence records"
+      ],
+      "patch_keys": [],
+      "proposal": {
+        "advisor_mode": "tool-agent",
+        "advisor_stage_notes": {
+          "tool_agent": {
+            "decision_changed_by_tools": true,
+            "pre_tool_hypothesis_id": "hyp_tool_investigate_before_patch",
+            "selected_root_cause": "quality_winner_hold",
+            "tool_call_count": 2,
+            "tool_names": [
+              "inspect_compare_report",
+              "inspect_quality_winner_evidence"
+            ]
+          }
+        },
+        "critic_decision": "accepted",
+        "critic_notes": [
+          "no patch emitted; recommendation is hold or investigation",
+          "no regressions detected",
+          "no candidate failure evidence records"
+        ],
+        "expected_effect": "Preserve the validated config and move the next optimization step toward broader coverage or new evidence instead of mutating a winning patch.",
+        "hypothesis_id": "hyp_keep_quality_winner",
+        "intervention": {
+          "expected_effect": "Preserve the validated config and move the next optimization step toward broader coverage or new evidence instead of mutating a winning patch.",
+          "id": "hyp_keep_quality_winner",
+          "kind": "hold",
+          "patch": {},
+          "rationale": "The diagnostic tool found no candidate failures or regressions, while measured success rate or normalized score improved on the compared task set.",
+          "risk": "Quality gains may still be task-set specific unless confirmed on fresh coverage.",
+          "summary": "Keep the candidate config as a quality winner after diagnostic inspection.",
+          "supported_by": [
+            "tool=inspect_quality_winner_evidence",
+            "success_rate_delta=0.19999999999999996",
+            "improvement_count=4",
+            "compared_task_count=20"
+          ],
+          "target_root_causes": []
+        },
+        "patch": {},
+        "rationale": "The diagnostic tool found no candidate failures or regressions, while measured success rate or normalized score improved on the compared task set.",
+        "risk": "Quality gains may still be task-set specific unless confirmed on fresh coverage.",
+        "summary": "Keep the candidate config as a quality winner after diagnostic inspection."
+      },
+      "proposal_mode": "tool-agent",
+      "safe_patch": true,
+      "schema_valid": true,
+      "score": 1.0,
+      "selected_source": "tool_agent",
+      "target_root_causes": [],
+      "used_fallback": false,
+      "uses_failure_evidence": true
     }
   ],
   "summary": {
@@ -984,7 +1167,7 @@
       "boundary_awareness_rate": 1.0,
       "direction_match_rate": 1.0,
       "evidence_use_rate": 1.0,
-      "rows": 4,
+      "rows": 5,
       "safe_patch_rate": 1.0
     },
     "tool-agent": {
@@ -992,7 +1175,7 @@
       "boundary_awareness_rate": 1.0,
       "direction_match_rate": 1.0,
       "evidence_use_rate": 1.0,
-      "rows": 4,
+      "rows": 5,
       "safe_patch_rate": 1.0
     },
     "tool-agent-pretool": {
@@ -1000,7 +1183,7 @@
       "boundary_awareness_rate": 1.0,
       "direction_match_rate": 0.0,
       "evidence_use_rate": 1.0,
-      "rows": 4,
+      "rows": 5,
       "safe_patch_rate": 1.0
     }
   }

@@ -161,6 +161,11 @@ TOOL_EVAL_CASES = [
             "list_drag_semantics_mismatch",
         ),
     ),
+    AdvisorEvalCase(
+        id="tool_broad_quality_hold",
+        report_path=Path("reports/agentlab_broad_full_policy_compare.json"),
+        expected_direction="quality_winner",
+    ),
 ]
 
 EVAL_CASE_SUITES = {

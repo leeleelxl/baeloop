@@ -65,6 +65,11 @@ def run_tool_optimization_agent(
 
     tool_calls = [inspect_call]
     tool_observations: dict[str, dict[str, Any]] = {}
+    if _is_quality_winner_candidate(report, candidate_roots):
+        call = _inspect_quality_winner_evidence(report)
+        tool_calls.append(call)
+        tool_observations["quality_winner_hold"] = call.observation
+
     control_roots = _control_surface_roots(candidate_roots)
     if control_roots:
         call = _inspect_control_failure_evidence(report, control_roots)
@@ -278,6 +283,30 @@ def _inspect_control_failure_evidence(
     )
 
 
+def _inspect_quality_winner_evidence(report: ComparisonReport) -> ToolCallRecord:
+    observation = {
+        "source": "ComparisonReport.metrics",
+        "compared_task_count": report.compared_task_count,
+        "success_rate_delta": _metric_delta(report, "success_rate"),
+        "avg_normalized_score_delta": _metric_delta(report, "avg_normalized_score"),
+        "regression_count": report.regression_count,
+        "improvement_count": len(report.improvements),
+        "candidate_failure_count": len(report.failure_evidence.get("candidate", [])),
+        "hold_mature": True,
+        "patch_mature": False,
+        "recommended_decision": "keep_quality_winner",
+        "reason": (
+            "Candidate has no failures or regressions and improves measured quality; "
+            "the next optimization step should preserve it before expanding coverage."
+        ),
+    }
+    return ToolCallRecord(
+        tool_name="inspect_quality_winner_evidence",
+        args={"source": observation["source"]},
+        observation=observation,
+    )
+
+
 def _candidate_root_causes(report: ComparisonReport) -> list[str]:
     return sorted({item.root_cause for item in report.failure_evidence.get("candidate", [])})
 
@@ -288,6 +317,24 @@ def _baseline_root_causes(report: ComparisonReport) -> list[str]:
 
 def _control_surface_roots(root_causes: list[str]) -> list[str]:
     return sorted(root for root in root_causes if root in CONTROL_SURFACE_ROOT_CAUSES)
+
+
+def _is_quality_winner_candidate(report: ComparisonReport, candidate_roots: list[str]) -> bool:
+    return (
+        not candidate_roots
+        and report.regression_count == 0
+        and (
+            _metric_delta(report, "success_rate") > 0
+            or _metric_delta(report, "avg_normalized_score") > 0
+        )
+    )
+
+
+def _metric_delta(report: ComparisonReport, key: str) -> float:
+    delta = report.metrics.get("delta", {})
+    if isinstance(delta, dict):
+        return float(delta.get(key, 0.0))
+    return float(getattr(delta, key, 0.0))
 
 
 def _tool_relevant_roots(
@@ -336,6 +383,8 @@ def _select_root_cause(
             return root
     if tool_observations.get("control_surface_probe", {}).get("needs_fresh_probe"):
         return "control_surface_probe"
+    if tool_observations.get("quality_winner_hold", {}).get("hold_mature"):
+        return "quality_winner_hold"
     return None
 
 
@@ -353,6 +402,8 @@ def _intervention_from_tool_evidence(
         return _compose_scroll_terminal_intervention(tool_observations)
     if selected_root == "control_surface_probe":
         return _control_surface_probe_intervention(tool_observations[selected_root])
+    if selected_root == "quality_winner_hold":
+        return _quality_winner_intervention(tool_observations[selected_root])
     return None
 
 
@@ -522,6 +573,29 @@ def _control_surface_probe_intervention(observation: dict[str, Any]) -> Interven
             "tool=inspect_control_failure_evidence",
             f"affected_task_count={observation.get('affected_task_count')}",
             f"recommended_next_tool={observation.get('recommended_next_tool')}",
+        ],
+    )
+
+
+def _quality_winner_intervention(observation: dict[str, Any]) -> Intervention:
+    return Intervention(
+        id="hyp_keep_quality_winner",
+        kind="hold",
+        summary="Keep the candidate config as a quality winner after diagnostic inspection.",
+        rationale=(
+            "The diagnostic tool found no candidate failures or regressions, while measured "
+            "success rate or normalized score improved on the compared task set."
+        ),
+        expected_effect=(
+            "Preserve the validated config and move the next optimization step toward broader "
+            "coverage or new evidence instead of mutating a winning patch."
+        ),
+        risk="Quality gains may still be task-set specific unless confirmed on fresh coverage.",
+        supported_by=[
+            "tool=inspect_quality_winner_evidence",
+            f"success_rate_delta={observation.get('success_rate_delta')}",
+            f"improvement_count={observation.get('improvement_count')}",
+            f"compared_task_count={observation.get('compared_task_count')}",
         ],
     )
 

@@ -59,7 +59,7 @@ Advisor eval 当前结果：
 | `llm` | 0.875 | 0.625 | 0.875 | 1.000 | 0.875 |
 | `llm-v2` | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
 
-Tool-agent eval 当前结果（4 个 diagnostic case，包含 control boundary case）：
+Tool-agent eval 当前结果（5 个 diagnostic case，包含 control boundary 和 broad quality hold）：
 
 | Advisor | Avg Score | Direction Match | Safe Patch | Evidence Use | Boundary Awareness |
 |---|---:|---:|---:|---:|---:|
@@ -105,6 +105,8 @@ Advisor Layer                          # 上层优化 agent：决定下一轮该
         |     - inspect_grid_probe      # 查看 grid probe，验证坐标点击是否有效
         |     - inspect_control_failure_evidence
         |                               # 查看 control 失败证据，决定先 probe 而不是盲目 patch
+        |     - inspect_quality_winner_evidence
+        |                               # 查看 winner 证据，决定保留配置而不是继续 patch
         |
         v
 Evidence-Maturity Selector             # 证据成熟度选择器：证据不足时阻止无脑 patch
@@ -170,6 +172,7 @@ Tool-Agent Diagnostic Suite
   - scroll replay -> patch/compose
   - grid probe -> patch
   - control failure evidence -> probe, no patch
+  - broad quality evidence -> hold, no patch
         |
         v
 Demo Summary + Readiness Review
@@ -189,7 +192,8 @@ Advisor Input/Output Examples
 - `docs/advisor-examples.md`：用两个真实 advisor case 展示输入、阶段判断和最终输出，覆盖成功 patch 与拒绝 patch 转 investigation。
 - `README.md`：新增顶部 “60-Second Demo”，让读者 1 分钟内理解项目目标、关键结果和报告入口。
 - `tool_agent.py`：新增 `inspect_control_failure_evidence`，让上层 agent 在 control-slice 上调用工具后输出 `hyp_probe_coordinate_control`，不产生 patch。
-- `advisor_eval.py`：tool suite 从 3 个 case 扩到 4 个 case，新增 `tool_control_boundary_probe`。
+- `tool_agent.py`：新增 `inspect_quality_winner_evidence`，让上层 agent 在 broad-slice winner 上调用工具后输出 `hyp_keep_quality_winner`，不产生 patch。
+- `advisor_eval.py`：tool suite 从 4 个 case 扩到 5 个 case，新增 `tool_broad_quality_hold`。
 
 #### 今日改动
 
@@ -215,8 +219,10 @@ Advisor Input/Output Examples
   证据：新增 `case_suite=tool`、`--include-tool-agent`、`--include-tool-pretool`；报告 `reports/advisor_eval_tool_agent.md`。
 - [x] 扩展 tool-agent eval 到 control-slice fresh diagnostic case。
   证据：`reports/tool_agent_control_loop.md` 展示 `inspect_compare_report -> inspect_control_failure_evidence -> hyp_probe_coordinate_control`，且 patch 为空。
+- [x] 增加第二个非 hard-slice diagnostic case。
+  证据：`reports/tool_agent_broad_quality_loop.md` 展示 `inspect_compare_report -> inspect_quality_winner_evidence -> hyp_keep_quality_winner`，且 patch 为空。
 - [x] 验证当前代码库。
-  证据：`uv run pytest` 通过，结果为 `87 passed`。
+  证据：`uv run pytest` 通过，结果为 `88 passed`。
 
 #### 今日验证证据
 
@@ -232,8 +238,9 @@ Advisor Input/Output Examples
 - `reports/tool_agent_compose_loop.md` 展示 agent 调用 `inspect_compare_report -> inspect_terminal_probe -> inspect_policy_replay -> inspect_grid_probe` 后输出 `hyp_combine_scroll_and_terminal_policies`。
 - `reports/tool_agent_coordinate_loop.md` 展示 agent 调用 `inspect_compare_report -> inspect_grid_probe` 后从 `hyp_tool_investigate_before_patch` 转成 `hyp_grid_coordinate_click`。
 - `reports/tool_agent_control_loop.md` 展示 agent 调用 `inspect_compare_report -> inspect_control_failure_evidence` 后从泛化 investigation 转成 `hyp_probe_coordinate_control`，并保持空 patch。
+- `reports/tool_agent_broad_quality_loop.md` 展示 agent 调用 `inspect_compare_report -> inspect_quality_winner_evidence` 后从泛化 investigation 转成 `hyp_keep_quality_winner`，并保持空 patch。
 - `reports/advisor_eval_tool_agent.md` 显示 `tool-agent-pretool` 平均分 `0.833`、direction match `0.000`，`tool-agent` 平均分 `1.000`、direction match `1.000`。
-- `uv run pytest` 通过，`87 passed`。
+- `uv run pytest` 通过，`88 passed`。
 
 #### 今日 Review
 
@@ -243,7 +250,7 @@ Advisor Input/Output Examples
 - demo summary 已经能讲清项目主线，README 顶部也已经补了更短的 “60 秒 Demo”。
 - advisor 样例补上后，可以更直接回答“agent 到底起了什么作用”：它把结构化失败证据转成 bounded patch，或在证据不足时拒绝 patch。
 - tool-agent 实验补上后，可以回答“tool use 闭环在哪里”：工具属于上层 optimization agent，它先调用诊断工具观察，再决定是否 patch。
-- tool-agent eval 说明工具调用的价值不是打败 deterministic，而是把安全但不可执行的 pre-tool investigation 推进成正确 bounded patch，或在 control-slice 上推进成更具体的 capability-boundary probe。
+- tool-agent eval 说明工具调用的价值不是打败 deterministic，而是把安全但不可执行的 pre-tool investigation 推进成正确 bounded patch、capability-boundary probe，或 broad-slice quality-winner hold。
 - readiness review 结论仍然克制：当前可以认真投递 agent 日常实习，但还需要 fresh benchmark / fresh holdout 来证明外部泛化。
 
 #### 下一阶段计划
@@ -262,8 +269,10 @@ Advisor Input/Output Examples
   完成证据：`reports/advisor_eval_tool_agent.md` 量化了 deterministic、tool-agent-pretool、tool-agent 三组对照。
 - [x] 扩展 tool-agent eval 到 fresh diagnostic case 的第一步。
   完成证据：新增 `tool_control_boundary_probe`，它来自 control-slice，不是 hard-slice 历史链路。
-- [ ] 继续增加第二个非 hard-slice diagnostic case。
-  完成标准：新增至少 1 个不是 hard-slice 历史链路、且不是 control compare report 直接复用的 tool-use case，验证工具 loop 不只是复现已知样例。
+- [x] 继续增加第二个非 hard-slice diagnostic case。
+  完成证据：新增 `tool_broad_quality_hold`，它来自 broad-slice quality-winner report，不是 hard-slice 历史链路，也不是 control compare report 复用。
+- [ ] 设计 coordinate/control probe 的最小可验证路线。
+  完成标准：先写出 probe 输入、输出、成功判定和不做 task-specific hand-code 的边界，再决定是否实现。
 
 ### 2026-04-27
 

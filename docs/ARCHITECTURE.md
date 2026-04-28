@@ -153,6 +153,7 @@ Optimization Agent
   -> inspect_policy_replay       # 查看 scroll replay 是否证明策略会触发
   -> inspect_grid_probe          # 查看 grid probe 是否证明 mapped mouse_click 有效
   -> inspect_control_failure_evidence  # 查看 control-slice 失败证据，决定是否先 probe 而不是 patch
+  -> inspect_quality_winner_evidence   # 查看 winner 证据，决定保留配置而不是继续 patch
   -> AdvisorProposal             # 根据 tool observation 输出 patch / investigation / hold
 ```
 
@@ -164,10 +165,11 @@ Current tool-agent experiments:
 - `reports/tool_agent_compose_loop.*`: `inspect_compare_report -> inspect_terminal_probe -> inspect_policy_replay -> inspect_grid_probe -> hyp_combine_scroll_and_terminal_policies`
 - `reports/tool_agent_coordinate_loop.*`: `inspect_compare_report -> inspect_grid_probe -> hyp_grid_coordinate_click`
 - `reports/tool_agent_control_loop.*`: `inspect_compare_report -> inspect_control_failure_evidence -> hyp_probe_coordinate_control`
+- `reports/tool_agent_broad_quality_loop.*`: `inspect_compare_report -> inspect_quality_winner_evidence -> hyp_keep_quality_winner`
 
-In these runs, the pre-tool decision is `hyp_tool_investigate_before_patch`. The final decision becomes a patch only when mature probe or replay evidence exists; otherwise the agent keeps the output as a bounded investigation, as in the control-slice case.
+In these runs, the pre-tool decision is `hyp_tool_investigate_before_patch`. The final decision becomes a patch only when mature probe or replay evidence exists; otherwise the agent keeps the output as a bounded investigation or hold, as in the control and broad-slice cases.
 
-Current 4-case tool-agent eval:
+Current 5-case tool-agent eval:
 
 | Advisor | Avg Score | Direction Match | Safe Patch | Evidence Use | Boundary Awareness |
 |---|---:|---:|---:|---:|---:|
@@ -175,7 +177,7 @@ Current 4-case tool-agent eval:
 | `tool-agent-pretool` | 0.833 | 0.000 | 1.000 | 1.000 | 1.000 |
 | `tool-agent` | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
 
-This eval does not claim the tool-agent beats the deterministic advisor on mature historical cases. It measures the value of tool use over the pre-tool investigation baseline: observation turns a safe but non-actionable investigation into either a bounded patch or a more specific capability-boundary probe.
+This eval does not claim the tool-agent beats the deterministic advisor on mature historical cases. It measures the value of tool use over the pre-tool investigation baseline: observation turns a safe but non-actionable investigation into a bounded patch, a more specific capability-boundary probe, or a quality-winner hold.
 
 ## Advisor Evaluation Harness
 

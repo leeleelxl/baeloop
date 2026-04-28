@@ -145,7 +145,7 @@ uv run baeloop eval-advisor \
   --markdown-out reports/advisor_eval_tool_agent.md
 ```
 
-Current tool-agent eval result on 4 diagnostic cases:
+Current tool-agent eval result on 5 diagnostic cases:
 
 | Advisor | Avg Score | Direction Match | Safe Patch | Evidence Use | Boundary Awareness |
 |---|---:|---:|---:|---:|---:|
@@ -153,7 +153,7 @@ Current tool-agent eval result on 4 diagnostic cases:
 | `tool-agent-pretool` | 0.833 | 0.000 | 1.000 | 1.000 | 1.000 |
 | `tool-agent` | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
 
-The useful claim is not that `tool-agent` beats deterministic on these mature cases. The useful claim is that tool observations convert a safe but non-actionable investigation into the correct bounded patch, or into a more specific capability-boundary probe when evidence is not patch-mature.
+The useful claim is not that `tool-agent` beats deterministic on these mature cases. The useful claim is that tool observations convert a safe but non-actionable investigation into the correct bounded patch, a more specific capability-boundary probe, or a hold decision when the candidate is already a quality winner.
 
 Evaluate the advisor layer over committed historical compare reports:
 
@@ -250,6 +250,7 @@ The broad run is stronger evidence than the original 8-task slice because the sa
 - `runs/agentlab_broad_full_policy.jsonl`
 - `reports/agentlab_broad_full_policy_compare.md`
 - `reports/agentlab_broad_full_policy_proposal.json`
+- `reports/tool_agent_broad_quality_loop.md`
 
 ## Current Control-Slice Finding
 
