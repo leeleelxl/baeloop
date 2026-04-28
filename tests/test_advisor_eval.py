@@ -59,11 +59,26 @@ def test_advisor_eval_markdown_renders_summary(tmp_path: Path) -> None:
 def test_advisor_eval_exposes_holdout_suite() -> None:
     cases = get_advisor_eval_cases("holdout")
 
-    assert len(cases) >= 4
+    assert len(cases) == 10
     assert {case.id for case in cases} >= {
         "holdout_core_saturated",
         "holdout_challenge_efficiency_winner",
         "holdout_combined_vs_terminal_remaining_coordinate",
+        "holdout_agentlab_smoke_saturated",
+        "holdout_mock_advisor_quality_winner",
+        "holdout_sample_retry_invalid_or_noop",
+        "holdout_budget30_to_combined_remaining_coordinate",
+        "holdout_hard_retry_to_full_quality_winner",
+    }
+
+
+def test_holdout_eval_scores_all_deterministic_cases() -> None:
+    report = run_advisor_eval(case_suite="holdout")
+
+    assert report["case_count"] == 10
+    assert report["summary"]["deterministic"]["rows"] == 10
+    assert {row["case_id"] for row in report["rows"]} == {
+        case.id for case in get_advisor_eval_cases("holdout")
     }
 
 

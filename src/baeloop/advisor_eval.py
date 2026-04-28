@@ -101,6 +101,32 @@ HOLDOUT_EVAL_CASES = [
         report_path=Path("reports/mock_compare.json"),
         expected_direction="extend_step_budget",
     ),
+    AdvisorEvalCase(
+        id="holdout_agentlab_smoke_saturated",
+        report_path=Path("reports/agentlab_smoke_compare.json"),
+        expected_direction="hold_expand_taskset",
+    ),
+    AdvisorEvalCase(
+        id="holdout_mock_advisor_quality_winner",
+        report_path=Path("reports/mock_advisor_compare.json"),
+        expected_direction="quality_winner",
+    ),
+    AdvisorEvalCase(
+        id="holdout_sample_retry_invalid_or_noop",
+        report_path=Path("reports/sample_compare.json"),
+        expected_direction="retry_invalid_or_noop",
+    ),
+    AdvisorEvalCase(
+        id="holdout_budget30_to_combined_remaining_coordinate",
+        report_path=Path("reports/agentlab_hard_budget30_vs_combined_policy_compare.json"),
+        expected_direction="investigate",
+        expected_root_causes=("coordinate_click_miss",),
+    ),
+    AdvisorEvalCase(
+        id="holdout_hard_retry_to_full_quality_winner",
+        report_path=Path("reports/agentlab_hard_retry_vs_full_policy_compare.json"),
+        expected_direction="quality_winner",
+    ),
 ]
 
 EVAL_CASE_SUITES = {
@@ -294,6 +320,8 @@ def _direction_matches(expected_direction: str, proposal: AdvisorProposal) -> bo
         == "hyp_hold_config_expand_taskset",
         "probe_coordinate_control": lambda item: item.hypothesis_id
         == "hyp_probe_coordinate_control",
+        "retry_invalid_or_noop": lambda item: item.hypothesis_id
+        == "hyp_retry_invalid_or_noop",
     }
     return predicates[expected_direction](proposal)
 

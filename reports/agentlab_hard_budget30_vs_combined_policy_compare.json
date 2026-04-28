@@ -1,0 +1,146 @@
+{
+  "baseline_config_id": "relay_gpt54_hard_retry_hyp_extend_step_budget",
+  "candidate_config_id": "relay_gpt54_hard_retry_hyp_extend_step_budget_hyp_scroll_before_submit_hyp_terminal_keyboard_type_combined",
+  "compared_task_count": 8,
+  "failure_evidence": {
+    "baseline": [
+      {
+        "confidence": "medium",
+        "evidence": [
+          "status=failed",
+          "failure_type=zero_score",
+          "step_count=1",
+          "score=0.00",
+          "coordinate task failed after an SVG/grid click attempt"
+        ],
+        "failure_type": "zero_score",
+        "root_cause": "coordinate_click_miss",
+        "suggested_action": "Add coordinate-aware click evidence or a point-targeting policy before changing generic retry settings.",
+        "task_id": "browsergym/miniwob.grid-coordinate#seed=25"
+      },
+      {
+        "confidence": "medium",
+        "evidence": [
+          "status=failed",
+          "failure_type=zero_score",
+          "step_count=8",
+          "score=0.00",
+          "multi-item social task failed after several visible interactions"
+        ],
+        "failure_type": "zero_score",
+        "root_cause": "missed_scroll_target",
+        "suggested_action": "Test a scroll-before-submit policy or trace check for hidden remaining targets.",
+        "task_id": "browsergym/miniwob.social-media-all#seed=26"
+      },
+      {
+        "confidence": "medium",
+        "evidence": [
+          "status=max_steps",
+          "failure_type=max_steps",
+          "step_count=30",
+          "score=0.00",
+          "terminal task exhausted step budget while commands did not drive visible terminal state changes"
+        ],
+        "failure_type": "max_steps",
+        "root_cause": "terminal_input_action_mismatch",
+        "suggested_action": "Inspect terminal traces and test a terminal-specific input action policy before increasing budget again.",
+        "task_id": "browsergym/miniwob.terminal#seed=27"
+      }
+    ],
+    "candidate": [
+      {
+        "confidence": "medium",
+        "evidence": [
+          "status=failed",
+          "failure_type=zero_score",
+          "step_count=1",
+          "score=0.00",
+          "coordinate task failed after an SVG/grid click attempt"
+        ],
+        "failure_type": "zero_score",
+        "root_cause": "coordinate_click_miss",
+        "suggested_action": "Add coordinate-aware click evidence or a point-targeting policy before changing generic retry settings.",
+        "task_id": "browsergym/miniwob.grid-coordinate#seed=25"
+      }
+    ]
+  },
+  "failure_summary": {
+    "baseline": {
+      "max_steps": 1,
+      "zero_score": 2
+    },
+    "candidate": {
+      "zero_score": 1
+    }
+  },
+  "improvements": [
+    {
+      "baseline_score": 0.0,
+      "baseline_status": "failed",
+      "candidate_score": 1.0,
+      "candidate_status": "success",
+      "score_delta": 1.0,
+      "task_id": "browsergym/miniwob.social-media-all#seed=26"
+    },
+    {
+      "baseline_score": 0.0,
+      "baseline_status": "max_steps",
+      "candidate_score": 1.0,
+      "candidate_status": "success",
+      "score_delta": 1.0,
+      "task_id": "browsergym/miniwob.terminal#seed=27"
+    }
+  ],
+  "metrics": {
+    "baseline": {
+      "avg_action_policy_interventions": 0.0,
+      "avg_agent_retry_count": 0.0,
+      "avg_busted_retry_count": 0.0,
+      "avg_input_tokens": 20784.5,
+      "avg_latency_sec": 33.71586212515831,
+      "avg_llm_call_count": 7.875,
+      "avg_normalized_score": 0.625,
+      "avg_output_tokens": 632.125,
+      "avg_step_count": 7.875,
+      "failure_taxonomy": {
+        "max_steps": 1,
+        "zero_score": 2
+      },
+      "success_rate": 0.625,
+      "task_count": 8
+    },
+    "candidate": {
+      "avg_action_policy_interventions": 0.375,
+      "avg_agent_retry_count": 0.0,
+      "avg_busted_retry_count": 0.0,
+      "avg_input_tokens": 21063.0,
+      "avg_latency_sec": 23.3425095975399,
+      "avg_llm_call_count": 6.125,
+      "avg_normalized_score": 0.875,
+      "avg_output_tokens": 511.25,
+      "avg_step_count": 6.125,
+      "failure_taxonomy": {
+        "zero_score": 1
+      },
+      "success_rate": 0.875,
+      "task_count": 8
+    },
+    "delta": {
+      "avg_action_policy_interventions": 0.375,
+      "avg_agent_retry_count": 0.0,
+      "avg_busted_retry_count": 0.0,
+      "avg_input_tokens": 278.5,
+      "avg_latency_sec": -10.373352527618408,
+      "avg_llm_call_count": -1.75,
+      "avg_normalized_score": 0.25,
+      "avg_output_tokens": -120.875,
+      "avg_step_count": -1.75,
+      "success_rate": 0.25
+    }
+  },
+  "missing_in_baseline": [],
+  "missing_in_candidate": [],
+  "regression_count": 0,
+  "regressions": [],
+  "taskset_id": "miniwob_agentlab_hard"
+}

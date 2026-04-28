@@ -1,5 +1,5 @@
 {
-  "case_count": 5,
+  "case_count": 10,
   "case_suite": "holdout",
   "include_llm": false,
   "include_llm_v2": false,
@@ -321,6 +321,330 @@
       "target_root_causes": [],
       "used_fallback": false,
       "uses_failure_evidence": true
+    },
+    {
+      "advisor": "deterministic",
+      "boundary_awareness": true,
+      "case_id": "holdout_agentlab_smoke_saturated",
+      "critic_decision": "accepted",
+      "critic_ok": true,
+      "direction_match": true,
+      "expected_direction": "hold_expand_taskset",
+      "hypothesis_id": "hyp_hold_config_expand_taskset",
+      "notes": [
+        "expected=hold_expand_taskset",
+        "mode=deterministic",
+        "no candidate failure evidence records"
+      ],
+      "patch_keys": [],
+      "proposal": {
+        "advisor_mode": "deterministic",
+        "advisor_stage_notes": {},
+        "critic_decision": "accepted",
+        "critic_notes": [
+          "no patch emitted; recommendation is hold or investigation",
+          "no regressions detected",
+          "no candidate failure evidence records"
+        ],
+        "expected_effect": "Reduce overfitting risk by collecting evidence on harder or broader MiniWoB tasks first.",
+        "hypothesis_id": "hyp_hold_config_expand_taskset",
+        "intervention": {
+          "expected_effect": "Reduce overfitting risk by collecting evidence on harder or broader MiniWoB tasks first.",
+          "id": "hyp_hold_config_expand_taskset",
+          "kind": "hold",
+          "patch": {},
+          "rationale": "The candidate has no failures or regressions on the current task set, so another config patch would be weakly supported.",
+          "risk": "Delays optimization if the current task set is already representative, but avoids changing a saturated config without evidence.",
+          "summary": "Keep the candidate config unchanged and expand the task set before optimizing further.",
+          "supported_by": [
+            "no_candidate_failures",
+            "quality_not_worse"
+          ],
+          "target_root_causes": []
+        },
+        "patch": {},
+        "rationale": "The candidate has no failures or regressions on the current task set, so another config patch would be weakly supported.",
+        "risk": "Delays optimization if the current task set is already representative, but avoids changing a saturated config without evidence.",
+        "summary": "Keep the candidate config unchanged and expand the task set before optimizing further."
+      },
+      "proposal_mode": "deterministic",
+      "safe_patch": true,
+      "schema_valid": true,
+      "score": 1.0,
+      "selected_source": "-",
+      "target_root_causes": [],
+      "used_fallback": false,
+      "uses_failure_evidence": true
+    },
+    {
+      "advisor": "deterministic",
+      "boundary_awareness": true,
+      "case_id": "holdout_mock_advisor_quality_winner",
+      "critic_decision": "accepted",
+      "critic_ok": true,
+      "direction_match": true,
+      "expected_direction": "quality_winner",
+      "hypothesis_id": "hyp_keep_quality_winner",
+      "notes": [
+        "expected=quality_winner",
+        "mode=deterministic",
+        "no candidate failure evidence records"
+      ],
+      "patch_keys": [],
+      "proposal": {
+        "advisor_mode": "deterministic",
+        "advisor_stage_notes": {},
+        "critic_decision": "accepted",
+        "critic_notes": [
+          "no patch emitted; recommendation is hold or investigation",
+          "no regressions detected",
+          "no candidate failure evidence records"
+        ],
+        "expected_effect": "Preserve the improved solved-task quality before expanding the benchmark slice.",
+        "hypothesis_id": "hyp_keep_quality_winner",
+        "intervention": {
+          "expected_effect": "Preserve the improved solved-task quality before expanding the benchmark slice.",
+          "id": "hyp_keep_quality_winner",
+          "kind": "hold",
+          "patch": {},
+          "rationale": "The candidate has no failures or regressions and improves success or normalized score.",
+          "risk": "Quality gains may be seed-specific unless confirmed with repeated or broader runs.",
+          "summary": "Keep the candidate config as a quality winner on the measured task set.",
+          "supported_by": [
+            "no_candidate_failures",
+            "quality_not_worse",
+            "quality_gain"
+          ],
+          "target_root_causes": []
+        },
+        "patch": {},
+        "rationale": "The candidate has no failures or regressions and improves success or normalized score.",
+        "risk": "Quality gains may be seed-specific unless confirmed with repeated or broader runs.",
+        "summary": "Keep the candidate config as a quality winner on the measured task set."
+      },
+      "proposal_mode": "deterministic",
+      "safe_patch": true,
+      "schema_valid": true,
+      "score": 1.0,
+      "selected_source": "-",
+      "target_root_causes": [],
+      "used_fallback": false,
+      "uses_failure_evidence": true
+    },
+    {
+      "advisor": "deterministic",
+      "boundary_awareness": true,
+      "case_id": "holdout_sample_retry_invalid_or_noop",
+      "critic_decision": "accepted",
+      "critic_ok": true,
+      "direction_match": true,
+      "expected_direction": "retry_invalid_or_noop",
+      "hypothesis_id": "hyp_retry_invalid_or_noop",
+      "notes": [
+        "expected=retry_invalid_or_noop",
+        "mode=deterministic",
+        "no candidate failure evidence records"
+      ],
+      "patch_keys": [
+        "retry_policy"
+      ],
+      "proposal": {
+        "advisor_mode": "deterministic",
+        "advisor_stage_notes": {},
+        "critic_decision": "accepted",
+        "critic_notes": [
+          "bounded patch present",
+          "candidate has 1 regressions",
+          "no candidate failure evidence records"
+        ],
+        "expected_effect": "Improve success rate on recoverable interaction failures with a small latency increase.",
+        "hypothesis_id": "hyp_retry_invalid_or_noop",
+        "intervention": {
+          "expected_effect": "Improve success rate on recoverable interaction failures with a small latency increase.",
+          "id": "hyp_retry_invalid_or_noop",
+          "kind": "retry_policy",
+          "patch": {
+            "retry_policy": {
+              "enabled": true,
+              "max_retries": 1
+            }
+          },
+          "rationale": "Candidate failures are dominated by `invalid_action`, which may be recoverable with one bounded retry.",
+          "risk": "May hide deeper policy issues and can increase step count on tasks that are already looping.",
+          "summary": "Enable a conservative retry policy for invalid-action or no-progress failures.",
+          "supported_by": [
+            "dominant_failure=invalid_action"
+          ],
+          "target_root_causes": []
+        },
+        "patch": {
+          "retry_policy": {
+            "enabled": true,
+            "max_retries": 1
+          }
+        },
+        "rationale": "Candidate failures are dominated by `invalid_action`, which may be recoverable with one bounded retry.",
+        "risk": "May hide deeper policy issues and can increase step count on tasks that are already looping.",
+        "summary": "Enable a conservative retry policy for invalid-action or no-progress failures."
+      },
+      "proposal_mode": "deterministic",
+      "safe_patch": true,
+      "schema_valid": true,
+      "score": 1.0,
+      "selected_source": "-",
+      "target_root_causes": [],
+      "used_fallback": false,
+      "uses_failure_evidence": true
+    },
+    {
+      "advisor": "deterministic",
+      "boundary_awareness": false,
+      "case_id": "holdout_budget30_to_combined_remaining_coordinate",
+      "critic_decision": "accepted",
+      "critic_ok": true,
+      "direction_match": false,
+      "expected_direction": "investigate",
+      "hypothesis_id": "hyp_grid_coordinate_click",
+      "notes": [
+        "expected=investigate",
+        "mode=deterministic",
+        "failed_direction_match",
+        "failed_boundary_awareness",
+        "uses 1 candidate failure evidence records"
+      ],
+      "patch_keys": [
+        "action_policy"
+      ],
+      "proposal": {
+        "advisor_mode": "deterministic",
+        "advisor_stage_notes": {},
+        "critic_decision": "accepted",
+        "critic_notes": [
+          "bounded patch present",
+          "no regressions detected",
+          "uses 1 candidate failure evidence records"
+        ],
+        "expected_effect": "Convert SVG-root clicks into precise mouse clicks on the requested grid point without changing the prompt.",
+        "hypothesis_id": "hyp_grid_coordinate_click",
+        "intervention": {
+          "expected_effect": "Convert SVG-root clicks into precise mouse clicks on the requested grid point without changing the prompt.",
+          "id": "hyp_grid_coordinate_click",
+          "kind": "action_policy",
+          "patch": {
+            "action_policy": {
+              "enabled": true,
+              "max_interventions": 25,
+              "name": "composite",
+              "policies": [
+                "scroll_before_submit",
+                "terminal_keyboard_type",
+                "grid_coordinate_click"
+              ],
+              "policy_limits": {
+                "grid_coordinate_click": 1,
+                "scroll_before_submit": 1,
+                "terminal_keyboard_type": 20
+              },
+              "scroll_delta_y": 621
+            }
+          },
+          "rationale": "Candidate failure evidence shows the agent identified the target coordinate but clicked the SVG root because the target circle had no bid-addressable action.",
+          "risk": "Only applies when the grid target can be parsed from goal/html/bbox evidence; otherwise it should no-op rather than guess.",
+          "summary": "Enable a coordinate-aware click policy for SVG grid-coordinate targets.",
+          "supported_by": [
+            "root_cause=coordinate_click_miss"
+          ],
+          "target_root_causes": [
+            "coordinate_click_miss"
+          ]
+        },
+        "patch": {
+          "action_policy": {
+            "enabled": true,
+            "max_interventions": 25,
+            "name": "composite",
+            "policies": [
+              "scroll_before_submit",
+              "terminal_keyboard_type",
+              "grid_coordinate_click"
+            ],
+            "policy_limits": {
+              "grid_coordinate_click": 1,
+              "scroll_before_submit": 1,
+              "terminal_keyboard_type": 20
+            },
+            "scroll_delta_y": 621
+          }
+        },
+        "rationale": "Candidate failure evidence shows the agent identified the target coordinate but clicked the SVG root because the target circle had no bid-addressable action.",
+        "risk": "Only applies when the grid target can be parsed from goal/html/bbox evidence; otherwise it should no-op rather than guess.",
+        "summary": "Enable a coordinate-aware click policy for SVG grid-coordinate targets."
+      },
+      "proposal_mode": "deterministic",
+      "safe_patch": true,
+      "schema_valid": true,
+      "score": 0.6666666666666666,
+      "selected_source": "-",
+      "target_root_causes": [
+        "coordinate_click_miss"
+      ],
+      "used_fallback": false,
+      "uses_failure_evidence": true
+    },
+    {
+      "advisor": "deterministic",
+      "boundary_awareness": true,
+      "case_id": "holdout_hard_retry_to_full_quality_winner",
+      "critic_decision": "accepted",
+      "critic_ok": true,
+      "direction_match": true,
+      "expected_direction": "quality_winner",
+      "hypothesis_id": "hyp_keep_quality_winner",
+      "notes": [
+        "expected=quality_winner",
+        "mode=deterministic",
+        "no candidate failure evidence records"
+      ],
+      "patch_keys": [],
+      "proposal": {
+        "advisor_mode": "deterministic",
+        "advisor_stage_notes": {},
+        "critic_decision": "accepted",
+        "critic_notes": [
+          "no patch emitted; recommendation is hold or investigation",
+          "no regressions detected",
+          "no candidate failure evidence records"
+        ],
+        "expected_effect": "Preserve the improved solved-task quality before expanding the benchmark slice.",
+        "hypothesis_id": "hyp_keep_quality_winner",
+        "intervention": {
+          "expected_effect": "Preserve the improved solved-task quality before expanding the benchmark slice.",
+          "id": "hyp_keep_quality_winner",
+          "kind": "hold",
+          "patch": {},
+          "rationale": "The candidate has no failures or regressions and improves success or normalized score.",
+          "risk": "Quality gains may be seed-specific unless confirmed with repeated or broader runs.",
+          "summary": "Keep the candidate config as a quality winner on the measured task set.",
+          "supported_by": [
+            "no_candidate_failures",
+            "quality_not_worse",
+            "quality_gain"
+          ],
+          "target_root_causes": []
+        },
+        "patch": {},
+        "rationale": "The candidate has no failures or regressions and improves success or normalized score.",
+        "risk": "Quality gains may be seed-specific unless confirmed with repeated or broader runs.",
+        "summary": "Keep the candidate config as a quality winner on the measured task set."
+      },
+      "proposal_mode": "deterministic",
+      "safe_patch": true,
+      "schema_valid": true,
+      "score": 1.0,
+      "selected_source": "-",
+      "target_root_causes": [],
+      "used_fallback": false,
+      "uses_failure_evidence": true
     }
   ],
   "summary": {
@@ -329,7 +653,7 @@
       "boundary_awareness_rate": 0.8,
       "direction_match_rate": 0.8,
       "evidence_use_rate": 1.0,
-      "rows": 5,
+      "rows": 10,
       "safe_patch_rate": 1.0
     }
   }

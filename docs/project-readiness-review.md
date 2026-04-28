@@ -1,6 +1,6 @@
 # 项目实习标准 Review
 
-日期：2026-04-27
+日期：2026-04-28
 
 ## 结论
 
@@ -12,13 +12,13 @@
 - 有从失败证据到 bounded intervention 的闭环。
 - 有非 prompt 的 action-surface probe 和 action-policy。
 - 有 LLM advisor 与 deterministic advisor 的对照实验。
-- 有 holdout advisor-eval，证明 `llm-v2` 不只是刷 8 个已知 case。
+- 有 10-case holdout advisor-eval，证明 `llm-v2` 不只是刷 8 个已知 case。
 
 当前最大短板是：
 
 - benchmark 覆盖仍主要集中在 MiniWoB++。
-- advisor holdout case 数量还偏少。
-- 缺少两个清晰的 advisor 输入/输出讲解样例。
+- holdout case 已扩到 10 个，但仍主要来自 MiniWoB++ 和既有实验族。
+- 已补两个 advisor 输入/输出讲解样例，但还需要把它们用于最终 demo 讲稿。
 - `llm-v2` selector 仍带有项目历史规则，需要更明确地解释为 evidence-maturity policy，而不是纯 LLM 智能。
 
 ## 大厂可能喜欢的点
@@ -61,7 +61,7 @@ ComparisonReport
 - Broad slice：`0.800 -> 1.000`，4 improvements，0 regressions
 - Control slice：`0.438 -> 0.500`，暴露 coordinate/control 能力边界
 - Advisor default eval：`llm-v2 1.000` vs deterministic `0.896`
-- Advisor holdout eval：`llm-v2 1.000` vs deterministic `0.933`
+- Advisor holdout eval：`llm-v2 0.983` vs deterministic `0.933`
 
 这比“我觉得 agent 更好”强很多，因为有报告和指标。
 
@@ -90,16 +90,17 @@ MiniWoB++ 适合两周 MVP，但大厂面试官可能会问：
 - 是有 domain policy，但这是 agent optimization 系统的安全边界，不是坏事。
 - LLM 负责分析、候选生成和 critic note；selector 负责保证 patch 不越界。
 - 这类似 production agent 系统中的 policy guardrail。
-- holdout eval 已经初步证明它不是只刷最初 8 个 case。
+- 10-case holdout eval 已经初步证明它不是只刷最初 8 个 case。
+- expanded holdout 不是完美满分：`llm-v2` 在一个 ambiguous mock retry case 上方向不匹配，这反而说明 eval 没有只保留满分样例。
 
-### 3. 还缺少输入/输出例子
+### 3. 还需要把输入/输出例子纳入最终讲稿
 
-目前报告很多，但面试时需要两个非常清楚的例子：
+目前已经补了 `docs/advisor-examples.md`，包含两个清楚的例子：
 
 - 一个成功 patch 例子：terminal failure -> `terminal_keyboard_type`
 - 一个拒绝 patch 例子：coordinate-control failure -> `hyp_probe_before_action_policy`
 
-这两个例子应该包含：
+最终 demo 讲稿里还应该压缩展示：
 
 - advisor 输入摘要
 - Analyst 输出
@@ -115,28 +116,28 @@ MiniWoB++ 适合两周 MVP，但大厂面试官可能会问：
 |---|---:|---|
 | 工程完整度 | 8/10 | CLI、schema、tests、reports、docs 都比较完整 |
 | agent 相关性 | 8/10 | 有 advisor agent 架构和 LLM/deterministic 对照 |
-| 实验可信度 | 7/10 | 有真实 benchmark 和 holdout eval，但 benchmark 范围还偏小 |
+| 实验可信度 | 8/10 | 有真实 benchmark 和 10-case holdout eval，但 benchmark 范围还偏 MiniWoB++ |
 | 非 prompt 能力 | 8/10 | 有 probe-backed action policies |
-| 面试可讲性 | 7/10 | 主线清楚，但还缺两个强输入/输出样例 |
-| 开源观感 | 7/10 | README/architecture 已不错，demo summary 刚补上，还可继续打磨 |
+| 面试可讲性 | 8/10 | 主线清楚，已有 advisor 输入/输出样例，还需要最终讲稿压缩 |
+| 开源观感 | 8/10 | README/architecture/demo summary 已经能快速解释项目，还可继续打磨 |
 
-综合判断：当前是 `7.5/10` 到 `8/10` 的实习项目。继续补充 holdout、demo examples、README polish 后，可以冲到 `8.5/10`。
+综合判断：当前是接近 `8/10` 的实习项目。继续补充 fresh benchmark / fresh holdout、最终 demo 讲稿后，可以冲到 `8.5/10`。
 
 ## 下一步最高收益工作
 
 优先级从高到低：
 
-1. 补两个 advisor 输入/输出样例。
-   原因：这是面试解释 agent 架构最直接的材料。
-
-2. 扩大 holdout advisor-eval 到 10 到 15 个 case。
-   原因：降低 `llm-v2` 过拟合质疑。
-
-3. 增加 README 顶部的 “60 秒 Demo”。
-   原因：面试官和开源读者先看 README，不会先读所有报告。
-
-4. 选择一个更真实的 benchmark 迁移路线。
+1. 选择一个更真实的 benchmark 迁移路线。
    原因：MiniWoB++ 足够证明 loop，但不够证明真实网页泛化。
+
+2. 增加 fresh holdout case，而不是只从现有 run 重新组合。
+   原因：10-case holdout 已经更可信，但 fresh task distribution 更能降低过拟合质疑。
+
+3. 做最终 demo 讲稿。
+   原因：现在材料已经有了，下一步要把 hard ladder、holdout eval、advisor examples 压成 3 到 5 分钟可讲版本。
+
+4. 修复或解释 ambiguous mock retry case。
+   原因：expanded holdout 中 `llm-v2` 唯一失分来自这个 case，需要决定它是评测标签问题，还是 selector 应该增加 regression-aware 分支。
 
 5. 暂时不要做 dashboard。
    原因：dashboard 对 agent 能力没有直接帮助，容易分散两周 MVP 的重点。

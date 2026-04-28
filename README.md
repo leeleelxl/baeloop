@@ -31,7 +31,7 @@ Current headline evidence:
 - Hard slice improved from `0.500` to `1.000`.
 - Broad 20-task slice improved from `0.800` to `1.000` with 4 improvements and 0 regressions.
 - Control slice only improved from `0.438` to `0.500`, which exposes the current capability boundary instead of hiding it.
-- Holdout advisor eval: `llm-v2` scored `1.000` vs deterministic `0.933`.
+- Holdout advisor eval on 10 cases: `llm-v2` scored `0.983` vs deterministic `0.933`.
 
 For concrete advisor inputs and outputs, see [`docs/advisor-examples.md`](docs/advisor-examples.md). For the current internship-readiness assessment, see [`docs/project-readiness-review.md`](docs/project-readiness-review.md).
 
@@ -151,14 +151,14 @@ Current advisor-eval result on 8 historical cases:
 
 The useful result is diagnostic: v1 showed that a plain LLM advisor is not automatically better than deterministic rules. The v2 agent beats the deterministic baseline by adding a deterministic-reference tool and an evidence-maturity selector that forces weak action-policy ideas into probe/investigation decisions before patching.
 
-Current holdout advisor-eval result on 5 additional cases not used to tune v2:
+Current holdout advisor-eval result on 10 additional cases:
 
 | Advisor | Avg Score | Direction Match | Safe Patch | Evidence Use | Boundary Awareness |
 |---|---:|---:|---:|---:|---:|
 | `deterministic` | 0.933 | 0.800 | 1.000 | 1.000 | 0.800 |
-| `llm-v2` | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
+| `llm-v2` | 0.983 | 0.900 | 1.000 | 1.000 | 1.000 |
 
-The holdout report also shows the final decision source for each case. Most mature cases select `deterministic_reference`; the weak coordinate-action case selects `investigation_fallback`, which is the behavior the v2 selector is designed to enforce.
+The holdout report also shows the final decision source for each case. Most mature cases select `deterministic_reference`; weak coordinate-action cases select `investigation_fallback`, which is the behavior the v2 selector is designed to enforce. The expanded suite is intentionally not perfect: `llm-v2` misses one ambiguous mock retry direction, which keeps the claim honest.
 
 Print the current demo story from committed report artifacts:
 

@@ -28,11 +28,11 @@
 | Advisor | Avg Score | Direction | Safe Patch | Evidence | Boundary |
 |---|---:|---:|---:|---:|---:|
 | `deterministic` | 0.933 | 0.800 | 1.000 | 1.000 | 0.800 |
-| `llm-v2` | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
+| `llm-v2` | 0.983 | 0.900 | 1.000 | 1.000 | 1.000 |
 
 ## 5. Current Project Claim
 
 - BAELOOP is not a prompt-only browser agent project.
 - The browser agent is the execution substrate; the project highlight is the optimization advisor.
 - `llm-v2` wins by combining LLM stages, deterministic reference, and evidence-maturity selection.
-- The next demo risk to address is broader holdout coverage and clearer advisor input/output examples.
+- The next demo risk to address is external validity on fresher browser task distributions.

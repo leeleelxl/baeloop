@@ -49,7 +49,7 @@
 - Broad slice：20 个 MiniWoB++ 任务上 `0.800 -> 1.000`，4 个 improvement，0 个 regression。
 - Control slice：`0.438 -> 0.500`，说明剩余问题主要是 coordinate/control 能力边界，不是继续 prompt 或预算能解决。
 - Advisor eval：`llm-v2` 在 8 个历史 advisor 决策 case 上打败 deterministic。
-- Holdout advisor eval：`llm-v2` 在 5 个未参与 v2 调整的 holdout case 上继续打败 deterministic。
+- Holdout advisor eval：`llm-v2` 在 10 个 holdout case 上继续打败 deterministic，但不是满分，保留了一个 ambiguous mock retry 失分。
 
 Advisor eval 当前结果：
 
@@ -64,7 +64,7 @@ Holdout advisor eval 当前结果：
 | Advisor | Avg Score | Direction Match | Safe Patch | Evidence Use | Boundary Awareness |
 |---|---:|---:|---:|---:|---:|
 | `deterministic` | 0.933 | 0.800 | 1.000 | 1.000 | 0.800 |
-| `llm-v2` | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
+| `llm-v2` | 0.983 | 0.900 | 1.000 | 1.000 | 1.000 |
 
 ## 当前总体架构
 
@@ -156,10 +156,10 @@ Advisor Input/Output Examples
 
 #### 当日模块职责
 
-- `advisor_eval.py`：新增 `holdout` case suite，并在报告中暴露 `proposal_mode`、`selected_source`、`used_fallback`。
+- `advisor_eval.py`：holdout suite 从 5 个 case 扩到 10 个 case，并在报告中暴露 `proposal_mode`、`selected_source`、`used_fallback`。
 - `cli.py`：新增 `eval-advisor --case-suite holdout` 和 `demo-summary`。
 - `demo.py`：从已提交报告生成一页 demo summary，不跑浏览器、不调用 API。
-- `tests/test_advisor_eval.py`：验证 holdout suite 暴露正常。
+- `tests/test_advisor_eval.py`：验证 holdout suite 暴露正常，并覆盖 10 个 case 的 deterministic 评分。
 - `tests/test_demo.py`：验证 demo summary 能输出项目主线。
 - `README.md`、`docs/ARCHITECTURE.md`、`project.md`：补充 holdout eval、demo summary、readiness review。
 - `docs/advisor-examples.md`：用两个真实 advisor case 展示输入、阶段判断和最终输出，覆盖成功 patch 与拒绝 patch 转 investigation。
@@ -179,35 +179,43 @@ Advisor Input/Output Examples
   证据：`docs/advisor-examples.md`；包含 `terminal_keyboard_type` 成功 patch，以及 `coordinate_click_miss` 被 `llm-v2` 拒绝 patch 转 investigation。
 - [x] 在 README 顶部增加 “60 秒 Demo”。
   证据：`README.md` 的 `60-Second Demo` 小节；包含 hard slice、broad slice、control slice、holdout advisor eval 四个关键指标。
+- [x] 扩大 holdout advisor-eval 到 10 个 case。
+  证据：`reports/advisor_eval_holdout_deterministic.md`、`reports/advisor_eval_holdout_llm_v2.md`；新增 `reports/agentlab_hard_budget30_vs_combined_policy_compare.*` 和 `reports/agentlab_hard_retry_vs_full_policy_compare.*`。
 - [x] 验证当前代码库。
-  证据：`uv run pytest` 通过，结果为 `79 passed`。
+  证据：`uv run pytest` 通过，结果为 `80 passed`。
 
 #### 今日验证证据
 
-- `reports/advisor_eval_holdout_llm_v2.md` 显示 `llm-v2` 在 5 个 holdout case 上平均分 `1.000`，deterministic 为 `0.933`。
-- holdout 中 `holdout_combined_vs_terminal_remaining_coordinate` 证明 v2 会把弱 coordinate patch 转成 `hyp_probe_before_action_policy`，来源为 `investigation_fallback`。
+- `reports/advisor_eval_holdout_llm_v2.md` 显示 `llm-v2` 在 10 个 holdout case 上平均分 `0.983`，deterministic 为 `0.933`。
+- holdout 中 `holdout_combined_vs_terminal_remaining_coordinate` 和 `holdout_budget30_to_combined_remaining_coordinate` 证明 v2 会把弱 coordinate patch 转成 `hyp_probe_before_action_policy`，来源为 `investigation_fallback`。
+- expanded holdout 中 `holdout_sample_retry_invalid_or_noop` 是 `llm-v2` 唯一方向失分：LLM 倾向 hold，而 expected label 是 retry invalid/no-op。
 - `reports/demo_summary.md` 可以一页展示 hard-slice ladder、broad validation、control boundary、advisor holdout eval。
-- `docs/project-readiness-review.md` 给出当前诚实评分：约 `7.5/10` 到 `8/10`，继续补强后可冲 `8.5/10`。
+- `docs/project-readiness-review.md` 给出当前诚实评分：接近 `8/10`，继续补充 fresh benchmark / fresh holdout 和最终 demo 讲稿后可冲 `8.5/10`。
 - `docs/advisor-examples.md` 展示了 advisor 的真实输入和输出，能解释为什么项目不是简单 prompt engineering。
 - `README.md` 顶部新增 `60-Second Demo`，把项目主线、关键结果和样例文档入口前置。
-- `uv run pytest` 通过，`79 passed`。
+- `uv run pytest` 通过，`80 passed`。
 
 #### 今日 Review
 
-- holdout eval 初步缓解了过拟合质疑：v2 在未参与调参的 5 个 case 上继续达到 `1.000`。
+- holdout eval 进一步缓解了过拟合质疑：case 数从 5 扩到 10，`llm-v2` 仍高于 deterministic，但不是满分。
 - 报告透明度比单纯满分更重要：现在可以解释 agent 是选择 deterministic reference，还是转为 investigation fallback。
+- `llm-v2` 唯一失分来自 ambiguous mock retry case，这个失分需要保留，不应该为了满分倒改标签。
 - demo summary 已经能讲清项目主线，README 顶部也已经补了更短的 “60 秒 Demo”。
 - advisor 样例补上后，可以更直接回答“agent 到底起了什么作用”：它把结构化失败证据转成 bounded patch，或在证据不足时拒绝 patch。
-- readiness review 结论仍然克制：当前可以认真投递 agent 日常实习，但还需要更大 holdout suite 来降低过拟合质疑。
+- readiness review 结论仍然克制：当前可以认真投递 agent 日常实习，但还需要 fresh benchmark / fresh holdout 来证明外部泛化。
 
 #### 下一阶段计划
 
 - [x] 补两个 advisor 输入/输出样例。
   完成证据：`docs/advisor-examples.md`，包含一个成功 patch 例子和一个拒绝 patch 转 investigation 例子。
-- [ ] 扩大 holdout advisor-eval 到 10 到 15 个 case。
-  完成标准：新增 case 先固定 expected label，再运行 eval，不根据结果倒改。
+- [x] 扩大 holdout advisor-eval 到 10 到 15 个 case。
+  完成证据：holdout suite 已扩到 10 个 case；expected label 先写入代码，再运行 deterministic 和 `llm-v2` eval。
 - [x] 在 README 顶部增加 “60 秒 Demo”。
   完成证据：`README.md` 的 `60-Second Demo` 小节，读者 1 分钟内能理解项目目标、架构、关键结果和如何运行 demo。
+- [ ] 增加 fresh benchmark / fresh holdout 路线。
+  完成标准：明确下一批不从现有 run 重新组合的任务来源，并跑出至少一组新 holdout evidence。
+- [ ] 处理 expanded holdout 中的 ambiguous mock retry case。
+  完成标准：决定它是评测标签问题、需要 regression-aware expected direction，还是 selector 应该增加 regression-aware 分支。
 
 ### 2026-04-27
 
