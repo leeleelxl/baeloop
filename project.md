@@ -123,6 +123,80 @@ Rerun 或 Advisor Eval
 
 ## 每日记录
 
+### 2026-04-28
+
+#### 当日架构图
+
+今天的核心架构没有改变，主要补强了评估可信度和展示链路。
+
+```text
+ComparisonReport
+        |
+        v
+Advisor Eval Suite
+  +-------------------+-------------------+
+  | default cases     | holdout cases     |
+  | 已知历史决策集     | 未参与 v2 调整集   |
+  +-------------------+-------------------+
+        |
+        v
+deterministic / llm-v2 对比
+        |
+        v
+Transparent Report
+  - Mode
+  - Source: deterministic_reference / investigation_fallback
+        |
+        v
+Demo Summary + Readiness Review
+```
+
+#### 当日模块职责
+
+- `advisor_eval.py`：新增 `holdout` case suite，并在报告中暴露 `proposal_mode`、`selected_source`、`used_fallback`。
+- `cli.py`：新增 `eval-advisor --case-suite holdout` 和 `demo-summary`。
+- `demo.py`：从已提交报告生成一页 demo summary，不跑浏览器、不调用 API。
+- `tests/test_advisor_eval.py`：验证 holdout suite 暴露正常。
+- `tests/test_demo.py`：验证 demo summary 能输出项目主线。
+- `README.md`、`docs/ARCHITECTURE.md`、`project.md`：补充 holdout eval、demo summary、readiness review。
+
+#### 今日改动
+
+- [x] 增加 holdout advisor-eval case，避免只在已调过的 8 个 case 上证明 v2。
+  证据：commit `1ade6ba add holdout advisor eval`；报告 `reports/advisor_eval_holdout_deterministic.md`、`reports/advisor_eval_holdout_llm_v2.md`。
+- [x] 提升 advisor eval 报告透明度。
+  证据：holdout Markdown 表格新增 `Mode` 和 `Source`，能看到最终决策来自 `deterministic_reference` 还是 `investigation_fallback`。
+- [x] 增加一键 demo summary 命令。
+  证据：commit `a8ade24 add project demo summary`；命令 `uv run baeloop demo-summary --out reports/demo_summary.md`。
+- [x] 重新评估项目是否达到大厂 agent 日常实习标准。
+  证据：`docs/project-readiness-review.md`。
+- [x] 验证当前代码库。
+  证据：`uv run pytest` 通过，结果为 `79 passed`。
+
+#### 今日验证证据
+
+- `reports/advisor_eval_holdout_llm_v2.md` 显示 `llm-v2` 在 5 个 holdout case 上平均分 `1.000`，deterministic 为 `0.933`。
+- holdout 中 `holdout_combined_vs_terminal_remaining_coordinate` 证明 v2 会把弱 coordinate patch 转成 `hyp_probe_before_action_policy`，来源为 `investigation_fallback`。
+- `reports/demo_summary.md` 可以一页展示 hard-slice ladder、broad validation、control boundary、advisor holdout eval。
+- `docs/project-readiness-review.md` 给出当前诚实评分：约 `7.5/10` 到 `8/10`，继续补强后可冲 `8.5/10`。
+- `uv run pytest` 通过，`79 passed`。
+
+#### 今日 Review
+
+- holdout eval 初步缓解了过拟合质疑：v2 在未参与调参的 5 个 case 上继续达到 `1.000`。
+- 报告透明度比单纯满分更重要：现在可以解释 agent 是选择 deterministic reference，还是转为 investigation fallback。
+- demo summary 已经能讲清项目主线，但 README 顶部还缺一个更短的 “60 秒 Demo”。
+- readiness review 结论仍然克制：当前可以认真投递 agent 日常实习，但还需要 advisor 输入/输出样例和更大 holdout suite。
+
+#### 下一阶段计划
+
+- [ ] 补两个 advisor 输入/输出样例。
+  完成标准：至少包含一个成功 patch 例子和一个拒绝 patch 转 investigation 例子。
+- [ ] 扩大 holdout advisor-eval 到 10 到 15 个 case。
+  完成标准：新增 case 先固定 expected label，再运行 eval，不根据结果倒改。
+- [ ] 在 README 顶部增加 “60 秒 Demo”。
+  完成标准：读者 1 分钟内能理解项目目标、架构、关键结果和如何运行 demo。
+
 ### 2026-04-27
 
 #### 当日架构图
@@ -181,26 +255,14 @@ AdvisorProposal
 - [x] 加入 `llm-v2` advisor：LLM stage + deterministic reference tool + evidence-maturity selector。
   证据：commit `fd17b0c add llm v2 advisor selector`；报告 `reports/advisor_eval_llm_v2.md`。
 - [x] 验证当前代码库。
-  证据：`uv run pytest` 通过，结果为 `79 passed`。
+  证据：`uv run pytest` 通过，结果为 `77 passed`。
 - [x] 初始化中文项目进度账本。
   证据：`project.md`。
-- [x] 增加 holdout advisor-eval case，避免只在已调过的 8 个 case 上证明 v2。
-  证据：`reports/advisor_eval_holdout_deterministic.md`、`reports/advisor_eval_holdout_llm_v2.md`。
-- [x] 提升 advisor eval 报告透明度。
-  证据：holdout Markdown 表格新增 `Mode` 和 `Source`，能看到最终决策来自 `deterministic_reference` 还是 `investigation_fallback`。
-- [x] 增加一键 demo summary 命令。
-  证据：`uv run baeloop demo-summary --out reports/demo_summary.md`；输出 hard-slice ladder、broad validation、control boundary、advisor holdout eval。
-- [x] 重新评估项目是否达到大厂 agent 日常实习标准。
-  证据：`docs/project-readiness-review.md`。
 
 #### 今日验证证据
 
 - `reports/advisor_eval_llm_v2.md` 显示 `llm-v2` 在 8 个历史 case 上平均分 `1.000`。
-- `reports/advisor_eval_holdout_llm_v2.md` 显示 `llm-v2` 在 5 个 holdout case 上平均分 `1.000`，deterministic 为 `0.933`。
-- holdout 中 `holdout_combined_vs_terminal_remaining_coordinate` 证明 v2 会把弱 coordinate patch 转成 `hyp_probe_before_action_policy`，来源为 `investigation_fallback`。
-- `reports/demo_summary.md` 可以一页展示当前项目主线。
-- `docs/project-readiness-review.md` 给出当前诚实评分：约 `7.5/10` 到 `8/10`，继续补强后可冲 `8.5/10`。
-- `uv run pytest` 通过，`79 passed`。
+- `uv run pytest` 通过，`77 passed`。
 - `git push` 已推送到 GitHub main，关键项目账本 commit 包含 `d2c4e6e`。
 
 #### 今日 Review
@@ -208,26 +270,18 @@ AdvisorProposal
 - 普通 LLM advisor 没有天然打败 deterministic。它 evidence use 更好，但 direction match 和 safe patch 较弱。
 - `llm-v2` 的优势不是 prompt 更强，而是架构更强：它把 deterministic 作为工具，并用 evidence maturity 判断什么时候应该 patch，什么时候应该 investigation。
 - 当前 v2 结果是在 8 个历史 case 上得到的，下一步必须做 holdout advisor eval，避免被质疑“只适配已知 case”。
-- holdout eval 初步缓解了过拟合质疑：v2 在未参与调参的 5 个 case 上继续达到 `1.000`。
-- 透明度仍然重要：现在报告能显示 `selected_source`，可以解释 agent 是选择 deterministic reference，还是转为 investigation fallback。
 - Control slice 不应该继续盲目做控制任务。它目前的价值是证明能力边界，并驱动 probe/investigation 决策。
 
 #### 下一阶段计划
 
 - [x] 增加 holdout advisor-eval case，不能用已调过 v2 的 8 个 case。
-  完成证据：新增 5 个 holdout case；生成 `reports/advisor_eval_holdout_deterministic.*` 和 `reports/advisor_eval_holdout_llm_v2.*`。
+  完成证据：2026-04-28 已完成。
 - [x] 提升 `llm-v2` eval 报告透明度。
-  完成证据：Markdown 表格新增 `Mode` 和 `Source`，能区分 `deterministic_reference` 与 `investigation_fallback`。
+  完成证据：2026-04-28 已完成。
 - [x] 增加一个 demo 命令或脚本，能一键展示项目主线。
-  完成证据：新增 `baeloop demo-summary`，生成 `reports/demo_summary.md`。
+  完成证据：2026-04-28 已完成。
 - [x] 重新评估项目是否达到大厂 agent 日常实习标准。
-  完成证据：新增 `docs/project-readiness-review.md`。
-- [ ] 补两个 advisor 输入/输出样例。
-  完成标准：至少包含一个成功 patch 例子和一个拒绝 patch 转 investigation 例子。
-- [ ] 扩大 holdout advisor-eval 到 10 到 15 个 case。
-  完成标准：新增 case 先固定 expected label，再运行 eval，不根据结果倒改。
-- [ ] 在 README 顶部增加 “60 秒 Demo”。
-  完成标准：读者 1 分钟内能理解项目目标、架构、关键结果和如何运行 demo。
+  完成证据：2026-04-28 已完成。
 
 ## Backlog
 
