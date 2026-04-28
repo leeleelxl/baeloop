@@ -271,12 +271,15 @@ The full policy only improves `use-slider-2`, so the remaining value is not anot
 
 The advisor now emits `hyp_probe_coordinate_control` for this slice, directing the next work toward coordinate drag/click/draw probes before adding another action policy. This slice is treated as capability-boundary evidence, not as a mandate to hand-code every control task.
 
+The committed control-probe plan turns those failures into a concrete probe order: coordinate click, drag vector, draw stroke, and list-drag semantics. It also records the gate that no policy should be emitted until a live probe produces reward, DOM-state, or action-error evidence.
+
 Main artifacts:
 
 - `datasets/miniwob/taskset_agentlab_control.yaml`
 - `reports/agentlab_control_full_policy_compare.md`
 - `reports/agentlab_control_full_policy_proposal.json`
 - `reports/agentlab_control_full_policy_llm_proposal.json`
+- `reports/control_probe_plan.md`
 - `reports/tool_agent_control_loop.md`
 - `reports/advisor_eval_tool_agent.md`
 
@@ -466,6 +469,17 @@ uv run baeloop probe-grid-coordinate \
 ```
 
 The committed probe report shows that `click("13")` on the SVG root fails, while mapped `mouse_click(164, 104)` solves the target coordinate `(1,2)`.
+
+Plan the next coordinate/control probe route from the control-slice compare report:
+
+```bash
+uv run baeloop plan-control-probe \
+  --report reports/agentlab_control_full_policy_compare.json \
+  --json-out reports/control_probe_plan.json \
+  --markdown-out reports/control_probe_plan.md
+```
+
+The committed plan is intentionally not a policy. It defines probe inputs, candidate action sequences, success criteria, and the no task-specific hand-code boundary for the next live control probe.
 
 Run the current full hard-slice policy:
 

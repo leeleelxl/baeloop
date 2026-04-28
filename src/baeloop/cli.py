@@ -8,6 +8,10 @@ from baeloop.adapters.agentlab import AgentLabAdapterUnavailable
 from baeloop.advisor import propose_patch
 from baeloop.advisor_eval import EVAL_CASE_SUITES, render_advisor_eval_markdown, run_advisor_eval
 from baeloop.compare import build_comparison_report, render_markdown
+from baeloop.control_probe_plan import (
+    build_control_probe_plan,
+    render_control_probe_plan_markdown,
+)
 from baeloop.demo import render_demo_summary
 from baeloop.doctor import probe_agentlab_environment
 from baeloop.grid_probe import run_grid_coordinate_probe, render_grid_coordinate_probe_markdown
@@ -411,6 +415,27 @@ def probe_grid_coordinate(
     typer.echo(
         f"Probed grid-coordinate seed={seed}: "
         f"results={len(report.results)}, working={len(report.working_results)}"
+    )
+
+
+@app.command(name="plan-control-probe")
+def plan_control_probe(
+    report: Path = typer.Option(..., exists=True, readable=True, help="JSON compare report."),
+    json_out: Path | None = typer.Option(None, help="Path for machine-readable control probe plan."),
+    markdown_out: Path | None = typer.Option(None, help="Path for markdown control probe plan."),
+) -> None:
+    """Plan coordinate/control probes from a control-slice compare report."""
+    comparison = read_model_json(report, ComparisonReport)
+    plan = build_control_probe_plan(comparison, source_report=str(report))
+    if json_out:
+        write_json(json_out, plan)
+    if markdown_out:
+        markdown_out.parent.mkdir(parents=True, exist_ok=True)
+        markdown_out.write_text(render_control_probe_plan_markdown(plan), encoding="utf-8")
+
+    typer.echo(
+        f"Planned control probes from {report}: "
+        f"primitives={len(plan.primitive_plans)}, ready_for_policy={plan.ready_for_policy}"
     )
 
 

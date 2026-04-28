@@ -257,6 +257,25 @@ The 16-task control stress slice currently shows:
 - remaining root causes: `coordinate_click_surface_mismatch`, `coordinate_drag_surface_mismatch`, `coordinate_draw_surface_mismatch`, `directional_drag_control_mismatch`, and `list_drag_semantics_mismatch`
 - advisor output: `hyp_probe_coordinate_control`, meaning the next implementation should be a probe-backed coordinate control policy rather than another budget patch
 - LLM advisor validation: `reports/agentlab_control_full_policy_llm_proposal.json` was generated with `--advisor-mode llm`, using the same report and preserving the bounded investigation recommendation
+- control probe plan: `reports/control_probe_plan.md` groups the remaining failures into coordinate click, drag vector, draw stroke, and list-drag semantic probes, and keeps `ready_for_policy=false`
+
+## Control Probe Plan
+
+The `plan-control-probe` command is the bridge between a capability-boundary finding and a future live browser probe:
+
+```text
+Control ComparisonReport
+  -> candidate control failure evidence
+  -> primitive probe groups
+       - coordinate_click_surface_probe
+       - coordinate_drag_vector_probe
+       - coordinate_draw_stroke_probe
+       - list_drag_semantics_probe
+  -> success criteria and policy gate
+  -> no task-specific hand-code boundary
+```
+
+This is intentionally not a browser action policy. It prevents the next step from becoming a hidden task-specific solver by requiring reward, DOM-state, or action-error evidence before any coordinate/control primitive can be promoted into an action policy.
 
 ## Completed Non-Prompt Milestone
 
