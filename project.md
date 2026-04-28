@@ -69,38 +69,38 @@ Holdout advisor eval 当前结果：
 ## 当前总体架构
 
 ```text
-BrowserGym / MiniWoB++
+BrowserGym / MiniWoB++                 # 浏览器任务环境：提供网页、任务目标、reward
         |
         v
-AgentLab generic_agent
+AgentLab generic_agent                 # 执行层浏览器 agent：真实操作页面，不是本项目重造
         |
         v
-RunRecord JSONL
+RunRecord JSONL                        # 标准化运行记录：每题成功/分数/步数/耗时/诊断信息
         |
         v
-ComparisonReport
+ComparisonReport                       # 配置对比报告：比较 baseline 和 candidate 的质量/成本/回归
         |
         v
-Failure Evidence / Failure Taxonomy
+Failure Evidence / Failure Taxonomy    # 失败证据和归因：把 zero_score/max_steps 细化成 root cause
         |
         v
-Advisor Layer
+Advisor Layer                          # 上层优化 agent：决定下一轮该 patch、investigate 还是 hold
   +-------------------+-------------------+-------------------+
   | Analyst Agent     | Hypothesis Agent  | Critic Agent      |
   | 分析指标和失败分布 | 生成候选优化假设   | 拒绝弱证据或越界方案 |
   +-------------------+-------------------+-------------------+
         |
         v
-Evidence-Maturity Selector
+Evidence-Maturity Selector             # 证据成熟度选择器：证据不足时阻止无脑 patch
         |
         v
-AdvisorProposal
+AdvisorProposal                        # 结构化决策输出：summary/rationale/risk/patch/schema
         |
         v
-Config Patch / Investigation / Hold
+Config Patch / Investigation / Hold    # 三种下一步：改配置、先做 probe、或保留当前 winner
         |
         v
-Rerun 或 Advisor Eval
+Rerun 或 Advisor Eval                  # 闭环验证：真实 rerun，或用历史/holdout case 评估 advisor
 ```
 
 ## 当前模块职责
@@ -181,6 +181,8 @@ Advisor Input/Output Examples
   证据：`README.md` 的 `60-Second Demo` 小节；包含 hard slice、broad slice、control slice、holdout advisor eval 四个关键指标。
 - [x] 扩大 holdout advisor-eval 到 10 个 case。
   证据：`reports/advisor_eval_holdout_deterministic.md`、`reports/advisor_eval_holdout_llm_v2.md`；新增 `reports/agentlab_hard_budget30_vs_combined_policy_compare.*` 和 `reports/agentlab_hard_retry_vs_full_policy_compare.*`。
+- [x] 给核心框架图补中文注释。
+  证据：`project.md` 的当前总体架构图，以及 `docs/ARCHITECTURE.md` 的 Closed Loop 图，都已逐层标注中文说明。
 - [x] 验证当前代码库。
   证据：`uv run pytest` 通过，结果为 `80 passed`。
 
@@ -193,6 +195,7 @@ Advisor Input/Output Examples
 - `docs/project-readiness-review.md` 给出当前诚实评分：接近 `8/10`，继续补充 fresh benchmark / fresh holdout 和最终 demo 讲稿后可冲 `8.5/10`。
 - `docs/advisor-examples.md` 展示了 advisor 的真实输入和输出，能解释为什么项目不是简单 prompt engineering。
 - `README.md` 顶部新增 `60-Second Demo`，把项目主线、关键结果和样例文档入口前置。
+- `project.md` 和 `docs/ARCHITECTURE.md` 的框架图已补中文注释，便于面试时逐层讲解。
 - `uv run pytest` 通过，`80 passed`。
 
 #### 今日 Review

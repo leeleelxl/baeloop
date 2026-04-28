@@ -18,16 +18,16 @@ This is intentionally broader than prompt engineering. Prompt changes are only o
 ## Closed Loop
 
 ```text
-Browser Agent
-  -> Benchmark Runner
-  -> RunRecord JSONL
-  -> Compare Report
-  -> Failure Evidence
-  -> Analyst Agent
-  -> Hypothesis Agent
-  -> Critic Agent
-  -> Patch Generator
-  -> Rerun and Compare
+Browser Agent        # 浏览器执行 agent：当前是 AgentLab generic_agent
+  -> Benchmark Runner    # 任务运行器：在固定 taskset 上跑同一套 config
+  -> RunRecord JSONL     # 标准化记录：保存每题结果、分数、步数、耗时、诊断信息
+  -> Compare Report      # 对比报告：比较 baseline/candidate 的成功率、成本、回归和改进
+  -> Failure Evidence    # 失败证据：把失败任务归因到可操作 root cause
+  -> Analyst Agent       # 分析 agent：总结指标变化、失败分布、风险信号
+  -> Hypothesis Agent    # 假设 agent：提出一个有边界的优化 intervention
+  -> Critic Agent        # 批判 agent：检查证据强度、patch 边界和回归风险
+  -> Patch Generator     # 补丁生成器：只把允许的 AdvisorProposal 转成 config patch
+  -> Rerun and Compare   # 闭环验证：重新跑实验并检查是否真的提升
 ```
 
 ## Agent Roles
