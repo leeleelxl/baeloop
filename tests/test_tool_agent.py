@@ -44,6 +44,24 @@ def test_tool_agent_composes_policies_when_terminal_fix_regresses_scroll() -> No
     ]
 
 
+def test_tool_agent_uses_control_diagnostic_before_patch() -> None:
+    run = run_tool_optimization_agent(Path("reports/agentlab_control_full_policy_compare.json"))
+
+    assert run.pre_tool_hypothesis_id == "hyp_tool_investigate_before_patch"
+    assert run.final_hypothesis_id == "hyp_probe_coordinate_control"
+    assert run.decision_changed_by_tools is True
+    assert run.selected_root_cause == "control_surface_probe"
+    assert [call.tool_name for call in run.tool_calls] == [
+        "inspect_compare_report",
+        "inspect_control_failure_evidence",
+    ]
+    assert run.tool_calls[-1].observation["patch_mature"] is False
+    assert run.tool_calls[-1].observation["needs_fresh_probe"] is True
+    assert run.proposal.patch == {}
+    assert run.proposal.intervention is not None
+    assert run.proposal.intervention.kind == "investigation"
+
+
 def test_tool_agent_markdown_renders_tool_transcript() -> None:
     run = run_tool_optimization_agent(
         Path("reports/agentlab_hard_combined_vs_terminal_policy_compare.json")

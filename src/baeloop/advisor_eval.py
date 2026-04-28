@@ -149,6 +149,18 @@ TOOL_EVAL_CASES = [
         expected_direction="grid_policy",
         expected_root_causes=("coordinate_click_miss",),
     ),
+    AdvisorEvalCase(
+        id="tool_control_boundary_probe",
+        report_path=Path("reports/agentlab_control_full_policy_compare.json"),
+        expected_direction="probe_coordinate_control",
+        expected_root_causes=(
+            "coordinate_click_surface_mismatch",
+            "coordinate_drag_surface_mismatch",
+            "coordinate_draw_surface_mismatch",
+            "directional_drag_control_mismatch",
+            "list_drag_semantics_mismatch",
+        ),
+    ),
 ]
 
 EVAL_CASE_SUITES = {

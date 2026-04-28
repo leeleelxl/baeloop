@@ -1,5 +1,5 @@
 {
-  "case_count": 3,
+  "case_count": 4,
   "case_suite": "tool",
   "include_llm": false,
   "include_llm_v2": false,
@@ -760,6 +760,222 @@
       ],
       "used_fallback": false,
       "uses_failure_evidence": true
+    },
+    {
+      "advisor": "deterministic",
+      "boundary_awareness": true,
+      "case_id": "tool_control_boundary_probe",
+      "critic_decision": "accepted",
+      "critic_ok": true,
+      "direction_match": true,
+      "expected_direction": "probe_coordinate_control",
+      "hypothesis_id": "hyp_probe_coordinate_control",
+      "notes": [
+        "expected=probe_coordinate_control",
+        "mode=deterministic",
+        "uses 8 candidate failure evidence records"
+      ],
+      "patch_keys": [],
+      "proposal": {
+        "advisor_mode": "deterministic",
+        "advisor_stage_notes": {},
+        "critic_decision": "accepted",
+        "critic_notes": [
+          "no patch emitted; recommendation is hold or investigation",
+          "no regressions detected",
+          "uses 8 candidate failure evidence records"
+        ],
+        "expected_effect": "Identify which coordinate click, drag, or action-compression primitive can become a bounded action policy.",
+        "hypothesis_id": "hyp_probe_coordinate_control",
+        "intervention": {
+          "expected_effect": "Identify which coordinate click, drag, or action-compression primitive can become a bounded action policy.",
+          "id": "hyp_probe_coordinate_control",
+          "kind": "investigation",
+          "patch": {},
+          "rationale": "Candidate failures point to slider, drag, drawing, or SVG click surfaces where bid-level actions are too coarse; another step-budget patch would likely repeat the same ineffective actions.",
+          "risk": "Does not immediately improve success rate until a probe-backed coordinate-control policy is implemented.",
+          "summary": "Probe coordinate-level control actions before changing the config again.",
+          "supported_by": [
+            "control_root_causes=coordinate_click_surface_mismatch,coordinate_drag_surface_mismatch,coordinate_draw_surface_mismatch,directional_drag_control_mismatch,list_drag_semantics_mismatch"
+          ],
+          "target_root_causes": [
+            "coordinate_click_surface_mismatch",
+            "coordinate_drag_surface_mismatch",
+            "coordinate_draw_surface_mismatch",
+            "directional_drag_control_mismatch",
+            "list_drag_semantics_mismatch"
+          ]
+        },
+        "patch": {},
+        "rationale": "Candidate failures point to slider, drag, drawing, or SVG click surfaces where bid-level actions are too coarse; another step-budget patch would likely repeat the same ineffective actions.",
+        "risk": "Does not immediately improve success rate until a probe-backed coordinate-control policy is implemented.",
+        "summary": "Probe coordinate-level control actions before changing the config again."
+      },
+      "proposal_mode": "deterministic",
+      "safe_patch": true,
+      "schema_valid": true,
+      "score": 1.0,
+      "selected_source": "-",
+      "target_root_causes": [
+        "coordinate_click_surface_mismatch",
+        "coordinate_drag_surface_mismatch",
+        "coordinate_draw_surface_mismatch",
+        "directional_drag_control_mismatch",
+        "list_drag_semantics_mismatch"
+      ],
+      "used_fallback": false,
+      "uses_failure_evidence": true
+    },
+    {
+      "advisor": "tool-agent-pretool",
+      "boundary_awareness": true,
+      "case_id": "tool_control_boundary_probe",
+      "critic_decision": "accepted",
+      "critic_ok": true,
+      "direction_match": false,
+      "expected_direction": "probe_coordinate_control",
+      "hypothesis_id": "hyp_tool_investigate_before_patch",
+      "notes": [
+        "expected=probe_coordinate_control",
+        "mode=tool-agent-pretool",
+        "failed_direction_match",
+        "uses 8 candidate failure evidence records"
+      ],
+      "patch_keys": [],
+      "proposal": {
+        "advisor_mode": "tool-agent-pretool",
+        "advisor_stage_notes": {
+          "tool_agent": {
+            "decision_changed_by_tools": false,
+            "selected_source": "pretool_investigation",
+            "tool_call_count": 0,
+            "tool_names": []
+          }
+        },
+        "critic_decision": "accepted",
+        "critic_notes": [
+          "no patch emitted; recommendation is hold or investigation",
+          "no regressions detected",
+          "uses 8 candidate failure evidence records"
+        ],
+        "expected_effect": "Avoid unsupported patches while collecting tool observations.",
+        "hypothesis_id": "hyp_tool_investigate_before_patch",
+        "intervention": {
+          "expected_effect": "Avoid unsupported patches while collecting tool observations.",
+          "id": "hyp_tool_investigate_before_patch",
+          "kind": "investigation",
+          "patch": {},
+          "rationale": "The compare report points to actionable root causes, but the optimization agent should first inspect probe or replay evidence before changing config.",
+          "risk": "Adds an intermediate diagnostic step before success rate can improve.",
+          "summary": "Use diagnostic tools before emitting the next optimization patch.",
+          "supported_by": [
+            "candidate_root_causes=coordinate_click_surface_mismatch, coordinate_drag_surface_mismatch, coordinate_draw_surface_mismatch, directional_drag_control_mismatch, list_drag_semantics_mismatch"
+          ],
+          "target_root_causes": [
+            "coordinate_click_surface_mismatch",
+            "coordinate_drag_surface_mismatch",
+            "coordinate_draw_surface_mismatch",
+            "directional_drag_control_mismatch",
+            "list_drag_semantics_mismatch"
+          ]
+        },
+        "patch": {},
+        "rationale": "The compare report points to actionable root causes, but the optimization agent should first inspect probe or replay evidence before changing config.",
+        "risk": "Adds an intermediate diagnostic step before success rate can improve.",
+        "summary": "Use diagnostic tools before emitting the next optimization patch."
+      },
+      "proposal_mode": "tool-agent-pretool",
+      "safe_patch": true,
+      "schema_valid": true,
+      "score": 0.8333333333333334,
+      "selected_source": "pretool_investigation",
+      "target_root_causes": [
+        "coordinate_click_surface_mismatch",
+        "coordinate_drag_surface_mismatch",
+        "coordinate_draw_surface_mismatch",
+        "directional_drag_control_mismatch",
+        "list_drag_semantics_mismatch"
+      ],
+      "used_fallback": false,
+      "uses_failure_evidence": true
+    },
+    {
+      "advisor": "tool-agent",
+      "boundary_awareness": true,
+      "case_id": "tool_control_boundary_probe",
+      "critic_decision": "accepted",
+      "critic_ok": true,
+      "direction_match": true,
+      "expected_direction": "probe_coordinate_control",
+      "hypothesis_id": "hyp_probe_coordinate_control",
+      "notes": [
+        "expected=probe_coordinate_control",
+        "mode=tool-agent",
+        "uses 8 candidate failure evidence records"
+      ],
+      "patch_keys": [],
+      "proposal": {
+        "advisor_mode": "tool-agent",
+        "advisor_stage_notes": {
+          "tool_agent": {
+            "decision_changed_by_tools": true,
+            "pre_tool_hypothesis_id": "hyp_tool_investigate_before_patch",
+            "selected_root_cause": "control_surface_probe",
+            "tool_call_count": 2,
+            "tool_names": [
+              "inspect_compare_report",
+              "inspect_control_failure_evidence"
+            ]
+          }
+        },
+        "critic_decision": "accepted",
+        "critic_notes": [
+          "no patch emitted; recommendation is hold or investigation",
+          "no regressions detected",
+          "uses 8 candidate failure evidence records"
+        ],
+        "expected_effect": "Identify which coordinate-level control primitive can become the next bounded action policy instead of overfitting another prompt or budget tweak.",
+        "hypothesis_id": "hyp_probe_coordinate_control",
+        "intervention": {
+          "expected_effect": "Identify which coordinate-level control primitive can become the next bounded action policy instead of overfitting another prompt or budget tweak.",
+          "id": "hyp_probe_coordinate_control",
+          "kind": "investigation",
+          "patch": {},
+          "rationale": "The diagnostic tool found candidate failures on click, drag, draw, slider, or list-control surfaces, but no mature patch artifact for these controls yet.",
+          "risk": "Does not improve success rate until a probe-backed control policy is implemented.",
+          "summary": "Run fresh coordinate-control probes before changing the browser-agent config.",
+          "supported_by": [
+            "tool=inspect_control_failure_evidence",
+            "affected_task_count=8",
+            "recommended_next_tool=probe_coordinate_control"
+          ],
+          "target_root_causes": [
+            "coordinate_click_surface_mismatch",
+            "coordinate_drag_surface_mismatch",
+            "coordinate_draw_surface_mismatch",
+            "directional_drag_control_mismatch",
+            "list_drag_semantics_mismatch"
+          ]
+        },
+        "patch": {},
+        "rationale": "The diagnostic tool found candidate failures on click, drag, draw, slider, or list-control surfaces, but no mature patch artifact for these controls yet.",
+        "risk": "Does not improve success rate until a probe-backed control policy is implemented.",
+        "summary": "Run fresh coordinate-control probes before changing the browser-agent config."
+      },
+      "proposal_mode": "tool-agent",
+      "safe_patch": true,
+      "schema_valid": true,
+      "score": 1.0,
+      "selected_source": "tool_agent",
+      "target_root_causes": [
+        "coordinate_click_surface_mismatch",
+        "coordinate_drag_surface_mismatch",
+        "coordinate_draw_surface_mismatch",
+        "directional_drag_control_mismatch",
+        "list_drag_semantics_mismatch"
+      ],
+      "used_fallback": false,
+      "uses_failure_evidence": true
     }
   ],
   "summary": {
@@ -768,7 +984,7 @@
       "boundary_awareness_rate": 1.0,
       "direction_match_rate": 1.0,
       "evidence_use_rate": 1.0,
-      "rows": 3,
+      "rows": 4,
       "safe_patch_rate": 1.0
     },
     "tool-agent": {
@@ -776,7 +992,7 @@
       "boundary_awareness_rate": 1.0,
       "direction_match_rate": 1.0,
       "evidence_use_rate": 1.0,
-      "rows": 3,
+      "rows": 4,
       "safe_patch_rate": 1.0
     },
     "tool-agent-pretool": {
@@ -784,7 +1000,7 @@
       "boundary_awareness_rate": 1.0,
       "direction_match_rate": 0.0,
       "evidence_use_rate": 1.0,
-      "rows": 3,
+      "rows": 4,
       "safe_patch_rate": 1.0
     }
   }

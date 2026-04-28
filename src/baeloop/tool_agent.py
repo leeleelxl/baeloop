@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from collections import Counter
 from pathlib import Path
 from typing import Any
 
@@ -10,6 +11,15 @@ from baeloop.advisor_analysis import analyze_report
 from baeloop.advisor_critic import critique_intervention
 from baeloop.io import read_json_dict, read_model_json
 from baeloop.models import AdvisorProposal, ComparisonReport, Intervention
+
+CONTROL_SURFACE_ROOT_CAUSES = {
+    "coordinate_click_surface_mismatch",
+    "coordinate_drag_surface_mismatch",
+    "coordinate_draw_surface_mismatch",
+    "directional_drag_control_mismatch",
+    "list_drag_semantics_mismatch",
+    "multi_slider_control_loop",
+}
 
 
 class ToolCallRecord(BaseModel):
@@ -55,6 +65,12 @@ def run_tool_optimization_agent(
 
     tool_calls = [inspect_call]
     tool_observations: dict[str, dict[str, Any]] = {}
+    control_roots = _control_surface_roots(candidate_roots)
+    if control_roots:
+        call = _inspect_control_failure_evidence(report, control_roots)
+        tool_calls.append(call)
+        tool_observations["control_surface_probe"] = call.observation
+
     for root_cause in _tool_relevant_roots(
         candidate_roots,
         baseline_roots,
@@ -230,12 +246,48 @@ def _inspect_grid_probe(reports_dir: Path) -> ToolCallRecord:
     )
 
 
+def _inspect_control_failure_evidence(
+    report: ComparisonReport,
+    control_roots: list[str],
+) -> ToolCallRecord:
+    evidence = [
+        item
+        for item in report.failure_evidence.get("candidate", [])
+        if item.root_cause in CONTROL_SURFACE_ROOT_CAUSES
+    ]
+    root_counts = Counter(item.root_cause for item in evidence)
+    task_ids = sorted({item.task_id for item in evidence})
+    observation = {
+        "source": "ComparisonReport.failure_evidence.candidate",
+        "control_root_causes": control_roots,
+        "control_root_counts": dict(sorted(root_counts.items())),
+        "affected_task_count": len(task_ids),
+        "sample_tasks": task_ids[:5],
+        "needs_fresh_probe": True,
+        "patch_mature": False,
+        "recommended_next_tool": "probe_coordinate_control",
+        "reason": (
+            "Control-surface failures need fresh coordinate click, drag, draw, "
+            "or list-control probes before emitting a config patch."
+        ),
+    }
+    return ToolCallRecord(
+        tool_name="inspect_control_failure_evidence",
+        args={"source": observation["source"]},
+        observation=observation,
+    )
+
+
 def _candidate_root_causes(report: ComparisonReport) -> list[str]:
     return sorted({item.root_cause for item in report.failure_evidence.get("candidate", [])})
 
 
 def _baseline_root_causes(report: ComparisonReport) -> list[str]:
     return sorted({item.root_cause for item in report.failure_evidence.get("baseline", [])})
+
+
+def _control_surface_roots(root_causes: list[str]) -> list[str]:
+    return sorted(root for root in root_causes if root in CONTROL_SURFACE_ROOT_CAUSES)
 
 
 def _tool_relevant_roots(
@@ -282,6 +334,8 @@ def _select_root_cause(
     ]:
         if tool_observations.get(root, {}).get("patch_mature"):
             return root
+    if tool_observations.get("control_surface_probe", {}).get("needs_fresh_probe"):
+        return "control_surface_probe"
     return None
 
 
@@ -297,6 +351,8 @@ def _intervention_from_tool_evidence(
         return _grid_coordinate_intervention(tool_observations[selected_root])
     if selected_root == "compose_scroll_and_terminal":
         return _compose_scroll_terminal_intervention(tool_observations)
+    if selected_root == "control_surface_probe":
+        return _control_surface_probe_intervention(tool_observations[selected_root])
     return None
 
 
@@ -442,6 +498,30 @@ def _compose_scroll_terminal_intervention(
             "baseline_root_cause=terminal_input_action_mismatch",
             f"tool=inspect_policy_replay artifact={scroll_observation.get('artifact')}",
             f"tool=inspect_terminal_probe artifact={terminal_observation.get('artifact')}",
+        ],
+    )
+
+
+def _control_surface_probe_intervention(observation: dict[str, Any]) -> Intervention:
+    control_roots = list(observation.get("control_root_causes") or [])
+    return Intervention(
+        id="hyp_probe_coordinate_control",
+        kind="investigation",
+        summary="Run fresh coordinate-control probes before changing the browser-agent config.",
+        rationale=(
+            "The diagnostic tool found candidate failures on click, drag, draw, slider, "
+            "or list-control surfaces, but no mature patch artifact for these controls yet."
+        ),
+        expected_effect=(
+            "Identify which coordinate-level control primitive can become the next bounded "
+            "action policy instead of overfitting another prompt or budget tweak."
+        ),
+        risk="Does not improve success rate until a probe-backed control policy is implemented.",
+        target_root_causes=control_roots,
+        supported_by=[
+            "tool=inspect_control_failure_evidence",
+            f"affected_task_count={observation.get('affected_task_count')}",
+            f"recommended_next_tool={observation.get('recommended_next_tool')}",
         ],
     )
 

@@ -132,7 +132,7 @@ uv run baeloop tool-agent \
   --markdown-out reports/tool_agent_coordinate_loop.md
 ```
 
-This command does not rerun the browser and does not call an API. It demonstrates the upper-layer agent loop: `inspect_compare_report -> inspect_grid_probe -> AdvisorProposal`.
+This command does not rerun the browser and does not call an API. It demonstrates the upper-layer agent loop: `inspect_compare_report -> diagnostic tool -> AdvisorProposal`.
 
 Evaluate the tool-using advisor loop against a pre-tool investigation baseline:
 
@@ -145,7 +145,7 @@ uv run baeloop eval-advisor \
   --markdown-out reports/advisor_eval_tool_agent.md
 ```
 
-Current tool-agent eval result on 3 probe-backed cases:
+Current tool-agent eval result on 4 diagnostic cases:
 
 | Advisor | Avg Score | Direction Match | Safe Patch | Evidence Use | Boundary Awareness |
 |---|---:|---:|---:|---:|---:|
@@ -153,7 +153,7 @@ Current tool-agent eval result on 3 probe-backed cases:
 | `tool-agent-pretool` | 0.833 | 0.000 | 1.000 | 1.000 | 1.000 |
 | `tool-agent` | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
 
-The useful claim is not that `tool-agent` beats deterministic on these mature cases. The useful claim is that tool observations convert a safe but non-actionable investigation into the correct bounded patch.
+The useful claim is not that `tool-agent` beats deterministic on these mature cases. The useful claim is that tool observations convert a safe but non-actionable investigation into the correct bounded patch, or into a more specific capability-boundary probe when evidence is not patch-mature.
 
 Evaluate the advisor layer over committed historical compare reports:
 
@@ -268,13 +268,16 @@ The full policy only improves `use-slider-2`, so the remaining value is not anot
 - `directional_drag_control_mismatch`: cube rotation needs controlled drag direction and magnitude.
 - `list_drag_semantics_mismatch`: list reordering needs a probe for source/target/drop semantics.
 
-The advisor now emits `hyp_probe_coordinate_control` for this slice, directing the next work toward coordinate drag/click/draw probes before adding another action policy. Main artifacts:
-This slice is treated as capability-boundary evidence, not as a mandate to hand-code every control task.
+The advisor now emits `hyp_probe_coordinate_control` for this slice, directing the next work toward coordinate drag/click/draw probes before adding another action policy. This slice is treated as capability-boundary evidence, not as a mandate to hand-code every control task.
+
+Main artifacts:
 
 - `datasets/miniwob/taskset_agentlab_control.yaml`
 - `reports/agentlab_control_full_policy_compare.md`
 - `reports/agentlab_control_full_policy_proposal.json`
 - `reports/agentlab_control_full_policy_llm_proposal.json`
+- `reports/tool_agent_control_loop.md`
+- `reports/advisor_eval_tool_agent.md`
 
 ## MiniWoB++ Assets
 

@@ -1,0 +1,162 @@
+{
+  "decision_changed_by_tools": true,
+  "final_hypothesis_id": "hyp_probe_coordinate_control",
+  "pre_tool_hypothesis_id": "hyp_tool_investigate_before_patch",
+  "pre_tool_proposal": {
+    "advisor_mode": "tool-agent-pretool",
+    "advisor_stage_notes": {
+      "tool_agent": {
+        "decision_changed_by_tools": false,
+        "selected_source": "pretool_investigation",
+        "tool_call_count": 0,
+        "tool_names": []
+      }
+    },
+    "critic_decision": "accepted",
+    "critic_notes": [
+      "no patch emitted; recommendation is hold or investigation",
+      "no regressions detected",
+      "uses 8 candidate failure evidence records"
+    ],
+    "expected_effect": "Avoid unsupported patches while collecting tool observations.",
+    "hypothesis_id": "hyp_tool_investigate_before_patch",
+    "intervention": {
+      "expected_effect": "Avoid unsupported patches while collecting tool observations.",
+      "id": "hyp_tool_investigate_before_patch",
+      "kind": "investigation",
+      "patch": {},
+      "rationale": "The compare report points to actionable root causes, but the optimization agent should first inspect probe or replay evidence before changing config.",
+      "risk": "Adds an intermediate diagnostic step before success rate can improve.",
+      "summary": "Use diagnostic tools before emitting the next optimization patch.",
+      "supported_by": [
+        "candidate_root_causes=coordinate_click_surface_mismatch, coordinate_drag_surface_mismatch, coordinate_draw_surface_mismatch, directional_drag_control_mismatch, list_drag_semantics_mismatch"
+      ],
+      "target_root_causes": [
+        "coordinate_click_surface_mismatch",
+        "coordinate_drag_surface_mismatch",
+        "coordinate_draw_surface_mismatch",
+        "directional_drag_control_mismatch",
+        "list_drag_semantics_mismatch"
+      ]
+    },
+    "patch": {},
+    "rationale": "The compare report points to actionable root causes, but the optimization agent should first inspect probe or replay evidence before changing config.",
+    "risk": "Adds an intermediate diagnostic step before success rate can improve.",
+    "summary": "Use diagnostic tools before emitting the next optimization patch."
+  },
+  "proposal": {
+    "advisor_mode": "tool-agent",
+    "advisor_stage_notes": {
+      "tool_agent": {
+        "decision_changed_by_tools": true,
+        "pre_tool_hypothesis_id": "hyp_tool_investigate_before_patch",
+        "selected_root_cause": "control_surface_probe",
+        "tool_call_count": 2,
+        "tool_names": [
+          "inspect_compare_report",
+          "inspect_control_failure_evidence"
+        ]
+      }
+    },
+    "critic_decision": "accepted",
+    "critic_notes": [
+      "no patch emitted; recommendation is hold or investigation",
+      "no regressions detected",
+      "uses 8 candidate failure evidence records"
+    ],
+    "expected_effect": "Identify which coordinate-level control primitive can become the next bounded action policy instead of overfitting another prompt or budget tweak.",
+    "hypothesis_id": "hyp_probe_coordinate_control",
+    "intervention": {
+      "expected_effect": "Identify which coordinate-level control primitive can become the next bounded action policy instead of overfitting another prompt or budget tweak.",
+      "id": "hyp_probe_coordinate_control",
+      "kind": "investigation",
+      "patch": {},
+      "rationale": "The diagnostic tool found candidate failures on click, drag, draw, slider, or list-control surfaces, but no mature patch artifact for these controls yet.",
+      "risk": "Does not improve success rate until a probe-backed control policy is implemented.",
+      "summary": "Run fresh coordinate-control probes before changing the browser-agent config.",
+      "supported_by": [
+        "tool=inspect_control_failure_evidence",
+        "affected_task_count=8",
+        "recommended_next_tool=probe_coordinate_control"
+      ],
+      "target_root_causes": [
+        "coordinate_click_surface_mismatch",
+        "coordinate_drag_surface_mismatch",
+        "coordinate_draw_surface_mismatch",
+        "directional_drag_control_mismatch",
+        "list_drag_semantics_mismatch"
+      ]
+    },
+    "patch": {},
+    "rationale": "The diagnostic tool found candidate failures on click, drag, draw, slider, or list-control surfaces, but no mature patch artifact for these controls yet.",
+    "risk": "Does not improve success rate until a probe-backed control policy is implemented.",
+    "summary": "Run fresh coordinate-control probes before changing the browser-agent config."
+  },
+  "report_path": "reports/agentlab_control_full_policy_compare.json",
+  "selected_root_cause": "control_surface_probe",
+  "tool_calls": [
+    {
+      "args": {
+        "report_path": "reports/agentlab_control_full_policy_compare.json"
+      },
+      "observation": {
+        "baseline_config_id": "relay_gpt54_hard_retry",
+        "baseline_root_causes": [
+          "coordinate_click_surface_mismatch",
+          "coordinate_drag_surface_mismatch",
+          "coordinate_draw_surface_mismatch",
+          "directional_drag_control_mismatch",
+          "list_drag_semantics_mismatch",
+          "multi_slider_control_loop"
+        ],
+        "candidate_config_id": "relay_gpt54_hard_retry_hyp_extend_step_budget_hyp_scroll_before_submit_hyp_terminal_keyboard_type_hyp_grid_coordinate_click",
+        "candidate_root_causes": [
+          "coordinate_click_surface_mismatch",
+          "coordinate_drag_surface_mismatch",
+          "coordinate_draw_surface_mismatch",
+          "directional_drag_control_mismatch",
+          "list_drag_semantics_mismatch"
+        ],
+        "improvement_count": 1,
+        "regression_count": 0,
+        "success_rate_delta": 0.0625
+      },
+      "tool_name": "inspect_compare_report"
+    },
+    {
+      "args": {
+        "source": "ComparisonReport.failure_evidence.candidate"
+      },
+      "observation": {
+        "affected_task_count": 8,
+        "control_root_causes": [
+          "coordinate_click_surface_mismatch",
+          "coordinate_drag_surface_mismatch",
+          "coordinate_draw_surface_mismatch",
+          "directional_drag_control_mismatch",
+          "list_drag_semantics_mismatch"
+        ],
+        "control_root_counts": {
+          "coordinate_click_surface_mismatch": 1,
+          "coordinate_drag_surface_mismatch": 3,
+          "coordinate_draw_surface_mismatch": 1,
+          "directional_drag_control_mismatch": 1,
+          "list_drag_semantics_mismatch": 2
+        },
+        "needs_fresh_probe": true,
+        "patch_mature": false,
+        "reason": "Control-surface failures need fresh coordinate click, drag, draw, or list-control probes before emitting a config patch.",
+        "recommended_next_tool": "probe_coordinate_control",
+        "sample_tasks": [
+          "browsergym/miniwob.click-pie#seed=49",
+          "browsergym/miniwob.drag-circle#seed=40",
+          "browsergym/miniwob.drag-cube#seed=41",
+          "browsergym/miniwob.drag-items#seed=42",
+          "browsergym/miniwob.drag-items-grid#seed=43"
+        ],
+        "source": "ComparisonReport.failure_evidence.candidate"
+      },
+      "tool_name": "inspect_control_failure_evidence"
+    }
+  ]
+}
