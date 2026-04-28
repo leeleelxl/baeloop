@@ -45,6 +45,7 @@ This repository currently implements the current dependency-light MVP:
 - compare report generation
 - deterministic Analyst/Hypothesis/Critic advisor stages
 - optional LLM-backed Analyst/Hypothesis/Critic advisor mode
+- tool-using optimization advisor loop over committed compare/probe/replay artifacts
 - bounded config and action-policy patch materialization
 - action-surface probes for terminal and SVG grid-coordinate tasks
 - sample configs and run records
@@ -76,6 +77,7 @@ AgentLab generic_agent -> RunRecord JSONL -> Compare Report -> Analyst -> Hypoth
 The default advisor stages are deterministic and structured, which keeps the closed loop reproducible and testable.
 The optional LLM advisor path runs Analyst, Hypothesis, and Critic as model-backed stages while preserving the same structured schemas and deterministic guardrails.
 The `llm-v2` path adds a deterministic-reference tool and an evidence-maturity selector, so the agent can choose between patch, hold, and investigation instead of emitting a single unconstrained answer.
+The `tool-agent` path makes the optimization layer more agent-like: it inspects a compare report, chooses local diagnostic tools, observes probe/replay artifacts, and then emits a final bounded `AdvisorProposal`.
 
 Target architecture:
 
@@ -120,6 +122,17 @@ uv run baeloop advise \
 ```
 
 The LLM advisor uses streaming OpenAI-compatible chat completions by default. The v1 path falls back to the deterministic advisor if JSON parsing, schema validation, or patch-boundary checks fail. The v2 path falls back to its local evidence-maturity selector, so transient LLM formatting failures do not discard the v2 decision policy.
+
+Run the tool-using optimization agent over local reports and diagnostic artifacts:
+
+```bash
+uv run baeloop tool-agent \
+  --report reports/agentlab_hard_combined_vs_terminal_policy_compare.json \
+  --json-out reports/tool_agent_coordinate_loop.json \
+  --markdown-out reports/tool_agent_coordinate_loop.md
+```
+
+This command does not rerun the browser and does not call an API. It demonstrates the upper-layer agent loop: `inspect_compare_report -> inspect_grid_probe -> AdvisorProposal`.
 
 Evaluate the advisor layer over committed historical compare reports:
 

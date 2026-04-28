@@ -28,6 +28,7 @@ from baeloop.patcher import materialize_config_patch
 from baeloop.policy_replay import replay_action_policy_trace, render_policy_replay_markdown
 from baeloop.runner import iter_taskset_records
 from baeloop.terminal_probe import run_terminal_probe, render_terminal_probe_markdown
+from baeloop.tool_agent import render_tool_agent_markdown, run_tool_optimization_agent
 
 app = typer.Typer(help="Browser-agent evaluation and optimization loop.")
 
@@ -256,6 +257,33 @@ def eval_advisor(
     typer.echo(
         f"Evaluated advisor suite={case_suite}, cases={report['case_count']}, "
         f"include_llm={include_llm}, include_llm_v2={include_llm_v2}, out={json_out}"
+    )
+
+
+@app.command(name="tool-agent")
+def tool_agent(
+    report: Path = typer.Option(..., exists=True, readable=True, help="JSON compare report."),
+    reports_dir: Path = typer.Option(
+        Path("reports"),
+        exists=True,
+        file_okay=False,
+        readable=True,
+        help="Directory containing probe/replay tool artifacts.",
+    ),
+    json_out: Path | None = typer.Option(None, help="Path for machine-readable tool-agent run."),
+    markdown_out: Path | None = typer.Option(None, help="Path for markdown tool-agent run."),
+) -> None:
+    """Run an upper-layer optimization agent that uses local diagnostic tools."""
+    run = run_tool_optimization_agent(report, reports_dir=reports_dir)
+    if json_out:
+        write_json(json_out, run)
+    if markdown_out:
+        markdown_out.parent.mkdir(parents=True, exist_ok=True)
+        markdown_out.write_text(render_tool_agent_markdown(run), encoding="utf-8")
+
+    typer.echo(
+        f"Ran tool-agent on {report}: pre_tool={run.pre_tool_hypothesis_id}, "
+        f"final={run.final_hypothesis_id}, tools={len(run.tool_calls)}"
     )
 
 

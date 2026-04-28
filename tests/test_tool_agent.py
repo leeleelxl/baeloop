@@ -1,0 +1,44 @@
+from __future__ import annotations
+
+from pathlib import Path
+
+from baeloop.tool_agent import render_tool_agent_markdown, run_tool_optimization_agent
+
+
+def test_tool_agent_uses_grid_probe_to_move_from_investigation_to_patch() -> None:
+    run = run_tool_optimization_agent(
+        Path("reports/agentlab_hard_combined_vs_terminal_policy_compare.json")
+    )
+
+    assert run.pre_tool_hypothesis_id == "hyp_tool_investigate_before_patch"
+    assert run.final_hypothesis_id == "hyp_grid_coordinate_click"
+    assert run.decision_changed_by_tools is True
+    assert run.selected_root_cause == "coordinate_click_miss"
+    assert [call.tool_name for call in run.tool_calls] == [
+        "inspect_compare_report",
+        "inspect_grid_probe",
+    ]
+    assert run.tool_calls[-1].observation["patch_mature"] is True
+    assert run.proposal.patch["action_policy"]["policies"][-1] == "grid_coordinate_click"
+
+
+def test_tool_agent_uses_terminal_probe_for_terminal_root_cause() -> None:
+    run = run_tool_optimization_agent(Path("reports/agentlab_hard_scroll_policy_compare.json"))
+
+    assert run.final_hypothesis_id == "hyp_terminal_keyboard_type"
+    assert run.selected_root_cause == "terminal_input_action_mismatch"
+    assert "inspect_terminal_probe" in [call.tool_name for call in run.tool_calls]
+    assert run.proposal.patch["action_policy"]["name"] == "terminal_keyboard_type"
+
+
+def test_tool_agent_markdown_renders_tool_transcript() -> None:
+    run = run_tool_optimization_agent(
+        Path("reports/agentlab_hard_combined_vs_terminal_policy_compare.json")
+    )
+
+    markdown = render_tool_agent_markdown(run)
+
+    assert "# Tool-Using Optimization Agent Run" in markdown
+    assert "`inspect_compare_report`" in markdown
+    assert "`inspect_grid_probe`" in markdown
+    assert "`hyp_grid_coordinate_click`" in markdown

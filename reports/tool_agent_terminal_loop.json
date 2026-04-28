@@ -1,0 +1,121 @@
+{
+  "decision_changed_by_tools": true,
+  "final_hypothesis_id": "hyp_terminal_keyboard_type",
+  "pre_tool_hypothesis_id": "hyp_tool_investigate_before_patch",
+  "proposal": {
+    "advisor_mode": "tool-agent",
+    "advisor_stage_notes": {
+      "tool_agent": {
+        "decision_changed_by_tools": true,
+        "pre_tool_hypothesis_id": "hyp_tool_investigate_before_patch",
+        "selected_root_cause": "terminal_input_action_mismatch",
+        "tool_call_count": 3,
+        "tool_names": [
+          "inspect_compare_report",
+          "inspect_terminal_probe",
+          "inspect_grid_probe"
+        ]
+      }
+    },
+    "critic_decision": "accepted",
+    "critic_notes": [
+      "bounded patch present",
+      "no regressions detected",
+      "uses 2 candidate failure evidence records"
+    ],
+    "expected_effect": "Let terminal commands reach MiniWoB's custom terminal input surface.",
+    "hypothesis_id": "hyp_terminal_keyboard_type",
+    "intervention": {
+      "expected_effect": "Let terminal commands reach MiniWoB's custom terminal input surface.",
+      "id": "hyp_terminal_keyboard_type",
+      "kind": "action_policy",
+      "patch": {
+        "action_policy": {
+          "enabled": true,
+          "max_interventions": 20,
+          "name": "terminal_keyboard_type"
+        }
+      },
+      "rationale": "The terminal probe shows fill/press does not make commands visible, while keyboard typing does.",
+      "risk": "Fixes input delivery only; incorrect command planning can still fail.",
+      "summary": "Enable a terminal keyboard-type action policy after probe-backed evidence.",
+      "supported_by": [
+        "root_cause=terminal_input_action_mismatch",
+        "tool=inspect_terminal_probe artifact=reports/agentlab_terminal_action_probe.json",
+        "oracle_reward=1.0"
+      ],
+      "target_root_causes": [
+        "terminal_input_action_mismatch"
+      ]
+    },
+    "patch": {
+      "action_policy": {
+        "enabled": true,
+        "max_interventions": 20,
+        "name": "terminal_keyboard_type"
+      }
+    },
+    "rationale": "The terminal probe shows fill/press does not make commands visible, while keyboard typing does.",
+    "risk": "Fixes input delivery only; incorrect command planning can still fail.",
+    "summary": "Enable a terminal keyboard-type action policy after probe-backed evidence."
+  },
+  "report_path": "reports/agentlab_hard_scroll_policy_compare.json",
+  "selected_root_cause": "terminal_input_action_mismatch",
+  "tool_calls": [
+    {
+      "args": {
+        "report_path": "reports/agentlab_hard_scroll_policy_compare.json"
+      },
+      "observation": {
+        "baseline_config_id": "relay_gpt54_hard_retry_hyp_extend_step_budget",
+        "candidate_config_id": "relay_gpt54_hard_retry_hyp_extend_step_budget_hyp_scroll_before_submit",
+        "candidate_root_causes": [
+          "coordinate_click_miss",
+          "terminal_input_action_mismatch"
+        ],
+        "improvement_count": 1,
+        "regression_count": 0,
+        "success_rate_delta": 0.125
+      },
+      "tool_name": "inspect_compare_report"
+    },
+    {
+      "args": {
+        "artifact": "reports/agentlab_terminal_action_probe.json"
+      },
+      "observation": {
+        "artifact": "reports/agentlab_terminal_action_probe.json",
+        "fill_command_visible": false,
+        "keyboard_visible_sequences": [
+          "focus_keyboard_type_enter",
+          "click_input_keyboard_type_enter",
+          "click_terminal_keyboard_type_enter",
+          "mouse_click_keyboard_type_enter"
+        ],
+        "oracle_reward": 1.0,
+        "patch_mature": true
+      },
+      "tool_name": "inspect_terminal_probe"
+    },
+    {
+      "args": {
+        "artifact": "reports/agentlab_grid_coordinate_probe.json"
+      },
+      "observation": {
+        "artifact": "reports/agentlab_grid_coordinate_probe.json",
+        "mapped_mouse_click_reward": 1.0,
+        "patch_mature": true,
+        "svg_root_reward": 0.0,
+        "target_click_point": [
+          164,
+          104
+        ],
+        "target_coordinate": [
+          1,
+          2
+        ]
+      },
+      "tool_name": "inspect_grid_probe"
+    }
+  ]
+}

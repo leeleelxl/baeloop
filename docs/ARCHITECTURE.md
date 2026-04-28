@@ -125,11 +125,12 @@ Outputs:
 
 ## Advisor Modes
 
-BAELOOP currently supports three advisor modes through the same CLI command:
+BAELOOP currently supports four advisor modes:
 
 - `deterministic`: reproducible Python Analyst/Hypothesis/Critic stages used for tests and baseline behavior.
 - `llm`: OpenAI-compatible streaming chat completions for Analyst, Hypothesis, and Critic roles.
 - `llm-v2`: LLM Analyst/Hypothesis/Critic stages plus a deterministic-reference tool and evidence-maturity selector.
+- `tool-agent`: upper-layer optimization loop that calls local diagnostic tools before finalizing an `AdvisorProposal`.
 
 All modes output the same `AdvisorProposal` schema. The LLM modes are not allowed to mutate arbitrary config: they must emit an `Intervention`, pass Pydantic validation, and keep patch keys inside the patcher allowlist. If v1 returns invalid JSON, an unsupported patch, or an invalid critic decision, the system falls back to the deterministic advisor and records `advisor_mode=llm_fallback`. If v2 has a transient LLM failure, it falls back to its local evidence-maturity selector and records `advisor_mode=llm-v2-fallback`.
 
@@ -138,6 +139,30 @@ The v2 selector is the current decision layer that lets the agent beat the deter
 - preserve deterministic proposals that are already evidence-mature, such as quality winners, terminal input fixes, composite policy fixes, and first non-terminal max-step budget patches
 - force weak action-policy ideas such as `missed_scroll_target` or `coordinate_click_miss` into a probe/investigation when the report has not yet proven a bounded rewrite primitive
 - keep control-heavy failures as capability-boundary probes rather than prompt or budget patches
+
+## Tool-Using Optimization Agent
+
+The `tool-agent` mode is the current answer to the question "where is the agent tool-use loop?"
+
+It does not add tools to the browser agent. It adds tools to the upper-layer optimization agent:
+
+```text
+Optimization Agent
+  -> inspect_compare_report      # 读取对比报告和候选失败 root causes
+  -> inspect_terminal_probe      # 查看 terminal probe 是否证明 keyboard_type 有效
+  -> inspect_policy_replay       # 查看 scroll replay 是否证明策略会触发
+  -> inspect_grid_probe          # 查看 grid probe 是否证明 mapped mouse_click 有效
+  -> AdvisorProposal             # 根据 tool observation 输出 patch / investigation / hold
+```
+
+The first implementation is deliberately local and reproducible. It reads committed JSON artifacts instead of calling an LLM or rerunning the browser. This keeps the experiment safe while showing the real closed loop: plan, tool call, observation, revised decision.
+
+Current tool-agent experiments:
+
+- `reports/tool_agent_terminal_loop.*`: `inspect_compare_report -> inspect_terminal_probe -> inspect_grid_probe -> hyp_terminal_keyboard_type`
+- `reports/tool_agent_coordinate_loop.*`: `inspect_compare_report -> inspect_grid_probe -> hyp_grid_coordinate_click`
+
+In both runs, the pre-tool decision is `hyp_tool_investigate_before_patch`. The final patch is emitted only after the agent observes mature probe evidence.
 
 ## Advisor Evaluation Harness
 
@@ -162,14 +187,14 @@ Current 8-case result:
 
 The v1 result is deliberately mixed: deterministic is more stable and patch-safe, while plain LLM uses evidence and boundary reasoning more consistently. The v2 result is the current target architecture working on the historical suite: it combines model-backed analysis with deterministic-reference and evidence-maturity selection, so it avoids over-patching when the evidence only justifies a probe.
 
-Current 5-case holdout result:
+Current 10-case holdout result:
 
 | Advisor | Avg Score | Direction Match | Safe Patch | Evidence Use | Boundary Awareness |
 |---|---:|---:|---:|---:|---:|
 | `deterministic` | 0.933 | 0.800 | 1.000 | 1.000 | 0.800 |
-| `llm-v2` | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
+| `llm-v2` | 0.983 | 0.900 | 1.000 | 1.000 | 1.000 |
 
-The holdout suite includes saturated tasksets, efficiency winners, a remaining coordinate-action failure, and a timeout-budget mock case. The Markdown reports now expose `Mode` and `Source`, so a reviewer can see whether the final decision came from `deterministic_reference` or `investigation_fallback`.
+The holdout suite includes saturated tasksets, efficiency winners, remaining coordinate-action failures, a retry invalid/no-op case, and a timeout-budget mock case. The Markdown reports now expose `Mode` and `Source`, so a reviewer can see whether the final decision came from `deterministic_reference`, `llm_candidate`, or `investigation_fallback`.
 
 ## Intervention Model
 
