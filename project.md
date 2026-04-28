@@ -127,7 +127,7 @@ Rerun 或 Advisor Eval
 
 #### 当日架构图
 
-今天的核心架构没有改变，主要补强了评估可信度和展示链路。
+今天的核心架构没有改变，主要补强了评估可信度、展示链路和 advisor 决策可解释性。
 
 ```text
 ComparisonReport
@@ -149,6 +149,9 @@ Transparent Report
         |
         v
 Demo Summary + Readiness Review
+        |
+        v
+Advisor Input/Output Examples
 ```
 
 #### 当日模块职责
@@ -159,6 +162,8 @@ Demo Summary + Readiness Review
 - `tests/test_advisor_eval.py`：验证 holdout suite 暴露正常。
 - `tests/test_demo.py`：验证 demo summary 能输出项目主线。
 - `README.md`、`docs/ARCHITECTURE.md`、`project.md`：补充 holdout eval、demo summary、readiness review。
+- `docs/advisor-examples.md`：用两个真实 advisor case 展示输入、阶段判断和最终输出，覆盖成功 patch 与拒绝 patch 转 investigation。
+- `README.md`：新增顶部 “60-Second Demo”，让读者 1 分钟内理解项目目标、关键结果和报告入口。
 
 #### 今日改动
 
@@ -170,6 +175,10 @@ Demo Summary + Readiness Review
   证据：commit `a8ade24 add project demo summary`；命令 `uv run baeloop demo-summary --out reports/demo_summary.md`。
 - [x] 重新评估项目是否达到大厂 agent 日常实习标准。
   证据：`docs/project-readiness-review.md`。
+- [x] 补两个 advisor 输入/输出样例。
+  证据：`docs/advisor-examples.md`；包含 `terminal_keyboard_type` 成功 patch，以及 `coordinate_click_miss` 被 `llm-v2` 拒绝 patch 转 investigation。
+- [x] 在 README 顶部增加 “60 秒 Demo”。
+  证据：`README.md` 的 `60-Second Demo` 小节；包含 hard slice、broad slice、control slice、holdout advisor eval 四个关键指标。
 - [x] 验证当前代码库。
   证据：`uv run pytest` 通过，结果为 `79 passed`。
 
@@ -179,23 +188,26 @@ Demo Summary + Readiness Review
 - holdout 中 `holdout_combined_vs_terminal_remaining_coordinate` 证明 v2 会把弱 coordinate patch 转成 `hyp_probe_before_action_policy`，来源为 `investigation_fallback`。
 - `reports/demo_summary.md` 可以一页展示 hard-slice ladder、broad validation、control boundary、advisor holdout eval。
 - `docs/project-readiness-review.md` 给出当前诚实评分：约 `7.5/10` 到 `8/10`，继续补强后可冲 `8.5/10`。
+- `docs/advisor-examples.md` 展示了 advisor 的真实输入和输出，能解释为什么项目不是简单 prompt engineering。
+- `README.md` 顶部新增 `60-Second Demo`，把项目主线、关键结果和样例文档入口前置。
 - `uv run pytest` 通过，`79 passed`。
 
 #### 今日 Review
 
 - holdout eval 初步缓解了过拟合质疑：v2 在未参与调参的 5 个 case 上继续达到 `1.000`。
 - 报告透明度比单纯满分更重要：现在可以解释 agent 是选择 deterministic reference，还是转为 investigation fallback。
-- demo summary 已经能讲清项目主线，但 README 顶部还缺一个更短的 “60 秒 Demo”。
-- readiness review 结论仍然克制：当前可以认真投递 agent 日常实习，但还需要 advisor 输入/输出样例和更大 holdout suite。
+- demo summary 已经能讲清项目主线，README 顶部也已经补了更短的 “60 秒 Demo”。
+- advisor 样例补上后，可以更直接回答“agent 到底起了什么作用”：它把结构化失败证据转成 bounded patch，或在证据不足时拒绝 patch。
+- readiness review 结论仍然克制：当前可以认真投递 agent 日常实习，但还需要更大 holdout suite 来降低过拟合质疑。
 
 #### 下一阶段计划
 
-- [ ] 补两个 advisor 输入/输出样例。
-  完成标准：至少包含一个成功 patch 例子和一个拒绝 patch 转 investigation 例子。
+- [x] 补两个 advisor 输入/输出样例。
+  完成证据：`docs/advisor-examples.md`，包含一个成功 patch 例子和一个拒绝 patch 转 investigation 例子。
 - [ ] 扩大 holdout advisor-eval 到 10 到 15 个 case。
   完成标准：新增 case 先固定 expected label，再运行 eval，不根据结果倒改。
-- [ ] 在 README 顶部增加 “60 秒 Demo”。
-  完成标准：读者 1 分钟内能理解项目目标、架构、关键结果和如何运行 demo。
+- [x] 在 README 顶部增加 “60 秒 Demo”。
+  完成证据：`README.md` 的 `60-Second Demo` 小节，读者 1 分钟内能理解项目目标、架构、关键结果和如何运行 demo。
 
 ### 2026-04-27
 

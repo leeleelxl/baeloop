@@ -8,6 +8,33 @@ BAELOOP is an optimization layer for browser-agent experiments. It is not a repl
 run records -> compare report -> advisor proposal -> config patch -> rerun
 ```
 
+## 60-Second Demo
+
+BAELOOP optimizes a browser agent from benchmark evidence instead of replacing the browser agent or relying on open-ended prompt advice. The demo story is:
+
+```text
+AgentLab generic_agent runs MiniWoB++
+  -> BAELOOP compares configs
+  -> advisor identifies failure root causes
+  -> advisor emits a bounded patch or investigation
+  -> rerun / eval checks whether the decision improved the loop
+```
+
+Print the current one-page demo from committed report artifacts:
+
+```bash
+uv run baeloop demo-summary --out reports/demo_summary.md
+```
+
+Current headline evidence:
+
+- Hard slice improved from `0.500` to `1.000`.
+- Broad 20-task slice improved from `0.800` to `1.000` with 4 improvements and 0 regressions.
+- Control slice only improved from `0.438` to `0.500`, which exposes the current capability boundary instead of hiding it.
+- Holdout advisor eval: `llm-v2` scored `1.000` vs deterministic `0.933`.
+
+For concrete advisor inputs and outputs, see [`docs/advisor-examples.md`](docs/advisor-examples.md). For the current internship-readiness assessment, see [`docs/project-readiness-review.md`](docs/project-readiness-review.md).
+
 ## Current MVP
 
 This repository currently implements the current dependency-light MVP:
